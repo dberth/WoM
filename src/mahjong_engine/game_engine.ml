@@ -265,6 +265,7 @@ type game_loop_callbacks =
     end_game: game -> unit Lwt.t;
     on_game_event: game_event -> game -> unit Lwt.t;
     autosave_file: unit -> string option;
+    on_history_loaded: game -> unit Lwt.t;
   }
 
 let mk_player_events {current_round; _} =
@@ -416,7 +417,12 @@ let one_player_game_loop events callbacks =
     | _ -> events
   in
   let action_handler, game, state = build_game_engine init_events in
-  loop action_handler game state
+  let init =
+    match init_events with
+    | [] -> Lwt.return ()
+    | _ -> callbacks.on_history_loaded game
+  in
+  init >> loop action_handler game state
 
 let east_seat {east_seat; _} = east_seat  
 

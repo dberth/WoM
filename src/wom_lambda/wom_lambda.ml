@@ -371,12 +371,15 @@ let set_rack rack game show_all_hands =
   return (set_exposed rack game) >>
   return (set_discarded rack game)
 
-let on_game_event nb_tiles playground rack river event game =
+let refresh_playground nb_tiles playground rack river game =
   let open Lwt in
-    set_rack rack game false >>
+  set_rack rack game false >>
   set_river nb_tiles river game >>
   return (playground # queue_draw) >>
   Lwt.pause ()
+
+let on_game_event nb_tiles playground rack river _event game =
+  refresh_playground nb_tiles playground rack river game
 
 let end_round_console console game =
   let open Lwt in
@@ -435,6 +438,7 @@ let init nb_tiles playground rack river console =
       end_game;
       on_game_event = on_game_event nb_tiles playground rack river;
       autosave_file = (fun () -> Some "wom_game.dump");
+      on_history_loaded = refresh_playground nb_tiles playground rack river;
     }
   in
   Random.self_init ();
