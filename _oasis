@@ -1,0 +1,13 @@
+OASISFormat: 0.4
+Name:        wom
+Version:     0.0.1
+Synopsis:    Winds of Mahjong. A 4 player mahjong game.
+Authors:     Denis Berthod
+License:     BSD-3-clause
+
+Library mahjong_engine
+  Path:            src/mahjong_engine
+  BuildTools:      ocamlbuild
+  Build: true
+  Modules: Tileset
+  
