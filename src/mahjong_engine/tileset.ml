@@ -42,7 +42,6 @@ type tile_descr =
   | West_wind
   | North_wind
 
-
 let empty = []
 
 let default = String.make 11 'z'
@@ -111,6 +110,14 @@ let incr_num = num_op incr_byte
 let decr_num = num_op decr_byte
 
 let new_num x = incr_num x default
+
+let int_of_byte = function
+  | 'z' -> 0
+  | 'a' -> 1
+  | 'b' -> 2
+  | 'c' -> 3
+  | 'd' -> 4
+  | _ -> raise (Invalid_argument "int_of_byte")
 
 let compare_tile t1 t2 =
   match t1, t2 with
