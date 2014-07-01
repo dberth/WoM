@@ -157,9 +157,14 @@ let mk_num_tile_descr kind nums =
     )
     
 
-let tiles_descr_of_basic_tileset = function
+let tile_descr_of_basic_tileset = function
   | Num (kind, bytes) -> mk_num_tile_descr kind (ints_of_bytes bytes)
   | Honor (kind, nb) -> mk_honor_tile_descr kind nb
+
+let tile_descr_of_tile tile =
+  match tile_descr_of_basic_tileset tile with
+  | [x] -> x
+  | _ -> assert false
 
 let compare_tile t1 t2 =
   match t1, t2 with
