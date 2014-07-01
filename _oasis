@@ -8,6 +8,20 @@ License:     BSD-3-clause
 Library mahjong_engine
   Path:            src/mahjong_engine
   BuildTools:      ocamlbuild
-  Build: true
-  Modules: Tileset
+  CompiledObject:  best
+  Build:           true
+  Modules:         Tileset
+  Findlibname:     mahjong_engine
   
+Executable mahjong_engine_test
+  Path:		   test
+  BuildTools:      ocamlbuild
+  BuildDepends:    oUnit
+  Build:           true
+  MainIs:          mahjong_engine.ml
+  CompiledObject:  best
+
+Test mahjong_engine
+  WorkingDirectory: _build/test
+  Command:          ./mahjong_engine.native
+  Run:              true

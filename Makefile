@@ -1,20 +1,27 @@
 #Copyright (C) 2014 Denis Berthod
 
+OCAML=ocaml -w -3
+
+.PHONY: all, build, test, clean, distclean, install, configure
+
 all:
-	ocaml setup.ml -build
-	ocaml setup.ml -test
+	$(OCAML) setup.ml -build
+	$(OCAML) setup.ml -test
 
 build:
-	ocaml setup.ml -build
+	$(OCAML) setup.ml -build
 
 test:
-	ocaml setup.ml -test
+	$(OCAML) setup.ml -test
 
 clean:
-	ocaml setup.ml -clean
+	$(OCAML) setup.ml -clean
 
 distclean:
-	ocaml setup.ml -distclean
+	$(OCAML) setup.ml -distclean
 
 install:
-	ocaml setup.ml -install
+	$(OCAML) setup.ml -install
+
+configure:
+	$(OCAML) setup.ml -configure --enable-tests
