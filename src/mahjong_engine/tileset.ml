@@ -119,6 +119,48 @@ let int_of_byte = function
   | 'd' -> 4
   | _ -> raise (Invalid_argument "int_of_byte")
 
+let ints_of_bytes b =
+  let result = ref [] in
+  for i = Bytes.length b - 2 downto 1 do
+    let t = int_of_byte (Bytes.get b i) in
+    if t <> 0 then result := (i, t) :: !result
+  done;
+  !result
+
+let rec make_list n v =
+  if n = 0 then [] else v :: (make_list (n - 1) v)
+
+let honor_tile_descr_of_kind : (tile_kind -> tile_descr) = function
+  | Red_dragon -> Red_dragon
+  | Green_dragon -> Green_dragon
+  | White_dragon -> White_dragon
+  | East_wind -> East_wind
+  | South_wind -> South_wind
+  | West_wind -> West_wind
+  | North_wind -> North_wind
+  | _ -> raise (Invalid_argument "honor_tile_descr_of_kind")
+
+let num_tile_descr_of_kind num : (tile_kind -> tile_descr) = function
+  | Char -> Char num
+  | Bam -> Bam num
+  | Dot -> Dot num
+  | _ -> raise (Invalid_argument "num_tile_descr_of_kind")
+
+let mk_honor_tile_descr kind nb =
+  make_list nb (honor_tile_descr_of_kind kind)
+
+let mk_num_tile_descr kind nums =
+  List.flatten
+    (List.map
+       (fun (num, nb) -> make_list nb (num_tile_descr_of_kind num kind))
+       nums
+    )
+    
+
+let tiles_descr_of_basic_tileset = function
+  | Num (kind, bytes) -> mk_num_tile_descr kind (ints_of_bytes bytes)
+  | Honor (kind, nb) -> mk_honor_tile_descr kind nb
+
 let compare_tile t1 t2 =
   match t1, t2 with
   | Num (kind1, _), Num (kind2, _)
@@ -272,9 +314,6 @@ and read_4_shows start index s =
   | 'd' ->
       if index = 2 then 4 else read_4_shows start (index + 1) s
   | _ -> assert false
-
-let rec make_list n v =
-  if n = 0 then [] else v :: (make_list (n - 1) v)
 
 let rec get_byte_shows start s =
   if start = 8 then [] else
