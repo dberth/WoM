@@ -30,6 +30,19 @@ type mahjong =
   | Regular of basic_tileset list
   | Irregular of tileset
 
+type tile_descr =
+  | Bam of int
+  | Dot of int
+  | Char of int
+  | Red_dragon
+  | Green_dragon
+  | White_dragon
+  | East_wind
+  | South_wind
+  | West_wind
+  | North_wind
+
+
 let empty = []
 
 let default = String.make 11 'z'
