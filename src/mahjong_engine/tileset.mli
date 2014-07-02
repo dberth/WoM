@@ -72,7 +72,7 @@ val mahjong: ?irregular_hands: irregular_hands -> int -> tileset -> mahjong list
 
 val tile_descr_of_basic_tileset: basic_tileset -> tile_descr list
 
-val tile_descr_of_tile: tile -> tile_descr
+val tile_descr_of_tile: tile -> tile_descr list
 
 val string_of_tile_descr: tile_descr -> string
 

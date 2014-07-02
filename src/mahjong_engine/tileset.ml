@@ -80,7 +80,7 @@ let sub_byte b1 b2 =
 
 let num_op op x s =
   let s = Bytes.copy s in
-  Bytes.set s x (Bytes.get s x);
+  Bytes.set s x (op (Bytes.get s x));
   s
 
 let mk_byte_show start =
@@ -161,10 +161,10 @@ let tile_descr_of_basic_tileset = function
   | Num (kind, bytes) -> mk_num_tile_descr kind (ints_of_bytes bytes)
   | Honor (kind, nb) -> mk_honor_tile_descr kind nb
 
-let tile_descr_of_tile tile =
-  match tile_descr_of_basic_tileset tile with
-  | [x] -> x
-  | _ -> assert false
+let tile_descr_of_tile tile = tile_descr_of_basic_tileset tile
+  (* match tile_descr_of_basic_tileset tile with *)
+  (* | [x] -> x *)
+  (* | _ -> assert false *)
 
 let string_of_tile_descr = function
   | Bam i -> "b" ^ (string_of_int i)

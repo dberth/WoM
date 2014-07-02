@@ -8,9 +8,19 @@ let regular_mahjong ctx =
   assert_equal 1 1
 
 let tileset_test_suite =
+  let pp_tile_descr_list x =
+    List.map string_of_tile_descr x |>
+    String.concat "; " |> Printf.sprintf "[%s]"
+  in
   "Tileset test suite" >:::
   [
-   "Tile description" >:: (fun ctx -> assert_equal (tile_descr_of_tile b1) (Bam 1));
+   "Tile description" >::
+   (fun ctx ->
+     assert_equal
+       ~printer: pp_tile_descr_list
+       ([Bam 1])
+       (tile_descr_of_tile b1)
+   );
    "Regular mahjong" >:: regular_mahjong
  ]
 
