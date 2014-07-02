@@ -74,4 +74,6 @@ val tile_descr_of_basic_tileset: basic_tileset -> tile_descr list
 
 val tile_descr_of_tile: tile -> tile_descr
 
+val string_of_tile_descr: tile_descr -> string
+
 val test: unit -> mahjong list

@@ -166,6 +166,18 @@ let tile_descr_of_tile tile =
   | [x] -> x
   | _ -> assert false
 
+let string_of_tile_descr = function
+  | Bam i -> "b" ^ (string_of_int i)
+  | Dot i -> "d" ^ (string_of_int i)
+  | Char i -> "c" ^ (string_of_int i)
+  | Red_dragon -> "rd"
+  | Green_dragon -> "gd"
+  | White_dragon -> "wd"
+  | East_wind -> "ew"
+  | South_wind -> "sw"
+  | West_wind -> "ww"
+  | North_wind -> "nw"
+
 let compare_tile t1 t2 =
   match t1, t2 with
   | Num (kind1, _), Num (kind2, _)
