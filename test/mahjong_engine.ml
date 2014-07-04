@@ -26,14 +26,43 @@ let tile_description =
    )
 
 let mahjong =
-  ["Regular mahjong",
+  let irregular_without_lonely = [d1;d1;c2;c2;d3;d3;d4;d4;c5;c5;b6;b6;ww;ww] in
+  let irregular_hands =
+    no_irregular_hand |> add_irregular_hand irregular_without_lonely
+  in
+  ["Regular mahjong 4", 4,
    [b1; b2; b3; c1; c2; c3; rd; rd; rd; ww; ww; ww; d1; d1],
-   [[[Dot 1; Dot 1]; [West_wind; West_wind; West_wind]; [Red_dragon; Red_dragon; Red_dragon]; [Bam 1; Bam 2; Bam 3]; [Char 1; Char 2; Char 3]   ]];
+   [[[Dot 1; Dot 1]; [West_wind; West_wind; West_wind]; [Red_dragon; Red_dragon; Red_dragon]; [Bam 1; Bam 2; Bam 3]; [Char 1; Char 2; Char 3]]];
+
+   "Regular mahjong 3", 3,
+   [rd; rd; rd; c3; c4; c5; d9; d9; d9; ww; ww],
+   [[[West_wind; West_wind]; [Red_dragon; Red_dragon; Red_dragon]; [Dot 9; Dot 9; Dot 9]; [Char 3; Char 4; Char 5]]];
+
+   "Regular mahjong 2", 2,
+   [gd; gd; gd; d4; d5; d6; wd; wd],
+   [[[White_dragon; White_dragon]; [Green_dragon; Green_dragon; Green_dragon]; [Dot 4; Dot 5; Dot 6]]];
+
+   "Regular mahjong 1", 1,
+   [d1; d1; gd; gd; gd],
+   [[[Dot 1; Dot 1];[Green_dragon; Green_dragon; Green_dragon]]];
+
+   "Regular mahjong 0", 0,
+   [c9; c9],
+   [[[Char 9; Char 9]]];
+
+   "Not a mahjong", 4,
+   [b1; b2; b3; c1; c2; c3; rd; rd; rd; ww; ww; ww; d1; d2],
+   [];
+
+   "Irregular without lonely", 4,
+   irregular_without_lonely,
+   [[[Char 2; Char 2; Char 5; Char 5; Bam 6; Bam 6; Dot 1; Dot 1; Dot 3; Dot 3; Dot 4; Dot 4; West_wind; West_wind]]];
+
  ] |>
  List.map
-   (fun (title, tiles, descr) ->
+   (fun (title, nb_set, tiles, descr) ->
      title >:: fun _ctx ->
-       assert_equal ~printer: pp_mahjong_list descr (mahjong 4 (tileset_of_tiles tiles) |> List.map tile_descr_of_mahjong)
+       assert_equal ~printer: pp_mahjong_list descr (mahjong ~ irregular_hands nb_set (tileset_of_tiles tiles) |> List.map tile_descr_of_mahjong)
    )
  
   
