@@ -1,27 +1,41 @@
-#Copyright (C) 2014 Denis Berthod
+# OASIS_START
+# DO NOT EDIT (digest: a3c674b4239234cbbe53afe090018954)
 
-OCAML=ocaml -w -3
+SETUP = ocaml setup.ml
 
-.PHONY: all, build, test, clean, distclean, install, configure
+build: setup.data
+	$(SETUP) -build $(BUILDFLAGS)
+
+doc: setup.data build
+	$(SETUP) -doc $(DOCFLAGS)
+
+test: setup.data build
+	$(SETUP) -test $(TESTFLAGS)
 
 all:
-	$(OCAML) setup.ml -build
-	$(OCAML) setup.ml -test
+	$(SETUP) -all $(ALLFLAGS)
 
-build:
-	$(OCAML) setup.ml -build
+install: setup.data
+	$(SETUP) -install $(INSTALLFLAGS)
 
-test:
-	$(OCAML) setup.ml -test
+uninstall: setup.data
+	$(SETUP) -uninstall $(UNINSTALLFLAGS)
+
+reinstall: setup.data
+	$(SETUP) -reinstall $(REINSTALLFLAGS)
 
 clean:
-	$(OCAML) setup.ml -clean
+	$(SETUP) -clean $(CLEANFLAGS)
 
 distclean:
-	$(OCAML) setup.ml -distclean
+	$(SETUP) -distclean $(DISTCLEANFLAGS)
 
-install:
-	$(OCAML) setup.ml -install
+setup.data:
+	$(SETUP) -configure $(CONFIGUREFLAGS)
 
 configure:
-	$(OCAML) setup.ml -configure --enable-tests
+	$(SETUP) -configure $(CONFIGUREFLAGS)
+
+.PHONY: build doc test all install uninstall reinstall clean distclean configure
+
+# OASIS_STOP

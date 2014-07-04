@@ -4,6 +4,7 @@ Version:     0.0.1
 Synopsis:    Winds of Mahjong. A 4 player mahjong game.
 Authors:     Denis Berthod
 License:     BSD-3-clause
+Plugins:     DevFiles (0.4), META (0.4), StdFiles (0.4)
 
 Library mahjong_engine
   Path:            src/mahjong_engine
