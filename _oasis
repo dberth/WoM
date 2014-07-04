@@ -21,6 +21,14 @@ Executable mahjong_engine_test
   MainIs:          mahjong_engine.ml
   CompiledObject:  best
 
+Executable mahjong_engine_perf_test
+  Path:            test
+  BuildTools:      ocamlbuild
+  BuildDepends:    unix, mahjong_engine
+  Build:           true
+  MainIs:          mahjong_engine_performance.ml
+  CompiledObject:   best
+
 Test mahjong_engine
   WorkingDirectory: _build/test
   Command:          ./mahjong_engine.native

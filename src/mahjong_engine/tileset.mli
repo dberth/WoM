@@ -78,4 +78,3 @@ val tile_descr_of_mahjong: mahjong -> tile_descr list list
 
 val string_of_tile_descr: tile_descr -> string
 
-val test: unit -> mahjong list
