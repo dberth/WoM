@@ -4,43 +4,55 @@
 
 module IMap = Map.Make(struct type t = int let compare = compare end)
 
-type ('event, 'world) actuator = 'event -> 'world -> 'world
+type ('event, 'world) action = 'event -> 'world -> 'world
 
-type ('event, 'world) actuators = ('event, 'world) actuator IMap.t
+type ('event, 'world) action_handler = ('event, 'world) action IMap.t
+
+type ('event, 'world) setter = ('event, 'world) action -> ('event, 'world) action_handler -> ('event, 'world) action_handler
 
 type ('event, 'world) state =
     {
-     set_on_entry: (('event, 'world) actuator -> ('event, 'world) actuators -> ('event, 'world) actuators);
-     state: (('event, 'world) actuators -> 'world -> 'event list -> 'world * ('event, 'world) state)
+     on_entry_handle: int;
+     set_on_entry: ('event, 'world) setter;
+     set_on_exit: ('event, 'world) setter;
+     state: (('event, 'world) action_handler -> 'world -> 'event list -> 'world * ('event, 'world) state)
    }
 
-let empty_actuators = IMap.empty
+let empty_action_handler = IMap.empty
 
 let new_id =
   let id = ref (-1) in
   fun () -> incr id; !id
 
-let run actuators world state events =
-  (Lazy.force state).state actuators world events
+let run action_handler world state events =
+  (Lazy.force state).state action_handler world events
 
-let set_on_entry state =
+let on_entry state =
   (Lazy.force state).set_on_entry
 
+let on_exit state =
+  (Lazy.force state).set_on_exit
+
 let new_state transition =
-  let id = new_id () in
-  let set_on_entry actuator actuators = IMap.add id actuator actuators in
-  let on_entry actuators event world =
-    match IMap.find id actuators with
-    | actuator -> actuator event world
+  let on_entry_handle = new_id () in
+  let exit_id = new_id () in
+  let set_on_entry action action_handler = IMap.add on_entry_handle action action_handler in
+  let set_on_exit action action_handler = IMap.add exit_id action action_handler in
+  let on_event id action_handler event world =
+    match IMap.find id action_handler with
+    | action -> action event world
     | exception Not_found -> world
   in
-  let rec state actuators world = function
-    | [] -> world, {set_on_entry; state}
+  let on_exit = on_event exit_id in
+  let rec state action_handler world = function
+    | [] -> world, {on_entry_handle; set_on_entry; set_on_exit; state}
     | event :: tl ->
-	let world = on_entry actuators event world in
-	run actuators world (transition event) tl
+	let next_state = transition event in
+	let world = on_exit action_handler event world in
+	let world = on_event (Lazy.force next_state).on_entry_handle action_handler event world in
+	run action_handler world next_state tl
   in
-  {set_on_entry; state}
+  {on_entry_handle; set_on_entry; set_on_exit; state}
 
 (******* put in tests *****)
 
@@ -58,10 +70,15 @@ and green = lazy (new_state (function `ORANGE -> orange | _ -> assert false))
 and orange = lazy(new_state (function `RED -> red | _ -> assert false))
 
 let state_handlers =
-  let f event _ = event in
-  empty_actuators |>
-  set_on_entry red f |>
-  set_on_entry green f |>
-  set_on_entry orange f
+  let entry state event _ = print_endline (Printf.sprintf "Enter %s" state); event in
+  let exit state _ world = print_endline (Printf.sprintf "Exit %s" state); world in
+  empty_action_handler |>
+  on_entry red (entry "RED") |>
+  on_entry green (entry "GREEN") |>
+  on_entry orange (entry "ORANGE") |>
+  on_exit red (exit "RED") |>
+  on_exit green (exit "GREEN") |>
+  on_exit orange (exit "ORANGE")
+  
 
 let _ = run state_handlers `RED red [`GREEN; `ORANGE; `RED; `GREEN]
