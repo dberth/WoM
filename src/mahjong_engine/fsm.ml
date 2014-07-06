@@ -53,32 +53,3 @@ let new_state transition =
 	run action_handler world next_state tl
   in
   {on_entry_handle; set_on_entry; set_on_exit; state}
-
-(******* put in tests *****)
-
-
-
-let string_of_light = function
-  | `RED -> "RED"
-  | `GREEN -> "GREEN"
-  | `ORANGE -> "ORANGE"
-
-let rec red = lazy (new_state (function `GREEN -> green | _ -> assert false))
-
-and green = lazy (new_state (function `ORANGE -> orange | _ -> assert false))
-
-and orange = lazy(new_state (function `RED -> red | _ -> assert false))
-
-let state_handlers =
-  let entry state event _ = print_endline (Printf.sprintf "Enter %s" state); event in
-  let exit state _ world = print_endline (Printf.sprintf "Exit %s" state); world in
-  empty_action_handler |>
-  on_entry red (entry "RED") |>
-  on_entry green (entry "GREEN") |>
-  on_entry orange (entry "ORANGE") |>
-  on_exit red (exit "RED") |>
-  on_exit green (exit "GREEN") |>
-  on_exit orange (exit "ORANGE")
-  
-
-let _ = run state_handlers `RED red [`GREEN; `ORANGE; `RED; `GREEN]

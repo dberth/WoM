@@ -81,10 +81,48 @@ let tileset_test_suite =
    ("mahjong" >::: mahjong);
  ]
 
+module Red_light = struct
+  open Fsm
+
+  let rec red = lazy (new_state (function `TIMEOUT -> green))
+
+  and green = lazy (new_state (function `TIMEOUT -> orange))
+
+  and orange = lazy(new_state (function `TIMEOUT -> red))
+
+  let state_handlers =
+    let entry light_color =
+      fun _event _previous_light_color -> light_color
+    in
+    empty_action_handler |>
+    on_entry red (entry `RED) |>
+    on_entry green (entry `GREEN) |>
+    on_entry orange (entry `ORANGE)
+
+  let string_of_light = function
+    | `RED -> "RED"
+    | `GREEN -> "GREEN"
+    | `ORANGE -> "ORANGE"
+  
+  let test _ctx =
+    assert_equal
+      ~printer: string_of_light
+      (`GREEN)
+      (fst (run state_handlers `RED red [`TIMEOUT; `TIMEOUT; `TIMEOUT; `TIMEOUT]))
+
+end
+
+let fsm_test_suite =
+  "Finite State Machine" >:::
+  [
+   "Red light" >:: Red_light.test;
+ ]
+
 let engine_suite =
   "Mahjong engine test suite" >:::
   [
-   tileset_test_suite
+   tileset_test_suite;
+   fsm_test_suite
  ]
 
 let () = run_test_tt_main engine_suite
