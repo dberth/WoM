@@ -56,8 +56,9 @@ let start_engine action_handler world events =
 
   and mahjong_declared = lazy (new_state (fun _ -> mahjong_declared))
 
-  and kong_declared = lazy (new_state (fun _ -> kong_declared))
-  (*TODO*)
+  and kong_declared = lazy (new_state (function
+    | Draw _ -> player_turn
+    | event -> raise (Irrelevent_event (event, "kong_declared"))))
 
   and wait_for_kong_robbing = lazy (new_state (fun _ -> wait_for_kong_robbing))
 
