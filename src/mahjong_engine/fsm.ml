@@ -27,11 +27,11 @@ let new_id =
 let run action_handler world state events =
   (Lazy.force state).state action_handler world events
 
-let on_entry state =
-  (Lazy.force state).set_on_entry
+let on_entry state event world =
+  (Lazy.force state).set_on_entry event world
 
-let on_exit state =
-  (Lazy.force state).set_on_exit
+let on_exit state event world =
+  (Lazy.force state).set_on_exit event world
 
 let new_state transition =
   let on_entry_handle = new_id () in
