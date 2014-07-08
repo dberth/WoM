@@ -124,8 +124,20 @@ let start_engine action_handler world events =
     | Draw _ -> player_turn
     | event -> raise (Irrelevent_event (event, "kong_declared"))))
 
-  and wait_for_kong_robbing = lazy (new_state (fun _ -> wait_for_kong_robbing))
-      (*TODO*)
+  and wait_for_kong_robbing = lazy (new_state (function
+    | Mahjong _ -> mahjong_declared
+    | No_action _ -> kr_2
+    | event -> raise (Irrelevent_event (event, "wait_for_kong_robbing"))))
+   
+  and kr_2 = lazy (new_state (function
+    | Mahjong _ -> mahjong_declared
+    | No_action _ -> kr_1
+    | event -> raise (Irrelevent_event (event, "kr_2"))))
+
+  and kr_1 = lazy (new_state (function
+    | Mahjong _ -> mahjong_declared
+    | No_action _ -> kong_declared
+    | event -> raise (Irrelevent_event (event, "kr_1"))))
 
   in
   run action_handler world game_start events
