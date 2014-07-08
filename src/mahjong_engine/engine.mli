@@ -17,6 +17,7 @@ type event =
   | Chow of player * tile_pos list
   | Pong of player * tile_pos list
   | Kong of player * tile_pos list
+  | No_action of player
 
 exception Irrelevent_event of (event * string)
 
