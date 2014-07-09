@@ -8,7 +8,7 @@ type player = int
 type tile_pos = int (*A position in the initial array*)
 
 type event =
-  | Init of tile array
+  | Init of tile array option
   | Wall_breaker_roll of int
   | Break_wall_roll of int
   | Deal
@@ -24,7 +24,21 @@ type event =
 
 exception Irrelevent_event of (event * string)
 
-let start_engine action_handler world events = 
+let check_draw current_player can_be_draw event world =
+  match event with
+  | Draw (player, tile_index) ->
+      if (current_player world) <> player then
+	raise (Irrelevent_event (event, "Bad player in wait_for_draw_in_wall"));
+      if not (can_be_draw world tile_index) then
+	raise (Irrelevent_event (event, "Bad tile in wait_for_draw_in_wall"));
+      world
+  | _ -> assert false
+
+let build_engine
+    ?(check_events = false)
+    ~current_player
+    ~can_be_drawn
+    () = 
   let rec game_start = lazy (new_state (function
     | Init _ -> wait_for_wall_breaker_roll
     | event -> raise (Irrelevent_event (event, "game_start"))))
@@ -140,4 +154,15 @@ let start_engine action_handler world events =
     | event -> raise (Irrelevent_event (event, "kr_1"))))
 
   in
-  run action_handler world game_start events
+  let action_handler =
+    let init_action_handler =
+      if check_events then
+	empty_action_handler |>
+	on_exit wait_for_draw_in_wall (check_draw current_player can_be_drawn)
+      else
+	empty_action_handler
+    in
+    init_action_handler
+  in
+  fun world events ->
+    run action_handler world game_start events

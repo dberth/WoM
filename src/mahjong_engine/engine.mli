@@ -5,7 +5,7 @@ type player = int
 type tile_pos = int (*A position in the initial array*)
 
 type event =
-  | Init of Tileset.tile array
+  | Init of Tileset.tile array option
   | Wall_breaker_roll of int
   | Break_wall_roll of int
   | Deal
@@ -21,4 +21,8 @@ type event =
 
 exception Irrelevent_event of (event * string)
 
-val start_engine: (event, 'world) Fsm.action_handler -> 'world -> event list -> 'world * (event, 'world) Fsm.state
+val build_engine:
+    ?check_events: bool ->
+      current_player: ('world -> player) ->
+	can_be_drawn: ('world -> tile_pos -> bool) ->
+    unit -> ('world -> event list -> 'world * (event, 'world) Fsm.state)
