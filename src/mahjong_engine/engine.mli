@@ -1,5 +1,7 @@
 (*Copyright (C) 2014 Denis Berthod*)
 
+open Fsm
+
 type player = int
 
 type tile_pos = int (*A position in the initial array*)
@@ -19,10 +21,9 @@ type event =
   | Kong of player * tile_pos list
   | No_action of player
 
-exception Irrelevent_event of (event * string)
+exception Irrelevant_event of (event * string)
 
 val build_engine:
-    ?check_events: bool ->
-      current_player: ('world -> player) ->
-	can_be_drawn: ('world -> tile_pos -> bool) ->
-    unit -> ('world -> event list -> 'world * (event, 'world) Fsm.state)
+    ?on_game_start_exit: (event, 'world) action ->
+      ?on_wait_for_wall_breaker_roll_entry: (event, 'world) action ->
+	unit -> ('world -> event list -> 'world * (event, 'world) Fsm.state)
