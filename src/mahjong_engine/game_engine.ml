@@ -21,7 +21,17 @@ let init_tiles =
      ww; ww; ww; ww; nw; nw; nw; nw; nw; ew; ew; ew; ew; sw; sw; sw; sw
   |]
 
-let shuffle x = x
+let shuffle a =
+  let a = Array.copy a in
+  Random.self_init ();
+  for i = Array.length a - 1 downto 1 do
+    let j = Random.int i in
+    let x = a.(i) in
+    a.(i) <- a.(j);
+    a.(j) <- x
+  done;
+  a
+  
 
 let on_game_start_exit event game =
   match event with
