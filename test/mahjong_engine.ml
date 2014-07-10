@@ -5,7 +5,7 @@ open Tileset
 
 let pp_tile_descr_list x =
   List.map string_of_tile_descr x |>
-  String.concat "; " |> Printf.sprintf "[%s]"
+    String.concat "; " |> Printf.sprintf "[%s]"
 
 let pp_mahjong x =
   List.map pp_tile_descr_list x |> String.concat " "
@@ -15,23 +15,23 @@ let pp_mahjong_list x =
 
 let tile_description =
   [
-   "b1", Bam 1, b1;
-   "rd", Red_dragon, rd;
-   "ww", West_wind, ww;
- ]|>
- List.map
-   (fun (title, descr, tile) ->
-     title >:: fun _ctx ->
-       assert_equal ~printer: string_of_tile_descr descr (tile_descr_of_tile tile)
-   )
+    "b1", Bam 1, b1;
+    "rd", Red_dragon, rd;
+    "ww", West_wind, ww;
+  ]|>
+    List.map
+      (fun (title, descr, tile) ->
+        title >:: fun _ctx ->
+          assert_equal ~printer: string_of_tile_descr descr (tile_descr_of_tile tile)
+      )
 
 let mahjong =
   let irregular_without_lonely = [d1;d1;c2;c2;d3;d3;d4;d4;c5;c5;b6;b6;ww;ww] in
   let irregular_with_lonely = [d1; c1; b1; d9; c9; b9; wd; gd; rd; ww; ew; sw; nw; nw] in
   let irregular_hands =
     no_irregular_hand |>
-    add_irregular_hand irregular_without_lonely |>
-    add_irregular_hand irregular_with_lonely
+      add_irregular_hand irregular_without_lonely |>
+      add_irregular_hand irregular_with_lonely
   in
   ["Regular mahjong 4", 4,
    [b1; b2; b3; c1; c2; c3; rd; rd; rd; ww; ww; ww; d1; d1],
@@ -65,21 +65,21 @@ let mahjong =
    irregular_with_lonely,
    [[[Char 1; Char 9; Bam 1; Bam 9; Dot 1; Dot 9; Red_dragon; Green_dragon; White_dragon; East_wind; South_wind; North_wind; North_wind; West_wind]]];
 
- ] |>
- List.map
-   (fun (title, nb_set, tiles, descr) ->
-     title >:: fun _ctx ->
-       assert_equal ~printer: pp_mahjong_list descr (mahjong ~ irregular_hands nb_set (tileset_of_tiles tiles) |> List.map tile_descr_of_mahjong)
-   )
- 
-  
+  ] |>
+    List.map
+      (fun (title, nb_set, tiles, descr) ->
+        title >:: fun _ctx ->
+          assert_equal ~printer: pp_mahjong_list descr (mahjong ~ irregular_hands nb_set (tileset_of_tiles tiles) |> List.map tile_descr_of_mahjong)
+      )
+
+
 
 let tileset_test_suite =
   "Tileset test suite" >:::
-  [
-   ("tile_descr_of_tile" >::: tile_description);
-   ("mahjong" >::: mahjong);
- ]
+    [
+      ("tile_descr_of_tile" >::: tile_description);
+      ("mahjong" >::: mahjong);
+    ]
 
 module Red_light = struct
   open Fsm
@@ -95,15 +95,15 @@ module Red_light = struct
       fun _event _previous_light_color -> light_color
     in
     empty_action_handler |>
-    on_entry red (entry `RED) |>
-    on_entry green (entry `GREEN) |>
-    on_entry orange (entry `ORANGE)
+      on_entry red (entry `RED) |>
+      on_entry green (entry `GREEN) |>
+      on_entry orange (entry `ORANGE)
 
   let string_of_light = function
     | `RED -> "RED"
     | `GREEN -> "GREEN"
     | `ORANGE -> "ORANGE"
-  
+
   let test _ctx =
     assert_equal
       ~printer: string_of_light
@@ -114,16 +114,15 @@ end
 
 let fsm_test_suite =
   "Finite State Machine" >:::
-  [
-   "Red light" >:: Red_light.test;
- ]
+    [
+      "Red light" >:: Red_light.test;
+    ]
 
 let engine_suite =
   "Mahjong engine test suite" >:::
-  [
-   tileset_test_suite;
-   fsm_test_suite
- ]
+    [
+      tileset_test_suite;
+      fsm_test_suite
+    ]
 
 let () = run_test_tt_main engine_suite
-    

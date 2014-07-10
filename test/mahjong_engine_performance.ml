@@ -16,30 +16,30 @@ let random_hands nb =
     let cpts = Array.make 34 0 in
     let rec hand n acc =
       if n = 0 then acc else
-      let index = Random.int 34 in
-      if cpts.(index) = 4 then hand n acc
-      else begin
-        cpts.(index) <- cpts.(index) + 1;
-        hand (n - 1) (add_tile tiles.(index) acc)
-      end
+        let index = Random.int 34 in
+        if cpts.(index) = 4 then hand n acc
+        else begin
+          cpts.(index) <- cpts.(index) + 1;
+          hand (n - 1) (add_tile tiles.(index) acc)
+        end
     in
     hand 14 empty
   in
   let rec aux acc n =
     if n = 0 then acc else
-    aux (hand () :: acc) (n - 1)
+      aux (hand () :: acc) (n - 1)
   in
   aux [] nb
 
 let test hands =
-    List.fold_left
-      (fun acc hand ->
-        match mahjong 4 hand with
-        | [] -> acc
-        | x -> x @ acc
-      )
-      []
-      hands
+  List.fold_left
+    (fun acc hand ->
+      match mahjong 4 hand with
+      | [] -> acc
+      | x -> x @ acc
+    )
+    []
+    hands
 
 let () =
   let nb_hands = 1_000_000 in

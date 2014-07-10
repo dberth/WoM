@@ -1,3 +1,5 @@
+(*Copyright (C) 2014 Denis Berthod*)
+
 type tile_kind =
   | Char
   | Bam
@@ -21,10 +23,10 @@ type tileset = basic_tileset list
 type basic_tileset_trie = Trie of (basic_tileset * basic_tileset_trie) list
 
 type irregular_hands =
-    {
-     with_isolated_tiles: basic_tileset_trie;
-     without_isolated_tiles: basic_tileset_trie;
-   }
+  {
+    with_isolated_tiles: basic_tileset_trie;
+    without_isolated_tiles: basic_tileset_trie;
+  }
 
 type mahjong =
   | Regular of basic_tileset list
@@ -155,7 +157,7 @@ let mk_num_tile_descr kind nums =
        (fun (num, nb) -> make_list nb (num_tile_descr_of_kind num kind))
        nums
     )
-    
+
 
 let tile_descr_of_basic_tileset = function
   | Num (kind, bytes) -> mk_num_tile_descr kind (ints_of_bytes bytes)
@@ -198,22 +200,22 @@ let merge_byte s1 s2 =
 let merge_tile t1 t2 =
   match t1, t2 with
   | Num(kind1, s1), Num(kind2, s2) ->
-      assert (kind1 = kind2);
-      Num(kind1, merge_byte s1 s2)
+    assert (kind1 = kind2);
+    Num(kind1, merge_byte s1 s2)
   | Honor(kind1, s1), Honor(kind2, s2) ->
-      assert (kind1 = kind2);
-      Honor(kind1, s1 + s2)
+    assert (kind1 = kind2);
+    Honor(kind1, s1 + s2)
   | _ -> assert false
 
 let rec add_basic_tileset tile = function
   | [] -> [tile]
   | hd :: tl ->
-      if compare_tile hd tile < 0 then
-        hd :: (add_basic_tileset tile tl)
-      else if compare_tile hd tile = 0 then
-        (merge_tile hd tile) :: tl
-      else
-        tile :: hd :: tl
+    if compare_tile hd tile < 0 then
+      hd :: (add_basic_tileset tile tl)
+    else if compare_tile hd tile = 0 then
+      (merge_tile hd tile) :: tl
+    else
+      tile :: hd :: tl
 
 let add_tile = add_basic_tileset
 
@@ -276,10 +278,10 @@ let rec read_zaz index s =
   if 8 < index then
     false
   else
-    if s.[index] = 'z' then
-      read_az (index + 1) s
-    else
-      read_zaz (index + 1) s
+  if s.[index] = 'z' then
+    read_az (index + 1) s
+  else
+    read_zaz (index + 1) s
 
 and read_az index s =
   if 9 < index then
@@ -287,17 +289,17 @@ and read_az index s =
   else
     match s.[index] with
     | 'a' ->
-        if s.[index + 1] = 'z' then true else read_zaz (index + 2) s
+      if s.[index + 1] = 'z' then true else read_zaz (index + 2) s
     | 'z' -> read_az (index + 1) s
     | _ -> read_zaz (index + 1) s
 
-	  (*very quick test that eleminate most of the tileset that aren't mahjong*)
+(*very quick test that eleminate most of the tileset that aren't mahjong*)
 let rec has_isolated_tile = function
   | [] -> false
   | Num (_, s) :: tl ->
-      if read_zaz 0 s then true else has_isolated_tile tl
+    if read_zaz 0 s then true else has_isolated_tile tl
   | Honor (_, i) :: tl ->
-      if i = 1 then true else has_isolated_tile tl
+    if i = 1 then true else has_isolated_tile tl
 
 let rec read_1_show start index s =
   if s.[start + index] <> 'z' then
@@ -309,84 +311,84 @@ and read_2_shows start index s =
   match s.[start + index] with
   | 'z' -> 0
   | 'a' ->
-      if index = 2 then 1 else read_1_show start (index + 1) s
+    if index = 2 then 1 else read_1_show start (index + 1) s
   | _ ->
-      if index = 2 then 2 else read_2_shows start (index + 1) s
+    if index = 2 then 2 else read_2_shows start (index + 1) s
 
 and read_3_shows start index s =
   match s.[start + index] with
   | 'z' -> 0
   | 'a' ->
-      if index = 2 then 1 else read_1_show start (index + 1) s
+    if index = 2 then 1 else read_1_show start (index + 1) s
   | 'b' ->
-      if index = 2 then 2 else read_2_shows start (index + 1) s
+    if index = 2 then 2 else read_2_shows start (index + 1) s
   | _ ->
-      if index = 2 then 3 else read_3_shows start (index + 1) s
+    if index = 2 then 3 else read_3_shows start (index + 1) s
 
 and read_4_shows start index s =
   match s.[start + index] with
   | 'z' -> 0
   | 'a' ->
-      if index = 2 then 1 else read_1_show start (index + 1) s
+    if index = 2 then 1 else read_1_show start (index + 1) s
   | 'b' ->
-      if index = 2 then 2 else read_2_shows start (index + 1) s
+    if index = 2 then 2 else read_2_shows start (index + 1) s
   | 'c' ->
-      if index = 2 then 3 else read_3_shows start (index + 1) s
+    if index = 2 then 3 else read_3_shows start (index + 1) s
   | 'd' ->
-      if index = 2 then 4 else read_4_shows start (index + 1) s
+    if index = 2 then 4 else read_4_shows start (index + 1) s
   | _ -> assert false
 
 let rec get_byte_shows start s =
   if start = 8 then [] else
-  let nb_shows = read_4_shows start 0 s in
-  if nb_shows = 0 then
-    get_byte_shows (start + 1) s
-  else
-    (make_list nb_shows (mk_byte_show start)) @ (get_byte_shows (start + 1) s)
+    let nb_shows = read_4_shows start 0 s in
+    if nb_shows = 0 then
+      get_byte_shows (start + 1) s
+    else
+      (make_list nb_shows (mk_byte_show start)) @ (get_byte_shows (start + 1) s)
 
 let rec get_shows = function
   | [] -> []
   | Honor _ :: tl -> get_shows tl
   | Num (kind, s) :: tl ->
-      let shows = List.map (fun s -> Num (kind, s)) (get_byte_shows 1 s) in
-      shows @ (get_shows tl)
+    let shows = List.map (fun s -> Num (kind, s)) (get_byte_shows 1 s) in
+    shows @ (get_shows tl)
 
 let rec get_byte_pong_and_kongs index s =
   if index = 10 then [] else
-  match s.[index] with
-  | 'c' -> (mk_byte_pong index) :: (get_byte_pong_and_kongs (index + 1) s)
-  | 'd' -> (mk_byte_kong index) :: (mk_byte_pong index) :: (get_byte_pong_and_kongs (index + 1) s)
-  | _ -> get_byte_pong_and_kongs (index + 1) s
+    match s.[index] with
+    | 'c' -> (mk_byte_pong index) :: (get_byte_pong_and_kongs (index + 1) s)
+    | 'd' -> (mk_byte_kong index) :: (mk_byte_pong index) :: (get_byte_pong_and_kongs (index + 1) s)
+    | _ -> get_byte_pong_and_kongs (index + 1) s
 
 let rec get_pong_and_kongs = function
   | [] -> []
   | Num (kind, s) :: tl ->
-      let pong_and_kongs = List.map (fun s -> Num (kind, s)) (get_byte_pong_and_kongs 1 s) in
-      pong_and_kongs @ (get_pong_and_kongs tl)
+    let pong_and_kongs = List.map (fun s -> Num (kind, s)) (get_byte_pong_and_kongs 1 s) in
+    pong_and_kongs @ (get_pong_and_kongs tl)
   | Honor (kind, i) :: tl ->
-      match i with
-      | 3 -> Honor (kind, 3) :: (get_pong_and_kongs tl)
-      | 4 -> Honor (kind, 4) :: Honor (kind, 3) :: (get_pong_and_kongs tl)
-      | _ -> get_pong_and_kongs tl
+    match i with
+    | 3 -> Honor (kind, 3) :: (get_pong_and_kongs tl)
+    | 4 -> Honor (kind, 4) :: Honor (kind, 3) :: (get_pong_and_kongs tl)
+    | _ -> get_pong_and_kongs tl
 
 let rec get_byte_pairs index s =
   if index = 10 then [] else
-  match s.[index] with
-  | 'b' | 'c' -> (mk_byte_pair index) :: (get_byte_pairs (index + 1) s)
-  | 'd' -> let p = mk_byte_pair index in p :: p :: (get_byte_pairs (index + 1) s)
-  | _ -> get_byte_pairs (index +1) s
+    match s.[index] with
+    | 'b' | 'c' -> (mk_byte_pair index) :: (get_byte_pairs (index + 1) s)
+    | 'd' -> let p = mk_byte_pair index in p :: p :: (get_byte_pairs (index + 1) s)
+    | _ -> get_byte_pairs (index +1) s
 
 let rec get_pairs = function
   | [] -> []
   | Num(kind, s) :: tl ->
-      let pairs = List.map (fun s -> Num (kind, s)) (get_byte_pairs 1 s) in
-      pairs @ (get_pairs tl)
+    let pairs = List.map (fun s -> Num (kind, s)) (get_byte_pairs 1 s) in
+    pairs @ (get_pairs tl)
   | Honor(kind, i) :: tl ->
-      let p = Honor(kind, 2) in
-      match i with
-      | 2 | 3 -> p :: (get_pairs tl)
-      | 4 -> p :: p :: (get_pairs tl)
-      | _ -> get_pairs tl
+    let p = Honor(kind, 2) in
+    match i with
+    | 2 | 3 -> p :: (get_pairs tl)
+    | 4 -> p :: p :: (get_pairs tl)
+    | _ -> get_pairs tl
 
 let get_3sets tileset =
   get_shows tileset @ get_pong_and_kongs tileset
@@ -396,12 +398,12 @@ let rec add_tileset_to_trie ts trie =
   match ts with
   | [] -> trie
   | bt :: ts_tail ->
-      match trie with
-      | Trie [] -> Trie [bt, add_tileset_to_trie ts_tail (Trie [])]
-      | Trie ((hd_bt, hd_trie) :: tl) when bt = hd_bt -> Trie ((hd_bt, add_tileset_to_trie ts_tail hd_trie) :: tl)
-      | Trie (hd :: tl) ->
-          let Trie trie = add_tileset_to_trie ts (Trie tl) in
-          Trie (hd :: trie)
+    match trie with
+    | Trie [] -> Trie [bt, add_tileset_to_trie ts_tail (Trie [])]
+    | Trie ((hd_bt, hd_trie) :: tl) when bt = hd_bt -> Trie ((hd_bt, add_tileset_to_trie ts_tail hd_trie) :: tl)
+    | Trie (hd :: tl) ->
+      let Trie trie = add_tileset_to_trie ts (Trie tl) in
+      Trie (hd :: trie)
 
 let rec tileset_in_trie ts trie =
   match ts, trie with
@@ -437,10 +439,10 @@ let (>>=) = bind
 let rec mahjong_aux sets result nb_3_sets hand =
   if nb_3_sets = 0 then
     get_pairs hand >>= fun pair _ ->
-      [pair :: result]
+    [pair :: result]
   else
     sets >>= fun set rest ->
-      mahjong_aux rest (set :: result) (nb_3_sets - 1) hand
+    mahjong_aux rest (set :: result) (nb_3_sets - 1) hand
 
 let mahjong nb_3sets hand =
   if has_isolated_tile hand then begin
@@ -466,10 +468,10 @@ let (>>=) = bind
 let rec mahjong_aux sets result nb_3_sets hand =
   if nb_3_sets = 0 then
     get_pairs hand >>= fun pair _ ->
-      [pair :: result]
+    [pair :: result]
   else
     sets >>= fun set rest ->
-      mahjong_aux rest (set :: result) (nb_3_sets - 1) hand
+    mahjong_aux rest (set :: result) (nb_3_sets - 1) hand
 
 let no_irregular_hands = {with_isolated_tiles = Trie []; without_isolated_tiles = Trie []}
 

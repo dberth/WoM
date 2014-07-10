@@ -22,7 +22,6 @@ type event =
 exception Irrelevant_event of (event * string)
 
 val build_engine:
-
   ?on_wait_for_wall_breaker_roll_entry: (event, 'world) Fsm.action ->
   ?on_wait_for_break_roll_entry: (event, 'world) Fsm.action ->
   ?on_wait_for_deal_entry: (event, 'world) Fsm.action ->

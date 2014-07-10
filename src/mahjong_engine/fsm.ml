@@ -11,12 +11,12 @@ type ('event, 'world) action_handler = ('event, 'world) action IMap.t
 type ('event, 'world) setter = ('event, 'world) action -> ('event, 'world) action_handler -> ('event, 'world) action_handler
 
 type ('event, 'world) state =
-    {
-     on_entry_handle: int;
-     set_on_entry: ('event, 'world) setter;
-     set_on_exit: ('event, 'world) setter;
-     state: (('event, 'world) action_handler -> 'world -> 'event list -> 'world * ('event, 'world) state)
-   }
+  {
+    on_entry_handle: int;
+    set_on_entry: ('event, 'world) setter;
+    set_on_exit: ('event, 'world) setter;
+    state: (('event, 'world) action_handler -> 'world -> 'event list -> 'world * ('event, 'world) state)
+  }
 
 let empty_action_handler = IMap.empty
 
@@ -39,17 +39,18 @@ let new_state transition =
   let set_on_entry action action_handler = IMap.add on_entry_handle action action_handler in
   let set_on_exit action action_handler = IMap.add exit_id action action_handler in
   let on_event id action_handler event world =
-    match IMap.find id action_handler with
+    begin match IMap.find id action_handler with
     | action -> action event world
     | exception Not_found -> world
+    end
   in
   let on_exit = on_event exit_id in
   let rec state action_handler world = function
     | [] -> world, {on_entry_handle; set_on_entry; set_on_exit; state}
     | event :: tl ->
-	let next_state = transition event in
-	let world = on_exit action_handler event world in
-	let world = on_event (Lazy.force next_state).on_entry_handle action_handler event world in
-	run action_handler world next_state tl
+      let next_state = transition event in
+      let world = on_exit action_handler event world in
+      let world = on_event (Lazy.force next_state).on_entry_handle action_handler event world in
+      run action_handler world next_state tl
   in
   {on_entry_handle; set_on_entry; set_on_exit; state}

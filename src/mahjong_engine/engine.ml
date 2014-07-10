@@ -177,7 +177,7 @@ let build_engine
     | Mahjong _ -> mahjong_declared
     | No_action _ -> kr_2
     | event -> raise (Irrelevant_event (event, "wait_for_kong_robbing"))))
-   
+
   and kr_2 = lazy (new_state (function
     | Mahjong _ -> mahjong_declared
     | No_action _ -> kr_1
@@ -198,50 +198,50 @@ let build_engine
   let on_exit = opt on_exit in
   let action_handler =
     empty_action_handler |>
-    on_exit game_start on_game_start_exit |>
-    on_entry wait_for_wall_breaker_roll on_wait_for_wall_breaker_roll_entry |>
-    on_entry wait_for_break_roll on_wait_for_break_roll_entry |>
-    on_entry wait_for_deal on_wait_for_deal_entry |>
-    on_entry wait_for_draw_in_wall on_wait_for_draw_in_wall_entry |>
-    on_entry player_turn on_player_turn_entry |>
-    on_entry tile_discarded on_tile_discarded_entry |>
-    on_entry td_1_no_action_2 on_td_1_no_action_2_entry |>
-    on_entry td_1_chow_2 on_td_1_chow_2_entry |>
-    on_entry td_1_pong_2 on_td_1_pong_2_entry |>
-    on_entry td_1_kong_2 on_td_1_kong_2_entry |>
-    on_entry td_1_no_action_1 on_td_1_no_action_1_entry |>
-    on_entry td_2_pong_1 on_td_2_pong_1_entry |>
-    on_entry td_2_kong_1 on_td_2_kong_1_entry |>
-    on_entry td_1_chow_1 on_td_1_chow_1_entry |>
-    on_entry td_1_pong_1 on_td_1_pong_1_entry |>
-    on_entry td_1_kong_1 on_td_1_kong_1_entry |>
-    on_entry mahjong_declared on_mahjong_declared_entry |>
-    on_entry kong_declared on_kong_declared_entry |>
-    on_entry wait_for_kong_robbing on_wait_for_kong_robbing_entry |>
-    on_entry kr_2 on_kr_2_entry |>
-    on_entry kr_1 on_kr_1_entry |>
+      on_exit game_start on_game_start_exit |>
+      on_entry wait_for_wall_breaker_roll on_wait_for_wall_breaker_roll_entry |>
+      on_entry wait_for_break_roll on_wait_for_break_roll_entry |>
+      on_entry wait_for_deal on_wait_for_deal_entry |>
+      on_entry wait_for_draw_in_wall on_wait_for_draw_in_wall_entry |>
+      on_entry player_turn on_player_turn_entry |>
+      on_entry tile_discarded on_tile_discarded_entry |>
+      on_entry td_1_no_action_2 on_td_1_no_action_2_entry |>
+      on_entry td_1_chow_2 on_td_1_chow_2_entry |>
+      on_entry td_1_pong_2 on_td_1_pong_2_entry |>
+      on_entry td_1_kong_2 on_td_1_kong_2_entry |>
+      on_entry td_1_no_action_1 on_td_1_no_action_1_entry |>
+      on_entry td_2_pong_1 on_td_2_pong_1_entry |>
+      on_entry td_2_kong_1 on_td_2_kong_1_entry |>
+      on_entry td_1_chow_1 on_td_1_chow_1_entry |>
+      on_entry td_1_pong_1 on_td_1_pong_1_entry |>
+      on_entry td_1_kong_1 on_td_1_kong_1_entry |>
+      on_entry mahjong_declared on_mahjong_declared_entry |>
+      on_entry kong_declared on_kong_declared_entry |>
+      on_entry wait_for_kong_robbing on_wait_for_kong_robbing_entry |>
+      on_entry kr_2 on_kr_2_entry |>
+      on_entry kr_1 on_kr_1_entry |>
 
-    on_exit wait_for_wall_breaker_roll on_wait_for_wall_breaker_roll_exit |>
-    on_exit wait_for_break_roll on_wait_for_break_roll_exit |>
-    on_exit wait_for_deal on_wait_for_deal_exit |>
-    on_exit wait_for_draw_in_wall on_wait_for_draw_in_wall_exit |>
-    on_exit player_turn on_player_turn_exit |>
-    on_exit tile_discarded on_tile_discarded_exit |>
-    on_exit td_1_no_action_2 on_td_1_no_action_2_exit |>
-    on_exit td_1_chow_2 on_td_1_chow_2_exit |>
-    on_exit td_1_pong_2 on_td_1_pong_2_exit |>
-    on_exit td_1_kong_2 on_td_1_kong_2_exit |>
-    on_exit td_1_no_action_1 on_td_1_no_action_1_exit |>
-    on_exit td_2_pong_1 on_td_2_pong_1_exit |>
-    on_exit td_2_kong_1 on_td_2_kong_1_exit |>
-    on_exit td_1_chow_1 on_td_1_chow_1_exit |>
-    on_exit td_1_pong_1 on_td_1_pong_1_exit |>
-    on_exit td_1_kong_1 on_td_1_kong_1_exit |>
-    on_exit mahjong_declared on_mahjong_declared_exit |>
-    on_exit kong_declared on_kong_declared_exit |>
-    on_exit wait_for_kong_robbing on_wait_for_kong_robbing_exit |>
-    on_exit kr_2 on_kr_2_exit |>
-    on_exit kr_1 on_kr_1_exit
+      on_exit wait_for_wall_breaker_roll on_wait_for_wall_breaker_roll_exit |>
+      on_exit wait_for_break_roll on_wait_for_break_roll_exit |>
+      on_exit wait_for_deal on_wait_for_deal_exit |>
+      on_exit wait_for_draw_in_wall on_wait_for_draw_in_wall_exit |>
+      on_exit player_turn on_player_turn_exit |>
+      on_exit tile_discarded on_tile_discarded_exit |>
+      on_exit td_1_no_action_2 on_td_1_no_action_2_exit |>
+      on_exit td_1_chow_2 on_td_1_chow_2_exit |>
+      on_exit td_1_pong_2 on_td_1_pong_2_exit |>
+      on_exit td_1_kong_2 on_td_1_kong_2_exit |>
+      on_exit td_1_no_action_1 on_td_1_no_action_1_exit |>
+      on_exit td_2_pong_1 on_td_2_pong_1_exit |>
+      on_exit td_2_kong_1 on_td_2_kong_1_exit |>
+      on_exit td_1_chow_1 on_td_1_chow_1_exit |>
+      on_exit td_1_pong_1 on_td_1_pong_1_exit |>
+      on_exit td_1_kong_1 on_td_1_kong_1_exit |>
+      on_exit mahjong_declared on_mahjong_declared_exit |>
+      on_exit kong_declared on_kong_declared_exit |>
+      on_exit wait_for_kong_robbing on_wait_for_kong_robbing_exit |>
+      on_exit kr_2 on_kr_2_exit |>
+      on_exit kr_1 on_kr_1_exit
 
   in
   fun world events ->
