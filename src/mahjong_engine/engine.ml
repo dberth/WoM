@@ -8,7 +8,7 @@ type player = int
 type tile_pos = int (*A position in the initial array*)
 
 type event =
-  | Init of tile array option
+  | Init of tile_descr option array
   | Wall_breaker_roll of int
   | Break_wall_roll of int
   | Deal
