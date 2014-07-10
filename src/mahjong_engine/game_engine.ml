@@ -6,11 +6,13 @@ open Engine
 type game =
   {
     tiles: tile array;
+    wall_breaker: int;
   }
 
 let init_game =
   {
     tiles = [||];
+    wall_breaker = 0;
   }
 
 let init_tiles =
@@ -82,10 +84,16 @@ let shuffle known_positions =
 
 let on_game_start_exit event game =
   match event with
-  | Init known_positions -> {tiles = shuffle known_positions}
+  | Init known_positions -> {game with tiles = shuffle known_positions}
+  | _ -> assert false
+
+let on_wait_for_wall_breaker_roll_exit event game =
+  match event with
+  | Wall_breaker_roll dice -> {game with wall_breaker = (dice - 1) mod 4}
   | _ -> assert false
 
 let run_game =
   build_engine
     ~on_game_start_exit
+    ~on_wait_for_wall_breaker_roll_exit
     ()
