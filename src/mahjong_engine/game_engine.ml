@@ -6,13 +6,13 @@ open Engine
 type game =
   {
     tiles: tile array;
-    wall_breaker: int;
+    wall_breaker_roll: int;
   }
 
 let init_game =
   {
     tiles = [||];
-    wall_breaker = 0;
+    wall_breaker_roll = 0;
   }
 
 let init_tiles =
@@ -89,8 +89,10 @@ let on_game_start_exit event game =
 
 let on_wait_for_wall_breaker_roll_exit event game =
   match event with
-  | Wall_breaker_roll dice -> {game with wall_breaker = (dice - 1) mod 4}
+  | Wall_breaker_roll wall_breaker_roll -> {game with wall_breaker_roll}
   | _ -> assert false
+
+
 
 let run_game =
   build_engine
