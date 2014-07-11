@@ -8,6 +8,7 @@ type game =
     tiles: tile array;
     wall_breaker_roll: int;
     current_tile: int;
+    last_tile: int;
   }
 
 let init_game =
@@ -15,6 +16,7 @@ let init_game =
     tiles = [||];
     wall_breaker_roll = 0;
     current_tile = 0;
+    last_tile = 0;
   }
 
 let init_tiles =
@@ -97,6 +99,14 @@ let shuffle known_positions =
   done;
   tiles
 
+let first_tile_index wall_breaker_roll break_wall_roll =
+  let wall_breaker = (break_wall_roll - 1) mod 4 in
+  let nb_tile_by_side = nb_tiles / 4 in
+  let count_start_index = wall_breaker * nb_tile_by_side in
+  (count_start_index + 2 * (wall_breaker_roll + break_wall_roll)) mod nb_tiles
+
+(*** Actions ***)
+
 let on_game_start_exit event game =
   match event with
   | Init known_positions -> {game with tiles = shuffle known_positions}
@@ -107,7 +117,12 @@ let on_wait_for_wall_breaker_roll_exit event game =
   | Wall_breaker_roll wall_breaker_roll -> {game with wall_breaker_roll}
   | _ -> assert false
 
-
+let on_wait_for_break_roll_entry event game =
+  match event with
+  | Break_wall_roll dice ->
+    let current_tile = first_tile_index game.wall_breaker_roll dice in 
+    {game with current_tile; last_tile = (current_tile + nb_tiles - 1) mod nb_tiles}
+  | _ -> assert false
 
 let run_game =
   build_engine
