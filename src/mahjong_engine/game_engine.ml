@@ -23,6 +23,7 @@ type game =
     player_2: player_state;
     player_3: player_state;
     current_player: int;
+    discarded_tile: int option;
   }
 
 let init_player =
@@ -43,6 +44,7 @@ let init_game =
     player_2 = init_player;
     player_3 = init_player;
     current_player = 0;
+    discarded_tile = None;
   }
 
 let update_player player f game =
@@ -165,6 +167,19 @@ let check_player player event game =
   else
     raise (Irrelevant_event(event, Printf.sprintf "Expected player was %i." game.current_player))
 
+let discard player tile_idx event game =
+  {game with discarded_tile = Some tile_idx} |>
+    update_player player
+      (fun {tiles; _} player_state ->
+        begin match remove_tile tiles.(tile_idx) player_state.hand with
+        | hand ->
+          let hand_indexes = IntSet.remove tile_idx player_state.hand_indexes in
+          {hand; hand_indexes}
+        | exception Not_found ->
+          raise (Irrelevant_event (event, "No such tile to discard."))
+        end
+      )
+
 (*** Actions ***)
 
 let on_game_start_exit event game =
@@ -207,6 +222,16 @@ let on_wait_for_draw_in_wall_exit event game =
     check_player player event game |> draw_tile player
   | _ -> assert false
 
+let on_player_turn_exit event game =
+  match event with
+  | Discard (player, tile_idx) ->
+    check_player player event game |> discard player tile_idx event
+  | Mahjong _ -> game (*TODO*)
+  | Concealed_kong _ -> game (*TODO*)
+  | Small_kong _ -> game (*TODO*)
+  | _ -> assert false
+      
+
 let run_game =
   build_engine
     ~on_game_start_exit
@@ -214,4 +239,5 @@ let run_game =
     ~on_wait_for_break_roll_exit
     ~on_wait_for_deal_exit
     ~on_wait_for_draw_in_wall_exit
+    ~on_player_turn_exit
     ()

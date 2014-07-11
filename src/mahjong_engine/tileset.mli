@@ -28,6 +28,8 @@ val empty: tileset
 
 val add_tile: tile -> tileset -> tileset
 
+val remove_tile: tile -> tileset -> tileset
+
 val c1: tile
 val c2: tile
 val c3: tile

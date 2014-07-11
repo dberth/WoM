@@ -191,9 +191,16 @@ let compare_tile t1 t2 =
   | _ -> compare t1 t2
 
 let merge_byte s1 s2 =
-  let s = String.copy default in
+  let s = Bytes.copy default in
   for i = 0 to 10 do
     Bytes.set s i (add_byte (Bytes.get s1 i) (Bytes.get s2 i))
+  done;
+  s
+
+let unmerge_byte s1 s2 =
+  let s = Bytes.copy default in
+  for i = 0 to 10 do
+    Bytes.set s i (sub_byte (Bytes.get s1 i) (Bytes.get s2 i))
   done;
   s
 
@@ -207,6 +214,16 @@ let merge_tile t1 t2 =
     Honor(kind1, s1 + s2)
   | _ -> assert false
 
+let unmerge_tile t1 t2 =
+  match t1, t2 with
+  | Num(kind1, s1), Num(kind2, s2) ->
+    assert (kind1 = kind2);
+    Num(kind1, unmerge_byte s1 s2)
+  | Honor(kind1, s1), Honor(kind2, s2) ->
+    assert (kind1 = kind2);
+    Honor(kind1, s1 - s2)
+  | _ -> assert false
+
 let rec add_basic_tileset tile = function
   | [] -> [tile]
   | hd :: tl ->
@@ -217,7 +234,19 @@ let rec add_basic_tileset tile = function
     else
       tile :: hd :: tl
 
+let rec remove_basic_tileset tile = function
+  | [] -> raise Not_found
+  | hd :: tl ->
+    if compare_tile hd tile < 0 then
+      hd :: (remove_basic_tileset tile tl)
+    else if compare_tile hd tile = 0 then
+      (unmerge_tile hd tile) :: tl
+    else
+      raise Not_found
+
 let add_tile = add_basic_tileset
+
+let remove_tile = remove_basic_tileset
 
 let tileset_of_basic_tilesets l =
   List.fold_left (fun set tile -> add_basic_tileset tile set) [] l
