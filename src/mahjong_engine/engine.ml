@@ -12,7 +12,7 @@ type event =
   | Wall_breaker_roll of int
   | Break_wall_roll of int
   | Deal
-  | Draw of player * tile_pos
+  | Draw of player
   | Discard of player * tile_pos
   | Mahjong of player
   | Concealed_kong of player * tile_pos

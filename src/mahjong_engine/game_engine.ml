@@ -22,6 +22,7 @@ type game =
     player_1: player_state;
     player_2: player_state;
     player_3: player_state;
+    current_player: int;
   }
 
 let init_player =
@@ -41,6 +42,7 @@ let init_game =
     player_1 = init_player;
     player_2 = init_player;
     player_3 = init_player;
+    current_player = 0;
   }
 
 let update_player player f game =
@@ -157,6 +159,12 @@ let draw_4_tiles player game =
 
 let deal_turn f game = f 0 game |> f 1 |> f 2 |> f 3
 
+let check_player player event game =
+  if player = game.current_player then
+    game
+  else
+    raise (Irrelevant_event(event, Printf.sprintf "Expected player was %i." game.current_player))
+
 (*** Actions ***)
 
 let on_game_start_exit event game =
@@ -193,10 +201,17 @@ let on_wait_for_deal_exit event game =
       deal_turn draw_tile
   | _ -> assert false
 
+let on_wait_for_draw_in_wall_exit event game =
+  match event with
+  | Draw player ->
+    check_player player event game |> draw_tile player
+  | _ -> assert false
+
 let run_game =
   build_engine
     ~on_game_start_exit
     ~on_wait_for_wall_breaker_roll_exit
     ~on_wait_for_break_roll_exit
     ~on_wait_for_deal_exit
+    ~on_wait_for_draw_in_wall_exit
     ()
