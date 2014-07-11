@@ -3,6 +3,14 @@
 open Tileset
 open Engine
 
+module IntSet = Set.Make(struct type t = int let compare = (-) end)
+
+type player_state =
+  {
+    hand: tileset;
+    hand_indexes: IntSet.t;
+  }
+
 type game =
   {
     history: event list;
@@ -10,6 +18,16 @@ type game =
     wall_breaker_roll: int;
     current_tile: int;
     last_tile: int;
+    player_0: player_state;
+    player_1: player_state;
+    player_2: player_state;
+    player_3: player_state;
+  }
+
+let init_player =
+  {
+    hand = empty;
+    hand_indexes = IntSet.empty;
   }
 
 let init_game =
@@ -19,7 +37,19 @@ let init_game =
     wall_breaker_roll = 0;
     current_tile = 0;
     last_tile = 0;
+    player_0 = init_player;
+    player_1 = init_player;
+    player_2 = init_player;
+    player_3 = init_player;
   }
+
+let update_player player f game =
+  match player with
+  | 0 -> {game with player_0 = f game game.player_0}
+  | 1 -> {game with player_1 = f game game.player_1}
+  | 2 -> {game with player_2 = f game game.player_2}
+  | 3 -> {game with player_3 = f game game.player_3}
+  | _ -> assert false
 
 let init_tiles =
   [| b1; b1; b1; b1; b2; b2; b2; b2; b3; b3; b3; b3;
@@ -107,6 +137,26 @@ let first_tile_index wall_breaker_roll break_wall_roll =
   let count_start_index = wall_breaker * nb_tile_by_side in
   (count_start_index + 2 * (wall_breaker_roll + break_wall_roll)) mod nb_tiles
 
+let incr_current_tile game =
+  {game with current_tile = (game.current_tile + 1) mod nb_tiles}
+
+let draw_tile player game =
+  incr_current_tile game |>
+    update_player player
+      (fun {current_tile; tiles; _} player_state ->
+        let hand = add_tile (tiles.(current_tile)) player_state.hand in
+        let hand_indexes = IntSet.add current_tile player_state.hand_indexes in
+        {hand; hand_indexes}
+      )
+
+let draw_4_tiles player game =
+  draw_tile player game |>
+    draw_tile player |>
+    draw_tile player |>
+    draw_tile player
+
+let deal_turn f game = f 0 game |> f 1 |> f 2 |> f 3
+
 (*** Actions ***)
 
 let on_game_start_exit event game =
@@ -134,9 +184,19 @@ let on_wait_for_break_roll_exit event game =
     }
   | _ -> assert false
 
+let on_wait_for_deal_exit event game =
+  match event with
+  | Deal ->
+    deal_turn draw_4_tiles game |>
+      deal_turn draw_4_tiles |>
+      deal_turn draw_4_tiles |>
+      deal_turn draw_tile
+  | _ -> assert false
+
 let run_game =
   build_engine
     ~on_game_start_exit
     ~on_wait_for_wall_breaker_roll_exit
     ~on_wait_for_break_roll_exit
+    ~on_wait_for_deal_exit
     ()
