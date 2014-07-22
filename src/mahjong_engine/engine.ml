@@ -15,7 +15,7 @@ type event =
   | Draw of player
   | Discard of player * tile_pos
   | Mahjong of player
-  | Concealed_kong of player * tile_pos
+  | Concealed_kong of player * tile_pos list
   | Small_kong of player * tile_pos
   | Chow of player * tile_pos list
   | Pong of player * tile_pos list

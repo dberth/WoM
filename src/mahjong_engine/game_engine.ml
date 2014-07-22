@@ -258,7 +258,7 @@ let on_player_turn_exit event game =
     check_player player event game |> discard player tile_idx event
   | Mahjong player ->
     check_player player event game |>
-      mahjong ~self_draw: true player
+      mahjong ~self_draw: true player (*Maybe do this on mahjong declared state ?*)
   | Concealed_kong _ -> game (*TODO*)
   | Small_kong _ -> game (*TODO*)
   | _ -> assert false
