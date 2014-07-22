@@ -9,7 +9,19 @@ type player_state =
   {
     hand: tileset;
     hand_indexes: IntSet.t;
+    exposed: tileset list;
   }
+
+type mahjong =
+  {
+    exposed: tileset list;
+    concealed: tileset;
+    self_draw: bool;
+  }
+
+type end_game =
+  | No_winner
+  | Mahjong of mahjong
 
 type game =
   {
@@ -24,12 +36,14 @@ type game =
     player_3: player_state;
     current_player: int;
     discarded_tile: int option;
+    end_game: end_game option;
   }
 
 let init_player =
   {
     hand = empty;
     hand_indexes = IntSet.empty;
+    exposed = [];
   }
 
 let init_game =
@@ -45,6 +59,7 @@ let init_game =
     player_3 = init_player;
     current_player = 0;
     discarded_tile = None;
+    end_game = None;
   }
 
 let update_player player f game =
@@ -53,6 +68,14 @@ let update_player player f game =
   | 1 -> {game with player_1 = f game game.player_1}
   | 2 -> {game with player_2 = f game game.player_2}
   | 3 -> {game with player_3 = f game game.player_3}
+  | _ -> assert false
+
+let update_game_from_player player f game =
+  match player with
+  | 0 -> f game game.player_0
+  | 1 -> f game game.player_1
+  | 2 -> f game game.player_2
+  | 3 -> f game game.player_3
   | _ -> assert false
 
 let init_tiles =
@@ -150,7 +173,7 @@ let draw_tile player game =
       (fun {current_tile; tiles; _} player_state ->
         let hand = add_tile (tiles.(current_tile)) player_state.hand in
         let hand_indexes = IntSet.add current_tile player_state.hand_indexes in
-        {hand; hand_indexes}
+        {player_state with hand; hand_indexes}
       )
 
 let draw_4_tiles player game =
@@ -174,11 +197,18 @@ let discard player tile_idx event game =
         begin match remove_tile tiles.(tile_idx) player_state.hand with
         | hand ->
           let hand_indexes = IntSet.remove tile_idx player_state.hand_indexes in
-          {hand; hand_indexes}
+          {player_state with hand; hand_indexes}
         | exception Not_found ->
           raise (Irrelevant_event (event, "No such tile to discard."))
         end
       )
+
+let mahjong ~self_draw player game =
+  update_game_from_player player
+    (fun game {hand; exposed; _} ->
+      {game with end_game = Some (Mahjong {exposed; concealed = hand; self_draw})}
+    )
+    game
 
 (*** Actions ***)
 
@@ -226,7 +256,9 @@ let on_player_turn_exit event game =
   match event with
   | Discard (player, tile_idx) ->
     check_player player event game |> discard player tile_idx event
-  | Mahjong _ -> game (*TODO*)
+  | Mahjong player ->
+    check_player player event game |>
+      mahjong ~self_draw: true player
   | Concealed_kong _ -> game (*TODO*)
   | Small_kong _ -> game (*TODO*)
   | _ -> assert false
