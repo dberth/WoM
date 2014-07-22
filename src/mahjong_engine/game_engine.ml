@@ -5,17 +5,19 @@ open Engine
 
 module IntSet = Set.Make(struct type t = int let compare = (-) end)
 
+type declared = (tileset * bool (*is_concealed*)) list
+
 type player_state =
   {
     hand: tileset;
     hand_indexes: IntSet.t;
-    exposed: tileset list;
+    declared: declared;
   }
 
 type mahjong =
   {
-    exposed: tileset list;
-    concealed: tileset;
+    declared: declared;
+    hand: tileset;
     self_draw: bool;
   }
 
@@ -43,7 +45,7 @@ let init_player =
   {
     hand = empty;
     hand_indexes = IntSet.empty;
-    exposed = [];
+    declared = [];
   }
 
 let init_game =
@@ -205,8 +207,8 @@ let discard player tile_idx event game =
 
 let mahjong ~self_draw player game =
   update_game_from_player player
-    (fun game {hand; exposed; _} ->
-      {game with end_game = Some (Mahjong {exposed; concealed = hand; self_draw})}
+    (fun game {hand; declared; _} ->
+      {game with end_game = Some (Mahjong {declared; hand; self_draw})}
     )
     game
 
