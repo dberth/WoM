@@ -317,7 +317,16 @@ let on_player_turn_exit event game =
     check_player player event game |>
       declare_small_kong player tile_pos event
   | _ -> assert false
-      
+
+
+let on_tile_discarded_exit event game =
+  match event with
+  | No_action _ -> game (*TODO*)
+  | Mahjong _ -> game (*TODO*)
+  | Chow _ -> game (*TODO*)
+  | Pong _ -> game (*TODO*)
+  | Kong _ -> game (*TODO*)
+  | _ -> assert false
 
 let run_game =
   build_engine
@@ -327,4 +336,5 @@ let run_game =
     ~on_wait_for_deal_exit
     ~on_wait_for_draw_in_wall_exit
     ~on_player_turn_exit
+    ~on_tile_discarded_exit
     ()
