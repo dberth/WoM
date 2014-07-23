@@ -66,18 +66,18 @@ let init_game =
 
 let update_player player f game =
   match player with
-  | 0 -> {game with player_0 = f game game.player_0}
-  | 1 -> {game with player_1 = f game game.player_1}
-  | 2 -> {game with player_2 = f game game.player_2}
-  | 3 -> {game with player_3 = f game game.player_3}
+  | 0 -> {game with player_0 = f game.player_0}
+  | 1 -> {game with player_1 = f game.player_1}
+  | 2 -> {game with player_2 = f game.player_2}
+  | 3 -> {game with player_3 = f game.player_3}
   | _ -> assert false
 
 let update_game_from_player player f game =
   match player with
-  | 0 -> f game game.player_0
-  | 1 -> f game game.player_1
-  | 2 -> f game game.player_2
-  | 3 -> f game game.player_3
+  | 0 -> f game.player_0
+  | 1 -> f game.player_1
+  | 2 -> f game.player_2
+  | 3 -> f game.player_3
   | _ -> assert false
 
 let init_tiles =
@@ -170,13 +170,14 @@ let incr_current_tile game =
   {game with current_tile = (game.current_tile + 1) mod nb_tiles}
 
 let draw_tile player game =
-  incr_current_tile game |>
-    update_player player
-      (fun {current_tile; tiles; _} player_state ->
-        let hand = add_tile (tiles.(current_tile)) player_state.hand in
-        let hand_indexes = IntSet.add current_tile player_state.hand_indexes in
-        {player_state with hand; hand_indexes}
-      )
+  let game = incr_current_tile game in
+  update_player player
+    (fun player_state ->
+      let hand = add_tile (game.tiles.(game.current_tile)) player_state.hand in
+      let hand_indexes = IntSet.add game.current_tile player_state.hand_indexes in
+      {player_state with hand; hand_indexes}
+    )
+    game
 
 let draw_4_tiles player game =
   draw_tile player game |>
@@ -192,25 +193,51 @@ let check_player player event game =
   else
     raise (Irrelevant_event(event, Printf.sprintf "Expected player was %i." game.current_player))
 
+let remove_tile_from_hand tile_idx tiles event (player_state: player_state) =
+  begin match remove_tile tiles.(tile_idx) player_state.hand with
+  | hand ->
+    let hand_indexes = IntSet.remove tile_idx player_state.hand_indexes in
+    {player_state with hand; hand_indexes}
+  | exception Not_found ->
+    raise (Irrelevant_event (event, "No such tile in player hand."))
+  end
+
 let discard player tile_idx event game =
   {game with discarded_tile = Some tile_idx} |>
-    update_player player
-      (fun {tiles; _} player_state ->
-        begin match remove_tile tiles.(tile_idx) player_state.hand with
-        | hand ->
-          let hand_indexes = IntSet.remove tile_idx player_state.hand_indexes in
-          {player_state with hand; hand_indexes}
-        | exception Not_found ->
-          raise (Irrelevant_event (event, "No such tile to discard."))
-        end
-      )
+    update_player player (remove_tile_from_hand tile_idx game.tiles event)
 
 let mahjong ~self_draw player game =
   update_game_from_player player
-    (fun game {hand; declared; _} ->
+    (fun {hand; declared; _} ->
       {game with end_game = Some (Mahjong {declared; hand; self_draw})}
     )
     game
+
+let mk_tileset_of_tiles_pos tiles tiles_pos =
+  List.fold_left
+    (fun tileset tile_pos -> add_tile tiles.(tile_pos) tileset)
+    empty
+    tiles_pos
+
+let declare_tileset ~concealed player tiles_pos event game =
+  update_player player
+    (fun player_state ->
+      let player_state =
+        List.fold_left
+          (fun player_state tile_idx ->
+            remove_tile_from_hand tile_idx game.tiles event player_state
+          )
+          player_state
+          tiles_pos
+      in
+      let tileset = mk_tileset_of_tiles_pos game.tiles tiles_pos in
+      {player_state with declared = (tileset, concealed) :: player_state.declared}
+    )
+    game
+    
+
+let declare_concealed_kong player tiles_pos event game =
+  declare_tileset ~concealed: true player tiles_pos event game
 
 (*** Actions ***)
 
@@ -261,7 +288,9 @@ let on_player_turn_exit event game =
   | Mahjong player ->
     check_player player event game |>
       mahjong ~self_draw: true player (*Maybe do this on mahjong declared state ?*)
-  | Concealed_kong _ -> game (*TODO*)
+  | Concealed_kong (player, tiles_pos) ->
+    check_player player event game |>
+      declare_concealed_kong player tiles_pos event 
   | Small_kong _ -> game (*TODO*)
   | _ -> assert false
       
