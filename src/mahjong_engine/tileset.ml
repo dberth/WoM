@@ -532,3 +532,24 @@ let mahjong ?(irregular_hands = no_irregular_hands) nb_3sets hand =
       []
   end else
     real_mahjong_check irregular_hands.without_isolated_tiles nb_3sets hand
+
+let is_kong_bytes b =
+  let has_wrong_tile = ref false in
+  let has_kong = ref false in
+  for i = 0 to Bytes.length b - 1 do
+    match Bytes.get b i with
+    | 'z' -> ()
+    | 'a'..'c' -> has_wrong_tile := true
+    | 'd' ->
+      if !has_kong then
+        has_wrong_tile := true
+      else
+        has_kong := true
+    | _ -> assert false
+  done;
+  not !has_wrong_tile && !has_kong
+
+let is_kong = function
+  | [Honor(_, 4)] -> true
+  | [Num(_, bytes)] -> is_kong_bytes bytes
+  | _ -> false

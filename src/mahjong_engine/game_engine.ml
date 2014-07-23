@@ -7,18 +7,18 @@ module IntSet = Set.Make(struct type t = int let compare = (-) end)
 
 type declared = (tileset * bool (*is_concealed*)) list
 
-type player_state =
-  {
-    hand: tileset;
-    hand_indexes: IntSet.t;
-    declared: declared;
-  }
-
 type mahjong =
   {
     declared: declared;
     hand: tileset;
     self_draw: bool;
+  }
+
+type player_state =
+  {
+    hand: tileset;
+    hand_indexes: IntSet.t;
+    declared: declared;
   }
 
 type end_game =
@@ -234,10 +234,32 @@ let declare_tileset ~concealed player tiles_pos event game =
       {player_state with declared = (tileset, concealed) :: player_state.declared}
     )
     game
-    
 
 let declare_concealed_kong player tiles_pos event game =
   declare_tileset ~concealed: true player tiles_pos event game
+
+let set_small_kong tile_pos tiles event player_state =
+  let rec aux = function
+    | [] -> raise (Irrelevant_event(event, "Cannot find pong to make a small kong."))
+    | (tileset, concealed as x) :: tl ->
+      if is_kong tileset then
+        x :: aux tl
+      else
+        let tileset = add_tile tiles.(tile_pos) tileset in
+        if is_kong tileset then
+          (tileset, concealed) :: tl
+        else
+          x :: aux tl
+  in
+  {player_state with declared = aux player_state.declared}
+
+let declare_small_kong player tile_pos event game =
+  update_player player
+    (fun player_state ->
+      remove_tile_from_hand tile_pos game.tiles event player_state |>
+        set_small_kong tile_pos game.tiles event
+    )
+    game
 
 (*** Actions ***)
 
@@ -291,7 +313,9 @@ let on_player_turn_exit event game =
   | Concealed_kong (player, tiles_pos) ->
     check_player player event game |>
       declare_concealed_kong player tiles_pos event 
-  | Small_kong _ -> game (*TODO*)
+  | Small_kong (player, tile_pos) ->
+    check_player player event game |>
+      declare_small_kong player tile_pos event
   | _ -> assert false
       
 

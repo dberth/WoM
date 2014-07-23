@@ -73,6 +73,8 @@ val add_irregular_hand: tile list -> irregular_hands -> irregular_hands
 
 val mahjong: ?irregular_hands: irregular_hands -> int -> tileset -> mahjong list
 
+val is_kong: tileset -> bool
+
 val tile_descr_of_basic_tileset: basic_tileset -> tile_descr list
 
 val tile_descr_of_tile: tile -> tile_descr
