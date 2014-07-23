@@ -360,6 +360,22 @@ let on_td_1_no_action_2_exit (event: event) game =
     }
   | _ -> assert false
 
+let on_td_1_chow_2_exit (event: event) game =
+  match event with
+  | Mahjong player ->
+    check_player player event game |>
+      mahjong ~discard_player: (Some (player |> prev_player |> prev_player)) player
+  | No_action player ->
+    let game = check_player player event game in
+    {game with current_player = next_player player}
+  | Pong (player, _) | Kong (player, _) ->
+    let game = check_player player event game in
+    {game with
+      current_player = next_player player;
+      discard_event = Some event;
+    }
+  | _ -> assert false
+  
 
 
 let run_game =
@@ -371,5 +387,6 @@ let run_game =
     ~on_wait_for_draw_in_wall_exit
     ~on_player_turn_exit
     ~on_tile_discarded_exit
-    ~ on_td_1_no_action_2_exit
+    ~on_td_1_no_action_2_exit
+    ~on_td_1_chow_2_exit
     ()
