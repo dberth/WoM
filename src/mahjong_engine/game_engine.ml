@@ -202,8 +202,13 @@ let remove_tile_from_hand tile_idx tiles event (player_state: player_state) =
     raise (Irrelevant_event (event, "No such tile in player hand."))
   end
 
+let next_player player = player + 1 mod 4
+
 let discard player tile_idx event game =
-  {game with discarded_tile = Some tile_idx} |>
+  {game with
+    discarded_tile = Some tile_idx;
+    current_player = next_player player
+  } |>
     update_player player (remove_tile_from_hand tile_idx game.tiles event)
 
 let mahjong ~self_draw player game =
@@ -321,7 +326,7 @@ let on_player_turn_exit event game =
 
 let on_tile_discarded_exit event game =
   match event with
-  | No_action _ -> game (*TODO*)
+  | No_action player -> check_player player event game
   | Mahjong _ -> game (*TODO*)
   | Chow _ -> game (*TODO*)
   | Pong _ -> game (*TODO*)
