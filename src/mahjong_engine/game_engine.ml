@@ -270,6 +270,25 @@ let declare_small_kong player tile_pos event game =
     )
     game
 
+let set_discarded_tile player tiles_pos event game =
+  match game.discarded_tile with
+  | None -> assert false
+  | Some discarded_tile ->
+    if List.mem discarded_tile tiles_pos then
+      {game with discarded_tile = None; current_player = player} |>
+        update_player player
+          (fun player_state ->
+            let hand = add_tile (game.tiles.(discarded_tile)) player_state.hand in
+            let hand_indexes = IntSet.add discarded_tile player_state.hand_indexes in
+            {player_state with hand; hand_indexes}
+          )
+    else
+      raise (Irrelevant_event(event, "Event doesn't concern discarded tile."))
+
+let declare_discarded_tileset player tiles_pos event game =
+  set_discarded_tile player tiles_pos event game |>
+    declare_tileset ~concealed: false player tiles_pos event
+
 (*** Actions ***)
 
 let on_game_start_exit event game =
@@ -396,6 +415,23 @@ let on_td_1_kong_2_exit (event: event) game =
     {game with current_player = next_player player}
   | _ -> assert false
 
+let on_td_1_no_action_3_exit (event: event) game =
+  let discard_player player = player |> prev_player |> prev_player |> prev_player in
+  match event with
+  | Mahjong player ->
+    check_player player event game |>
+      mahjong ~discard_player: (Some (discard_player player)) player
+  | No_action player ->
+    {game with
+      current_player = next_player (discard_player player);
+      discard_event = None;
+      discarded_tile = None;
+    }
+  | Pong (player, tiles_pos)
+  | Kong (player, tiles_pos) -> declare_discarded_tileset player tiles_pos event game
+  | _ -> assert false
+
+
 let run_game =
   build_engine
     ~on_game_start_exit
@@ -409,4 +445,5 @@ let run_game =
     ~on_td_1_chow_2_exit
     ~on_td_1_pong_2_exit
     ~on_td_1_kong_2_exit
+    ~on_td_1_no_action_3_exit
     ()
