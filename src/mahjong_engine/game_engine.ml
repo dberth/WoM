@@ -396,7 +396,6 @@ let on_td_1_kong_2_exit (event: event) game =
     {game with current_player = next_player player}
   | _ -> assert false
 
-
 let run_game =
   build_engine
     ~on_game_start_exit

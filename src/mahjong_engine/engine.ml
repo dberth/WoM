@@ -36,12 +36,12 @@ let build_engine
     ?on_td_1_chow_2_entry
     ?on_td_1_pong_2_entry
     ?on_td_1_kong_2_entry
-    ?on_td_1_no_action_1_entry
-    ?on_td_2_pong_1_entry
-    ?on_td_2_kong_1_entry
-    ?on_td_1_chow_1_entry
-    ?on_td_1_pong_1_entry
-    ?on_td_1_kong_1_entry
+    ?on_td_1_no_action_3_entry
+    ?on_td_2_pong_3_entry
+    ?on_td_2_kong_3_entry
+    ?on_td_1_chow_3_entry
+    ?on_td_1_pong_3_entry
+    ?on_td_1_kong_3_entry
     ?on_mahjong_declared_entry
     ?on_kong_declared_entry
     ?on_wait_for_kong_robbing_entry
@@ -59,12 +59,12 @@ let build_engine
     ?on_td_1_chow_2_exit
     ?on_td_1_pong_2_exit
     ?on_td_1_kong_2_exit
-    ?on_td_1_no_action_1_exit
-    ?on_td_2_pong_1_exit
-    ?on_td_2_kong_1_exit
-    ?on_td_1_chow_1_exit
-    ?on_td_1_pong_1_exit
-    ?on_td_1_kong_1_exit
+    ?on_td_1_no_action_3_exit
+    ?on_td_2_pong_3_exit
+    ?on_td_2_kong_3_exit
+    ?on_td_1_chow_3_exit
+    ?on_td_1_pong_3_exit
+    ?on_td_1_kong_3_exit
     ?on_mahjong_declared_exit
     ?on_kong_declared_exit
     ?on_wait_for_kong_robbing_exit
@@ -110,59 +110,59 @@ let build_engine
     | event -> raise (Irrelevant_event (event, "tile_discarded"))))
 
   and td_1_no_action_2 = lazy (new_state (function
-    | No_action _ -> td_1_no_action_1
+    | No_action _ -> td_1_no_action_3
     | Mahjong _ -> mahjong_declared
-    | Pong _ -> td_2_pong_1
-    | Kong _ -> td_2_kong_1
+    | Pong _ -> td_2_pong_3
+    | Kong _ -> td_2_kong_3
     | event -> raise (Irrelevant_event (event, "1_no_action_2"))))
 
   and td_1_chow_2 = lazy (new_state (function
-    | No_action _ -> td_1_chow_1
+    | No_action _ -> td_1_chow_3
     | Mahjong _ -> mahjong_declared
-    | Pong _ -> td_2_pong_1
-    | Kong _ -> td_2_kong_1
+    | Pong _ -> td_2_pong_3
+    | Kong _ -> td_2_kong_3
     | event -> raise (Irrelevant_event (event, "1_chow_2"))))
 
   and td_1_pong_2 = lazy (new_state (function
-    | No_action _ -> td_1_pong_1
+    | No_action _ -> td_1_pong_3
     | Mahjong _ -> mahjong_declared
     | event -> raise (Irrelevant_event (event, "1_pong_2"))))
 
   and td_1_kong_2 = lazy (new_state (function
-    | No_action _ -> td_1_kong_1
+    | No_action _ -> td_1_kong_3
     | Mahjong _ -> mahjong_declared
     | event -> raise (Irrelevant_event (event, "1_kong_2"))))
 
-  and td_1_no_action_1 = lazy (new_state (function
+  and td_1_no_action_3 = lazy (new_state (function
     | No_action _ -> wait_for_draw_in_wall
     | Mahjong _ -> mahjong_declared
     | Pong _ -> player_turn
     | Kong _ -> kong_declared
     | event -> raise (Irrelevant_event (event, "1_no_action_1"))))
 
-  and td_2_pong_1 = lazy (new_state (function
+  and td_2_pong_3 = lazy (new_state (function
     | No_action _ -> player_turn
     | Mahjong _ -> mahjong_declared
     | event -> raise (Irrelevant_event (event, "2_pong_1"))))
 
-  and td_2_kong_1 = lazy (new_state (function
+  and td_2_kong_3 = lazy (new_state (function
     | No_action _ -> player_turn
     | Mahjong _ -> mahjong_declared
     | event -> raise (Irrelevant_event (event, "2_kong_1"))))
 
-  and td_1_chow_1 = lazy (new_state (function
+  and td_1_chow_3 = lazy (new_state (function
     | No_action _ -> player_turn
     | Mahjong _ -> mahjong_declared
     | Pong _ -> player_turn
     | Kong _ -> kong_declared
     | event -> raise (Irrelevant_event (event, "1_chow_1"))))
 
-  and td_1_pong_1 = lazy (new_state (function
+  and td_1_pong_3 = lazy (new_state (function
     | No_action _ -> player_turn
     | Mahjong _ -> mahjong_declared
     | event -> raise (Irrelevant_event (event, "1_pong_1"))))
 
-  and td_1_kong_1 = lazy (new_state (function
+  and td_1_kong_3 = lazy (new_state (function
     | No_action _ -> kong_declared
     | Mahjong _ -> mahjong_declared
     | event -> raise (Irrelevant_event (event, "1_kong_1"))))
@@ -209,12 +209,12 @@ let build_engine
       on_entry td_1_chow_2 on_td_1_chow_2_entry |>
       on_entry td_1_pong_2 on_td_1_pong_2_entry |>
       on_entry td_1_kong_2 on_td_1_kong_2_entry |>
-      on_entry td_1_no_action_1 on_td_1_no_action_1_entry |>
-      on_entry td_2_pong_1 on_td_2_pong_1_entry |>
-      on_entry td_2_kong_1 on_td_2_kong_1_entry |>
-      on_entry td_1_chow_1 on_td_1_chow_1_entry |>
-      on_entry td_1_pong_1 on_td_1_pong_1_entry |>
-      on_entry td_1_kong_1 on_td_1_kong_1_entry |>
+      on_entry td_1_no_action_3 on_td_1_no_action_3_entry |>
+      on_entry td_2_pong_3 on_td_2_pong_3_entry |>
+      on_entry td_2_kong_3 on_td_2_kong_3_entry |>
+      on_entry td_1_chow_3 on_td_1_chow_3_entry |>
+      on_entry td_1_pong_3 on_td_1_pong_3_entry |>
+      on_entry td_1_kong_3 on_td_1_kong_3_entry |>
       on_entry mahjong_declared on_mahjong_declared_entry |>
       on_entry kong_declared on_kong_declared_entry |>
       on_entry wait_for_kong_robbing on_wait_for_kong_robbing_entry |>
@@ -231,12 +231,12 @@ let build_engine
       on_exit td_1_chow_2 on_td_1_chow_2_exit |>
       on_exit td_1_pong_2 on_td_1_pong_2_exit |>
       on_exit td_1_kong_2 on_td_1_kong_2_exit |>
-      on_exit td_1_no_action_1 on_td_1_no_action_1_exit |>
-      on_exit td_2_pong_1 on_td_2_pong_1_exit |>
-      on_exit td_2_kong_1 on_td_2_kong_1_exit |>
-      on_exit td_1_chow_1 on_td_1_chow_1_exit |>
-      on_exit td_1_pong_1 on_td_1_pong_1_exit |>
-      on_exit td_1_kong_1 on_td_1_kong_1_exit |>
+      on_exit td_1_no_action_3 on_td_1_no_action_3_exit |>
+      on_exit td_2_pong_3 on_td_2_pong_3_exit |>
+      on_exit td_2_kong_3 on_td_2_kong_3_exit |>
+      on_exit td_1_chow_3 on_td_1_chow_3_exit |>
+      on_exit td_1_pong_3 on_td_1_pong_3_exit |>
+      on_exit td_1_kong_3 on_td_1_kong_3_exit |>
       on_exit mahjong_declared on_mahjong_declared_exit |>
       on_exit kong_declared on_kong_declared_exit |>
       on_exit wait_for_kong_robbing on_wait_for_kong_robbing_exit |>

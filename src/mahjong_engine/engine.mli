@@ -32,12 +32,12 @@ val build_engine:
   ?on_td_1_chow_2_entry: (event, 'world) Fsm.action ->
   ?on_td_1_pong_2_entry: (event, 'world) Fsm.action ->
   ?on_td_1_kong_2_entry: (event, 'world) Fsm.action ->
-  ?on_td_1_no_action_1_entry: (event, 'world) Fsm.action ->
-  ?on_td_2_pong_1_entry: (event, 'world) Fsm.action ->
-  ?on_td_2_kong_1_entry: (event, 'world) Fsm.action ->
-  ?on_td_1_chow_1_entry: (event, 'world) Fsm.action ->
-  ?on_td_1_pong_1_entry: (event, 'world) Fsm.action ->
-  ?on_td_1_kong_1_entry: (event, 'world) Fsm.action ->
+  ?on_td_1_no_action_3_entry: (event, 'world) Fsm.action ->
+  ?on_td_2_pong_3_entry: (event, 'world) Fsm.action ->
+  ?on_td_2_kong_3_entry: (event, 'world) Fsm.action ->
+  ?on_td_1_chow_3_entry: (event, 'world) Fsm.action ->
+  ?on_td_1_pong_3_entry: (event, 'world) Fsm.action ->
+  ?on_td_1_kong_3_entry: (event, 'world) Fsm.action ->
   ?on_mahjong_declared_entry: (event, 'world) Fsm.action ->
   ?on_kong_declared_entry: (event, 'world) Fsm.action ->
   ?on_wait_for_kong_robbing_entry: (event, 'world) Fsm.action ->
@@ -55,12 +55,12 @@ val build_engine:
   ?on_td_1_chow_2_exit: (event, 'world) Fsm.action ->
   ?on_td_1_pong_2_exit: (event, 'world) Fsm.action ->
   ?on_td_1_kong_2_exit: (event, 'world) Fsm.action ->
-  ?on_td_1_no_action_1_exit: (event, 'world) Fsm.action ->
-  ?on_td_2_pong_1_exit: (event, 'world) Fsm.action ->
-  ?on_td_2_kong_1_exit: (event, 'world) Fsm.action ->
-  ?on_td_1_chow_1_exit: (event, 'world) Fsm.action ->
-  ?on_td_1_pong_1_exit: (event, 'world) Fsm.action ->
-  ?on_td_1_kong_1_exit: (event, 'world) Fsm.action ->
+  ?on_td_1_no_action_3_exit: (event, 'world) Fsm.action ->
+  ?on_td_2_pong_3_exit: (event, 'world) Fsm.action ->
+  ?on_td_2_kong_3_exit: (event, 'world) Fsm.action ->
+  ?on_td_1_chow_3_exit: (event, 'world) Fsm.action ->
+  ?on_td_1_pong_3_exit: (event, 'world) Fsm.action ->
+  ?on_td_1_kong_3_exit: (event, 'world) Fsm.action ->
   ?on_mahjong_declared_exit: (event, 'world) Fsm.action ->
   ?on_kong_declared_exit: (event, 'world) Fsm.action ->
   ?on_wait_for_kong_robbing_exit: (event, 'world) Fsm.action ->
