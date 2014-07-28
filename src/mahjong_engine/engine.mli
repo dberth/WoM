@@ -67,4 +67,7 @@ val build_engine:
   ?on_kr_2_exit: (event, 'world) Fsm.action ->
   ?on_kr_3_exit: (event, 'world) Fsm.action ->
 
-  unit -> ('world -> event list -> 'world * (event, 'world) Fsm.state)
+  unit ->
+  ('world ->
+   event list ->
+   (event, 'world) Fsm.action_handler * 'world * (event, 'world) Fsm.state)

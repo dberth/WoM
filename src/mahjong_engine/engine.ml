@@ -245,4 +245,5 @@ let build_engine
 
   in
   fun world events ->
-    run action_handler world game_start events
+    let world, state = run action_handler world game_start events in
+    action_handler, world, state
