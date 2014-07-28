@@ -138,34 +138,34 @@ let build_engine
     | Mahjong _ -> mahjong_declared
     | Pong _ -> player_turn
     | Kong _ -> kong_declared
-    | event -> raise (Irrelevant_event (event, "1_no_action_1"))))
+    | event -> raise (Irrelevant_event (event, "1_no_action_3"))))
 
   and td_2_pong_3 = lazy (new_state (function
     | No_action _ -> player_turn
     | Mahjong _ -> mahjong_declared
-    | event -> raise (Irrelevant_event (event, "2_pong_1"))))
+    | event -> raise (Irrelevant_event (event, "2_pong_3"))))
 
   and td_2_kong_3 = lazy (new_state (function
     | No_action _ -> player_turn
     | Mahjong _ -> mahjong_declared
-    | event -> raise (Irrelevant_event (event, "2_kong_1"))))
+    | event -> raise (Irrelevant_event (event, "2_kong_3"))))
 
   and td_1_chow_3 = lazy (new_state (function
     | No_action _ -> player_turn
     | Mahjong _ -> mahjong_declared
     | Pong _ -> player_turn
     | Kong _ -> kong_declared
-    | event -> raise (Irrelevant_event (event, "1_chow_1"))))
+    | event -> raise (Irrelevant_event (event, "1_chow_3"))))
 
   and td_1_pong_3 = lazy (new_state (function
     | No_action _ -> player_turn
     | Mahjong _ -> mahjong_declared
-    | event -> raise (Irrelevant_event (event, "1_pong_1"))))
+    | event -> raise (Irrelevant_event (event, "1_pong_3"))))
 
   and td_1_kong_3 = lazy (new_state (function
     | No_action _ -> kong_declared
     | Mahjong _ -> mahjong_declared
-    | event -> raise (Irrelevant_event (event, "1_kong_1"))))
+    | event -> raise (Irrelevant_event (event, "1_kong_3"))))
 
   and mahjong_declared = lazy (new_state (fun _ -> mahjong_declared))
 

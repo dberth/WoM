@@ -435,21 +435,54 @@ let on_td_1_kong_2_exit (event: event) game =
   | _ -> assert false
 
 let on_td_1_no_action_3_exit (event: event) game =
-  let discard_player player = next_player player in
   match event with
   | Mahjong player ->
     check_player player event game |>
-      mahjong ~discard_player: (Some (discard_player player)) player
-  | No_action player -> set_discarded_tile (discard_player player) game
+      mahjong ~discard_player: (Some (next_player player)) player
+  | No_action player -> set_discarded_tile (next_player player) game
   | Pong (player, tiles_pos)
   | Kong (player, tiles_pos) -> declare_discarded_tileset player tiles_pos event game
   | _ -> assert false
 
-(* let on_td_1_chow_3_exit (event: event) game = *)
-(*   match event with *)
-(*   | Mahjong player -> *)
-(*     check_player player event game |> *)
-(*       mahjong ~discard_player: (Some (next_player player)) player *)
+let on_td_2_pong_3_exit (event: event) game =
+  match event with
+  | Mahjong player ->
+    check_player player event game |>
+      mahjong ~discard_player: (Some (next_player player)) player
+  | No_action _ ->
+    begin match game.discard_event with
+    | Some (Pong(player, tiles_pos)) -> declare_discarded_tileset player tiles_pos event game
+    | _ -> assert false
+    end
+  | _ -> assert false
+
+let on_td_2_kong_3_exit (event: event) game =
+  match event with
+  | Mahjong player ->
+    check_player player event game |>
+      mahjong ~discard_player: (Some (next_player player)) player
+  | No_action _ ->
+    begin match game.discard_event with
+    | Some(Kong(player, tiles_pos)) -> declare_discarded_tileset player tiles_pos event game
+    | _ -> assert false
+    end
+  | _ -> assert false
+
+
+let on_td_1_chow_3_exit (event: event) game =
+  match event with
+  | Mahjong player ->
+    check_player player event game |>
+      mahjong ~discard_player: (Some (next_player player)) player
+  | No_action _->
+    begin match game.discard_event with
+    | Some(Chow(player, tiles_pos)) -> declare_discarded_tileset player tiles_pos event game
+    | _ -> assert false
+    end
+  | Pong (player, tiles_pos)
+  | Kong (player, tiles_pos) -> declare_discarded_tileset player tiles_pos event game
+  | _ -> assert false
+  
   
 
 
@@ -467,4 +500,9 @@ let run_game =
     ~on_td_1_pong_2_exit
     ~on_td_1_kong_2_exit
     ~on_td_1_no_action_3_exit
+    ~on_td_2_pong_3_exit
+    ~on_td_2_kong_3_exit
+    ~on_td_1_chow_3_exit
+    ~on_td_1_pong_3_exit: on_td_2_pong_3_exit
+    ~on_td_1_kong_3_exit: on_td_2_kong_3_exit
     ()
