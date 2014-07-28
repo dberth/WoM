@@ -12,6 +12,7 @@ type mahjong =
     declared: declared;
     hand: tileset;
     discard_player: int option;
+    kong_robbing: bool
   }
 
 type player_state =
@@ -41,6 +42,7 @@ type game =
     discarded_tile: int option;
     end_game: end_game option;
     discard_event: event option;
+    small_kong_event: event option;
   }
 
 let init_player =
@@ -66,6 +68,7 @@ let init_game =
     discarded_tile = None;
     end_game = None;
     discard_event = None;
+    small_kong_event = None;
   }
 
 let update_player player f game =
@@ -229,10 +232,10 @@ let discard player tile_idx event game =
   } |>
     update_player player (remove_tile_from_hand tile_idx game.tiles event)
 
-let mahjong ~discard_player player game =
+let mahjong ~discard_player ?(kong_robbing = false)player game =
   update_game_from_player player
     (fun {hand; declared; _} ->
-      {game with end_game = Some (Mahjong {declared; hand; discard_player})}
+      {game with end_game = Some (Mahjong {declared; hand; discard_player; kong_robbing})}
     )
     game
 
@@ -276,13 +279,17 @@ let set_small_kong tile_pos tiles event player_state =
   in
   {player_state with declared = aux player_state.declared}
 
-let declare_small_kong player tile_pos event game =
-  update_player player
-    (fun player_state ->
-      remove_tile_from_hand tile_pos game.tiles event player_state |>
-        set_small_kong tile_pos game.tiles event
-    )
-    game
+let declare_small_kong game =
+  match game.small_kong_event with
+  | Some (Small_kong(player, tile_pos) as event) ->
+    {game with small_kong_event = None} |>
+      update_player player
+        (fun player_state ->
+          remove_tile_from_hand tile_pos game.tiles event player_state |>
+            set_small_kong tile_pos game.tiles event
+        )
+  | _ -> assert false
+      
 
 let set_discarded_tile player tiles_pos event game =
   match game.discarded_tile with
@@ -371,8 +378,8 @@ let on_player_turn_exit event game =
     check_player player event game |>
       declare_concealed_kong player tiles_pos event 
   | Small_kong (player, tile_pos) ->
-    check_player player event game |>
-      declare_small_kong player tile_pos event
+    let game = check_player player event game in
+    {game with small_kong_event = Some event; current_player = next_player player}
   | _ -> assert false
 
 
@@ -495,11 +502,34 @@ let on_td_1_chow_3_exit (event: event) game =
 
 let on_kong_declared_exit event game =
   match event with
-  | Draw player -> draw_last_tile player game
+  | Draw player -> check_player player event game |> draw_last_tile player
   | _ -> assert false
   
-  
+let on_wait_for_kong_robbing_exit (event: event) game =
+  match event with
+  | Mahjong player ->
+    check_player player event game |>
+      mahjong ~discard_player: (Some (prev_player player)) ~kong_robbing: true player
+  | No_action player ->
+    {game with current_player = next_player player}
+  | _ -> assert false
 
+let on_kr_2_exit (event: event) game =
+  match event with
+  | Mahjong player ->
+    check_player player event game |>
+      mahjong ~discard_player: (Some (prev_prev_player player)) ~kong_robbing: true player
+  | No_action player ->
+    {game with current_player = next_player player}
+  | _ -> assert false
+
+let on_kr_3_exit (event: event) game =
+  match event with
+  | Mahjong player ->
+    check_player player event game |>
+      mahjong ~discard_player: (Some (next_player player)) ~kong_robbing: true player
+  | No_action _-> declare_small_kong game
+  | _ -> assert false
 
 let run_game =
   build_engine
@@ -521,4 +551,7 @@ let run_game =
     ~on_td_1_pong_3_exit: on_td_2_pong_3_exit
     ~on_td_1_kong_3_exit: on_td_2_kong_3_exit
     ~on_kong_declared_exit
+    ~on_wait_for_kong_robbing_exit
+    ~on_kr_2_exit
+    ~on_kr_3_exit
     ()

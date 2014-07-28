@@ -46,7 +46,7 @@ let build_engine
     ?on_kong_declared_entry
     ?on_wait_for_kong_robbing_entry
     ?on_kr_2_entry
-    ?on_kr_1_entry
+    ?on_kr_3_entry
 
     ?on_game_start_exit
     ?on_wait_for_wall_breaker_roll_exit
@@ -69,7 +69,7 @@ let build_engine
     ?on_kong_declared_exit
     ?on_wait_for_kong_robbing_exit
     ?on_kr_2_exit
-    ?on_kr_1_exit
+    ?on_kr_3_exit
 
 
 
@@ -180,13 +180,13 @@ let build_engine
 
   and kr_2 = lazy (new_state (function
     | Mahjong _ -> mahjong_declared
-    | No_action _ -> kr_1
+    | No_action _ -> kr_3
     | event -> raise (Irrelevant_event (event, "kr_2"))))
 
-  and kr_1 = lazy (new_state (function
+  and kr_3 = lazy (new_state (function
     | Mahjong _ -> mahjong_declared
     | No_action _ -> kong_declared
-    | event -> raise (Irrelevant_event (event, "kr_1"))))
+    | event -> raise (Irrelevant_event (event, "kr_3"))))
 
   in
   let opt f state action_opt action_handler =
@@ -219,7 +219,7 @@ let build_engine
       on_entry kong_declared on_kong_declared_entry |>
       on_entry wait_for_kong_robbing on_wait_for_kong_robbing_entry |>
       on_entry kr_2 on_kr_2_entry |>
-      on_entry kr_1 on_kr_1_entry |>
+      on_entry kr_3 on_kr_3_entry |>
 
       on_exit wait_for_wall_breaker_roll on_wait_for_wall_breaker_roll_exit |>
       on_exit wait_for_break_roll on_wait_for_break_roll_exit |>
@@ -241,7 +241,7 @@ let build_engine
       on_exit kong_declared on_kong_declared_exit |>
       on_exit wait_for_kong_robbing on_wait_for_kong_robbing_exit |>
       on_exit kr_2 on_kr_2_exit |>
-      on_exit kr_1 on_kr_1_exit
+      on_exit kr_3 on_kr_3_exit
 
   in
   fun world events ->

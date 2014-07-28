@@ -42,7 +42,7 @@ val build_engine:
   ?on_kong_declared_entry: (event, 'world) Fsm.action ->
   ?on_wait_for_kong_robbing_entry: (event, 'world) Fsm.action ->
   ?on_kr_2_entry: (event, 'world) Fsm.action ->
-  ?on_kr_1_entry: (event, 'world) Fsm.action ->
+  ?on_kr_3_entry: (event, 'world) Fsm.action ->
 
   ?on_game_start_exit: (event, 'world) Fsm.action ->
   ?on_wait_for_wall_breaker_roll_exit: (event, 'world) Fsm.action ->
@@ -65,6 +65,6 @@ val build_engine:
   ?on_kong_declared_exit: (event, 'world) Fsm.action ->
   ?on_wait_for_kong_robbing_exit: (event, 'world) Fsm.action ->
   ?on_kr_2_exit: (event, 'world) Fsm.action ->
-  ?on_kr_1_exit: (event, 'world) Fsm.action ->
+  ?on_kr_3_exit: (event, 'world) Fsm.action ->
 
   unit -> ('world -> event list -> 'world * (event, 'world) Fsm.state)
