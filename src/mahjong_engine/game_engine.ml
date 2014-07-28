@@ -19,6 +19,7 @@ type player_state =
     hand: tileset;
     hand_indexes: IntSet.t;
     declared: declared;
+    discarded_tiles: int list;
   }
 
 type end_game =
@@ -47,6 +48,7 @@ let init_player =
     hand = empty;
     hand_indexes = IntSet.empty;
     declared = [];
+    discarded_tiles = [];
   }
 
 let init_game =
@@ -208,6 +210,8 @@ let next_player player = player + 1 mod 4
 
 let prev_player player = player + 3 mod 4
 
+let prev_prev_player player = player + 2 mod 4
+
 let discard player tile_idx event game =
   {game with
     discarded_tile = Some tile_idx;
@@ -289,6 +293,21 @@ let declare_discarded_tileset player tiles_pos event game =
   set_discarded_tile player tiles_pos event game |>
     declare_tileset ~concealed: false player tiles_pos event
 
+let set_discarded_tile player game =
+match game.discarded_tile with
+| None -> assert false
+| Some discarded_tile ->
+  { game with
+    current_player = next_player player;
+    discarded_tile = None;
+    discard_event = None;
+  } |> update_player player
+      (fun player_state ->
+        {player_state with
+          discarded_tiles = discarded_tile :: player_state.discarded_tiles
+        }
+      )
+
 (*** Actions ***)
 
 let on_game_start_exit event game =
@@ -367,7 +386,7 @@ let on_td_1_no_action_2_exit (event: event) game =
   match event with
   | Mahjong player ->
     check_player player event game |>
-      mahjong ~discard_player: (Some (player |> prev_player |> prev_player)) player
+      mahjong ~discard_player: (Some (prev_prev_player player)) player
   | No_action player ->
     let game = check_player player event game in
     {game with current_player = next_player player}
@@ -383,7 +402,7 @@ let on_td_1_chow_2_exit (event: event) game =
   match event with
   | Mahjong player ->
     check_player player event game |>
-      mahjong ~discard_player: (Some (player |> prev_player |> prev_player)) player
+      mahjong ~discard_player: (Some (prev_prev_player player)) player
   | No_action player ->
     let game = check_player player event game in
     {game with current_player = next_player player}
@@ -399,7 +418,7 @@ let on_td_1_pong_2_exit (event: event) game =
   match event with
   | Mahjong player ->
     check_player player event game |>
-      mahjong ~discard_player: (Some (player |> prev_player |> prev_player)) player
+      mahjong ~discard_player: (Some (prev_prev_player player)) player
   | No_action player ->
     let game = check_player player event game in
     {game with current_player = next_player player}
@@ -409,27 +428,29 @@ let on_td_1_kong_2_exit (event: event) game =
   match event with
   | Mahjong player ->
     check_player player event game |>
-      mahjong ~discard_player: (Some (player |> prev_player |> prev_player)) player
+      mahjong ~discard_player: (Some (prev_prev_player player)) player
   | No_action player ->
     let game = check_player player event game in
     {game with current_player = next_player player}
   | _ -> assert false
 
 let on_td_1_no_action_3_exit (event: event) game =
-  let discard_player player = player |> prev_player |> prev_player |> prev_player in
+  let discard_player player = next_player player in
   match event with
   | Mahjong player ->
     check_player player event game |>
       mahjong ~discard_player: (Some (discard_player player)) player
-  | No_action player ->
-    {game with
-      current_player = next_player (discard_player player);
-      discard_event = None;
-      discarded_tile = None;
-    }
+  | No_action player -> set_discarded_tile (discard_player player) game
   | Pong (player, tiles_pos)
   | Kong (player, tiles_pos) -> declare_discarded_tileset player tiles_pos event game
   | _ -> assert false
+
+(* let on_td_1_chow_3_exit (event: event) game = *)
+(*   match event with *)
+(*   | Mahjong player -> *)
+(*     check_player player event game |> *)
+(*       mahjong ~discard_player: (Some (next_player player)) player *)
+  
 
 
 let run_game =
