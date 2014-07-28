@@ -173,15 +173,25 @@ let first_tile_index wall_breaker_roll break_wall_roll =
 let incr_current_tile game =
   {game with current_tile = (game.current_tile + 1) mod nb_tiles}
 
-let draw_tile player game =
-  let game = incr_current_tile game in
+let decr_last_tile game =
+  {game with last_tile = (game.last_tile + nb_tiles - 1) mod nb_tiles}
+
+let set_tile player tile game =
   update_player player
     (fun player_state ->
-      let hand = add_tile (game.tiles.(game.current_tile)) player_state.hand in
-      let hand_indexes = IntSet.add game.current_tile player_state.hand_indexes in
+      let hand = add_tile (game.tiles.(tile)) player_state.hand in
+      let hand_indexes = IntSet.add tile player_state.hand_indexes in
       {player_state with hand; hand_indexes}
     )
     game
+
+let draw_tile player game =
+  let game = incr_current_tile game in
+  set_tile player game.current_tile game
+
+let draw_last_tile player game =
+  let game = decr_last_tile game in
+  set_tile player game.last_tile game
 
 let draw_4_tiles player game =
   draw_tile player game |>
@@ -482,6 +492,11 @@ let on_td_1_chow_3_exit (event: event) game =
   | Pong (player, tiles_pos)
   | Kong (player, tiles_pos) -> declare_discarded_tileset player tiles_pos event game
   | _ -> assert false
+
+let on_kong_declared_exit event game =
+  match event with
+  | Draw player -> draw_last_tile player game
+  | _ -> assert false
   
   
 
@@ -505,4 +520,5 @@ let run_game =
     ~on_td_1_chow_3_exit
     ~on_td_1_pong_3_exit: on_td_2_pong_3_exit
     ~on_td_1_kong_3_exit: on_td_2_kong_3_exit
+    ~on_kong_declared_exit
     ()
