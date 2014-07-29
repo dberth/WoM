@@ -562,7 +562,7 @@ let on_kr_3_exit (event: event) game =
   | _ -> assert false
 
 
-let build_engine () = 
+let build_engine ?irregular_hands () = 
   let rec game_start = lazy (new_state
     ~accepted_events: (fun _ -> [Init [||]])
       (function
@@ -604,7 +604,12 @@ let build_engine () =
           player_state.hand_indexes
           []
       in
-      discard_events
+      let mahjong_event =
+        match Tileset.mahjong ?irregular_hands (4 - List.length player_state.declared) player_state.hand with
+        | [] -> []
+        | _ -> [Mahjong game.current_player]
+      in
+      discard_events @ mahjong_event
     in
     lazy (new_state
       ~accepted_events

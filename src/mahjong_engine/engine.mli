@@ -24,6 +24,7 @@ type event =
 exception Irrelevant_event of (event * string)
 
 val build_engine:
+  ?irregular_hands: Tileset.irregular_hands ->
   unit ->
   (game ->
    event list ->
