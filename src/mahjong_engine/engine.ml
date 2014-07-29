@@ -347,6 +347,14 @@ match game.discarded_tile with
         }
       )
 
+let current_player_state {current_player; player_0; player_1; player_2; player_3; _} =
+  match current_player with
+  | 0 -> player_0
+  | 1 -> player_1
+  | 2 -> player_2
+  | 3 -> player_3
+  | _ -> assert false
+
 (*** Actions ***)
 
 let on_game_start_exit event game =
@@ -585,8 +593,21 @@ let build_engine () =
       | Draw _ -> player_turn
       | event -> raise (Irrelevant_event (event, "wait_for_draw_in_wall"))))
 
-  and player_turn = 
+  and player_turn =
+    let accepted_events game =
+      let player_state = current_player_state game in
+      let discard_events =
+        IntSet.fold
+          (fun pos acc ->
+            Discard(game.current_player, pos) :: acc
+          )
+          player_state.hand_indexes
+          []
+      in
+      discard_events
+    in
     lazy (new_state
+      ~accepted_events
         (function
         | Discard _ -> tile_discarded
         | Mahjong _ -> mahjong_declared
