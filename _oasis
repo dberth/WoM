@@ -11,7 +11,7 @@ Library mahjong_engine
   BuildTools:      ocamlbuild
   CompiledObject:  best
   Build:           true
-  Modules:         Tileset, Fsm, Engine, Game_engine
+  Modules:         Tileset, Fsm, Engine
   Findlibname:     mahjong_engine
   
 Executable mahjong_engine_test

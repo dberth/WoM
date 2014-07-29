@@ -4,6 +4,8 @@ type player = int
 
 type tile_pos = int (*A position in the initial array*)
 
+type game
+
 type event =
   | Init of Tileset.tile_descr option array
   | Wall_breaker_roll of int
@@ -22,52 +24,7 @@ type event =
 exception Irrelevant_event of (event * string)
 
 val build_engine:
-  ?on_wait_for_wall_breaker_roll_entry: (event, 'world) Fsm.action ->
-  ?on_wait_for_break_roll_entry: (event, 'world) Fsm.action ->
-  ?on_wait_for_deal_entry: (event, 'world) Fsm.action ->
-  ?on_wait_for_draw_in_wall_entry: (event, 'world) Fsm.action ->
-  ?on_player_turn_entry: (event, 'world) Fsm.action ->
-  ?on_tile_discarded_entry: (event, 'world) Fsm.action ->
-  ?on_td_1_no_action_2_entry: (event, 'world) Fsm.action ->
-  ?on_td_1_chow_2_entry: (event, 'world) Fsm.action ->
-  ?on_td_1_pong_2_entry: (event, 'world) Fsm.action ->
-  ?on_td_1_kong_2_entry: (event, 'world) Fsm.action ->
-  ?on_td_1_no_action_3_entry: (event, 'world) Fsm.action ->
-  ?on_td_2_pong_3_entry: (event, 'world) Fsm.action ->
-  ?on_td_2_kong_3_entry: (event, 'world) Fsm.action ->
-  ?on_td_1_chow_3_entry: (event, 'world) Fsm.action ->
-  ?on_td_1_pong_3_entry: (event, 'world) Fsm.action ->
-  ?on_td_1_kong_3_entry: (event, 'world) Fsm.action ->
-  ?on_mahjong_declared_entry: (event, 'world) Fsm.action ->
-  ?on_kong_declared_entry: (event, 'world) Fsm.action ->
-  ?on_wait_for_kong_robbing_entry: (event, 'world) Fsm.action ->
-  ?on_kr_2_entry: (event, 'world) Fsm.action ->
-  ?on_kr_3_entry: (event, 'world) Fsm.action ->
-
-  ?on_game_start_exit: (event, 'world) Fsm.action ->
-  ?on_wait_for_wall_breaker_roll_exit: (event, 'world) Fsm.action ->
-  ?on_wait_for_break_roll_exit: (event, 'world) Fsm.action ->
-  ?on_wait_for_deal_exit: (event, 'world) Fsm.action ->
-  ?on_wait_for_draw_in_wall_exit: (event, 'world) Fsm.action ->
-  ?on_player_turn_exit: (event, 'world) Fsm.action ->
-  ?on_tile_discarded_exit: (event, 'world) Fsm.action ->
-  ?on_td_1_no_action_2_exit: (event, 'world) Fsm.action ->
-  ?on_td_1_chow_2_exit: (event, 'world) Fsm.action ->
-  ?on_td_1_pong_2_exit: (event, 'world) Fsm.action ->
-  ?on_td_1_kong_2_exit: (event, 'world) Fsm.action ->
-  ?on_td_1_no_action_3_exit: (event, 'world) Fsm.action ->
-  ?on_td_2_pong_3_exit: (event, 'world) Fsm.action ->
-  ?on_td_2_kong_3_exit: (event, 'world) Fsm.action ->
-  ?on_td_1_chow_3_exit: (event, 'world) Fsm.action ->
-  ?on_td_1_pong_3_exit: (event, 'world) Fsm.action ->
-  ?on_td_1_kong_3_exit: (event, 'world) Fsm.action ->
-  ?on_mahjong_declared_exit: (event, 'world) Fsm.action ->
-  ?on_kong_declared_exit: (event, 'world) Fsm.action ->
-  ?on_wait_for_kong_robbing_exit: (event, 'world) Fsm.action ->
-  ?on_kr_2_exit: (event, 'world) Fsm.action ->
-  ?on_kr_3_exit: (event, 'world) Fsm.action ->
-
   unit ->
-  ('world ->
+  (game ->
    event list ->
-   (event, 'world) Fsm.action_handler * 'world * (event, 'world) Fsm.state)
+   (event, game) Fsm.action_handler * game * (event, game) Fsm.state)

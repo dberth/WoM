@@ -8,7 +8,10 @@ type ('event, 'world) state
   *)
 
 
-val new_state: ('event -> ('event, 'world) state Lazy.t) -> ('event, 'world) state
+val new_state:
+  ?accepted_events: ('world -> 'event list) ->
+  ('event -> ('event, 'world) state Lazy.t) ->
+  ('event, 'world) state
 
 (** {2 actions} *)
 
@@ -49,6 +52,10 @@ val run: ('event, 'world) action_handler -> 'world -> ('event, 'world) state Laz
        on each state entry and exit to change the [world].
        Returns the new state of the world and the new state of the machine.
     *)
+
+(** {2 Helpers} *)
+
+val accepted_events: 'world -> ('event, 'world) state -> 'event list
 
     
 (** {2 Usage Example} *)
