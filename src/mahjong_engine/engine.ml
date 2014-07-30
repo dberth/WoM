@@ -355,6 +355,22 @@ let current_player_state {current_player; player_0; player_1; player_2; player_3
   | 3 -> player_3
   | _ -> assert false
 
+let rec pos_of_tile_descr tiles hand_indexes size tile_descr =
+  let s =
+    IntSet.filter
+      (fun pos ->
+        tile_descr_of_tile tiles.(pos) = tile_descr
+      )
+      hand_indexes
+  in
+  if IntSet.cardinal s = size then
+    IntSet.elements s
+  else if IntSet.cardinal s = size + 1 then
+    List.tl (IntSet.elements s)
+  else
+    assert false
+    
+
 (*** Actions ***)
 
 let on_game_start_exit event game =
@@ -609,7 +625,19 @@ let build_engine ?irregular_hands () =
         | [] -> []
         | _ -> [Mahjong game.current_player]
       in
-      discard_events @ mahjong_event
+      let concealed_kong_events =
+        match get_kongs player_state.hand with
+        | [] -> []
+        | kongs -> 
+          List.map
+            (fun tile_descr ->
+              let tiles_pos = pos_of_tile_descr game.tiles player_state.hand_indexes 4 tile_descr in
+              Concealed_kong (game.current_player, tiles_pos)
+            )
+            kongs
+      
+      in
+      discard_events @ mahjong_event @ concealed_kong_events
     in
     lazy (new_state
       ~accepted_events

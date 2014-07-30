@@ -553,3 +553,14 @@ let is_kong = function
   | [Honor(_, 4)] -> true
   | [Num(_, bytes)] -> is_kong_bytes bytes
   | _ -> false
+
+let get_kongs tileset =
+  List.fold_left
+    (fun acc basic_tileset ->
+      if is_kong [basic_tileset] then
+        List.hd (tile_descr_of_basic_tileset basic_tileset) :: acc
+      else
+        acc
+    )
+    []
+    tileset
