@@ -77,9 +77,13 @@ val is_kong: tileset -> bool
 
 val get_kongs: tileset -> tile_descr list
 
+val is_pong: tileset -> bool
+
 val tile_descr_of_basic_tileset: basic_tileset -> tile_descr list
 
 val tile_descr_of_tile: tile -> tile_descr
+
+val tile_descr_of_tileset: tileset -> tile_descr list
 
 val tile_descr_of_mahjong: mahjong -> tile_descr list list
 

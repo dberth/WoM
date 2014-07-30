@@ -635,9 +635,26 @@ let build_engine ?irregular_hands () =
               Concealed_kong (game.current_player, tiles_pos)
             )
             kongs
-      
       in
-      discard_events @ mahjong_event @ concealed_kong_events
+      let small_kong_events =
+        let declared_pongs =
+          List.filter (fun (tileset, _) -> is_pong tileset) player_state.declared
+        in
+        let pong_descrs =
+          List.map
+            (fun (pong, _) -> List.hd (tile_descr_of_tileset pong))
+            declared_pongs
+        in
+        List.concat (
+          List.map
+            (fun tile_descr ->
+              let tiles_pos = pos_of_tile_descr game.tiles player_state.hand_indexes 1 tile_descr in
+              List.map (fun tile_pos -> Small_kong (game.current_player, tile_pos)) tiles_pos
+            )
+            pong_descrs
+        )
+      in
+      discard_events @ mahjong_event @ concealed_kong_events @ small_kong_events
     in
     lazy (new_state
       ~accepted_events

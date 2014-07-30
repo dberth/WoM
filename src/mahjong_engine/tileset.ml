@@ -168,6 +168,9 @@ let tile_descr_of_tile tile =
   | [x] -> x
   | _ -> assert false
 
+let tile_descr_of_tileset tileset =
+  List.concat (List.map tile_descr_of_basic_tileset tileset)
+
 let tile_descr_of_mahjong = function
   | Regular ts -> List.map tile_descr_of_basic_tileset ts
   | Irregular ts -> [List.map tile_descr_of_basic_tileset ts |> List.flatten]
@@ -549,6 +552,22 @@ let is_kong_bytes b =
   done;
   not !has_wrong_tile && !has_kong
 
+let is_pong_bytes b =
+  let has_wrong_tile = ref false in
+  let has_pong = ref false in
+  for i = 0 to Bytes.length b - 1 do
+    match Bytes.get b i with
+    | 'z' -> ()
+    | 'a' | 'b' | 'd' -> has_wrong_tile := true
+    | 'c' ->
+      if !has_pong then
+        has_wrong_tile := true
+      else
+        has_pong := true
+    | _ -> assert false
+  done;
+  not !has_wrong_tile && !has_pong
+
 let is_kong = function
   | [Honor(_, 4)] -> true
   | [Num(_, bytes)] -> is_kong_bytes bytes
@@ -564,3 +583,8 @@ let get_kongs tileset =
     )
     []
     tileset
+
+let is_pong = function
+  | [Honor (_, 3)] -> true
+  | [Num(_, bytes)] -> is_pong_bytes bytes
+  | _ -> false
