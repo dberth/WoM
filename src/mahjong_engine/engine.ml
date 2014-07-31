@@ -665,13 +665,30 @@ let build_engine ?irregular_hands () =
         | Small_kong _ -> wait_for_kong_robbing
         | event -> raise (Irrelevant_event (event, "player_turn"))))
 
-  and tile_discarded = lazy (new_state (function
-    | No_action _ -> td_1_no_action_2
-    | Mahjong _ -> mahjong_declared
-    | Chow _ -> td_1_chow_2
-    | Pong _ -> td_1_pong_2
-    | Kong _ -> td_1_kong_2
-    | event -> raise (Irrelevant_event (event, "tile_discarded"))))
+  and tile_discarded =
+    let accepted_events game =
+      let player_state = current_player_state game in
+      let no_action_event = [No_action game.current_player] in
+      let mahjong_event =
+        match game.discarded_tile with
+        | None -> assert false
+        | Some tile_pos ->
+          let hand = add_tile (game.tiles.(tile_pos)) player_state.hand in
+          match Tileset.mahjong ?irregular_hands (4 - List.length player_state.declared) hand with
+          | [] -> []
+          | _ -> [Mahjong game.current_player]
+      in
+      no_action_event @ mahjong_event
+    in
+    lazy (new_state
+        ~accepted_events
+        (function
+        | No_action _ -> td_1_no_action_2
+        | Mahjong _ -> mahjong_declared
+        | Chow _ -> td_1_chow_2
+        | Pong _ -> td_1_pong_2
+        | Kong _ -> td_1_kong_2
+        | event -> raise (Irrelevant_event (event, "tile_discarded"))))
 
   and td_1_no_action_2 = lazy (new_state (function
     | No_action _ -> td_1_no_action_3
