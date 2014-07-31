@@ -363,13 +363,30 @@ let rec pos_of_tile_descr tiles hand_indexes size tile_descr =
       )
       hand_indexes
   in
-  if IntSet.cardinal s = size then
+  if IntSet.is_empty s then
+    raise Not_found
+  else if IntSet.cardinal s = size then
     IntSet.elements s
+  else if size = 1 then
+    [List.hd (IntSet.elements s)]
   else if IntSet.cardinal s = size + 1 then
     List.tl (IntSet.elements s)
   else
     assert false
-    
+
+let get_discarded_tile_pos game =
+  match game.discarded_tile with
+  | None -> assert false
+  | Some tile_pos -> tile_pos
+
+let get_discarded_tile game =
+  game.tiles.(get_discarded_tile_pos game)
+
+let hand_with_discarded_tile game =
+  let {hand; _} = current_player_state game in
+  let tile = get_discarded_tile game in
+  add_tile tile hand
+
 
 (*** Actions ***)
 
@@ -670,15 +687,24 @@ let build_engine ?irregular_hands () =
       let player_state = current_player_state game in
       let no_action_event = [No_action game.current_player] in
       let mahjong_event =
-        match game.discarded_tile with
-        | None -> assert false
-        | Some tile_pos ->
-          let hand = add_tile (game.tiles.(tile_pos)) player_state.hand in
-          match Tileset.mahjong ?irregular_hands (4 - List.length player_state.declared) hand with
+          match Tileset.mahjong ?irregular_hands (4 - List.length player_state.declared) (hand_with_discarded_tile game) with
           | [] -> []
           | _ -> [Mahjong game.current_player]
       in
-      no_action_event @ mahjong_event
+      let chow_events =
+        let tiles_to_chow = tiles_to_chow (tile_descr_of_tile (get_discarded_tile game)) in
+        List.fold_left
+          (fun acc tiles_to_chow ->
+            try
+              let positions = List.concat (List.map (pos_of_tile_descr game.tiles player_state.hand_indexes 1) tiles_to_chow) in
+              Chow(game.current_player, get_discarded_tile_pos game :: positions) :: acc
+            with
+            | Not_found -> acc
+          )
+          []
+          tiles_to_chow
+      in
+      no_action_event @ mahjong_event @ chow_events
     in
     lazy (new_state
         ~accepted_events

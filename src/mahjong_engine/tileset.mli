@@ -89,3 +89,4 @@ val tile_descr_of_mahjong: mahjong -> tile_descr list list
 
 val string_of_tile_descr: tile_descr -> string
 
+val tiles_to_chow: tile_descr -> tile_descr list list

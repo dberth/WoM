@@ -588,3 +588,27 @@ let is_pong = function
   | [Honor (_, 3)] -> true
   | [Num(_, bytes)] -> is_pong_bytes bytes
   | _ -> false
+
+let tiles_to_chow build i =
+  let result =
+    if 2 < i then
+      [[build (i -2); build (i - 1)]]
+    else
+      []
+  in
+  let result =
+    if 1 < i && i < 9 then
+      [build (i -1); build (i + 1)] :: result
+    else
+      result
+  in
+  if i < 8 then
+    [build (i + 1); build (i + 2)] :: result
+  else
+    result
+
+let tiles_to_chow = function
+  | Bam i -> tiles_to_chow (fun i -> Bam i) i
+  | Dot i -> tiles_to_chow (fun i -> Dot i) i
+  | Char i -> tiles_to_chow (fun i -> Char i) i
+  | _ -> [] 
