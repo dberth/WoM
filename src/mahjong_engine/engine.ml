@@ -363,14 +363,17 @@ let rec pos_of_tile_descr tiles hand_indexes size tile_descr =
       )
       hand_indexes
   in
-  if IntSet.is_empty s then
+  if IntSet.cardinal s < size then
     raise Not_found
   else if IntSet.cardinal s = size then
     IntSet.elements s
-  else if size = 1 then
-    [List.hd (IntSet.elements s)]
   else if IntSet.cardinal s = size + 1 then
     List.tl (IntSet.elements s)
+  else if size = 1 then
+    [List.hd (IntSet.elements s)]
+  else if size = 2 then
+    let l = IntSet.elements s in
+    [List.hd l; List.hd (List.tl l)]
   else
     assert false
 
@@ -704,7 +707,14 @@ let build_engine ?irregular_hands () =
           []
           tiles_to_chow
       in
-      no_action_event @ mahjong_event @ chow_events
+      let pong_events =
+        try
+          let pos = pos_of_tile_descr game.tiles player_state.hand_indexes 2 (tile_descr_of_tile (get_discarded_tile game)) in
+          [Pong(game.current_player, get_discarded_tile_pos game :: pos)]
+        with
+        | Not_found -> []
+      in
+      no_action_event @ mahjong_event @ chow_events @ pong_events
     in
     lazy (new_state
         ~accepted_events
