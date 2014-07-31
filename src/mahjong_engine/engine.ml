@@ -390,11 +390,24 @@ let hand_with_discarded_tile game =
   let tile = get_discarded_tile game in
   add_tile tile hand
 
-let mahjong_event ?irregular_hands game =
+let hand_with_kr_tile game =
+  match game.small_kong_event with
+  | Some (Small_kong(_, tile_pos)) ->
+    add_tile (game.tiles.(tile_pos)) (current_player_state game).hand
+  | _ -> assert false
+
+let mahjong_event hand_with_other_tile ?irregular_hands game =
   let player_state = current_player_state game in
-  match Tileset.mahjong ?irregular_hands (4 - List.length player_state.declared) (hand_with_discarded_tile game) with
+  match Tileset.mahjong ?irregular_hands (4 - List.length player_state.declared) (hand_with_other_tile game) with
   | [] -> []
   | _ -> [Mahjong game.current_player]
+
+let kr_mahjong_event ?irregular_hands game =
+  mahjong_event hand_with_kr_tile ?irregular_hands game
+
+let mahjong_event ?irregular_hands game =
+  mahjong_event hand_with_discarded_tile ?irregular_hands game
+
 
 let pong_or_kong_event build n game =
   let player_state = current_player_state game in
@@ -408,8 +421,7 @@ let pong_event game = pong_or_kong_event (fun (x, y) -> Pong(x, y)) 2 game
 
 let kong_event game = pong_or_kong_event (fun (x, y) -> Kong(x, y)) 3 game
 
-
-  
+let no_action_event game = [No_action game.current_player]
 
 (*** Actions ***)
 
@@ -708,7 +720,6 @@ let build_engine ?irregular_hands () =
   and tile_discarded =
     let accepted_events game =
       let player_state = current_player_state game in
-      let no_action_event = [No_action game.current_player] in
       let chow_events =
         let tiles_to_chow = tiles_to_chow (tile_descr_of_tile (get_discarded_tile game)) in
         List.fold_left
@@ -722,7 +733,7 @@ let build_engine ?irregular_hands () =
           []
           tiles_to_chow
       in
-      no_action_event @ mahjong_event ?irregular_hands game @ chow_events @ pong_event game @ kong_event game
+      no_action_event game @ mahjong_event ?irregular_hands game @ chow_events @ pong_event game @ kong_event game
     in
     lazy (new_state
         ~accepted_events
@@ -734,85 +745,225 @@ let build_engine ?irregular_hands () =
         | Kong _ -> td_1_kong_2
         | event -> raise (Irrelevant_event (event, "tile_discarded"))))
 
-  and td_1_no_action_2 = lazy (new_state (function
-    | No_action _ -> td_1_no_action_3
-    | Mahjong _ -> mahjong_declared
-    | Pong _ -> td_2_pong_3
-    | Kong _ -> td_2_kong_3
-    | event -> raise (Irrelevant_event (event, "1_no_action_2"))))
+  and td_1_no_action_2 =
+    let accepted_events game =
+      List.fold_left (fun acc f -> f game @ acc)
+        []
+        [no_action_event;
+         mahjong_event ?irregular_hands;
+         pong_event;
+         kong_event;
+        ]
+    in
+    lazy (new_state
+      ~accepted_events
+        (function
+        | No_action _ -> td_1_no_action_3
+        | Mahjong _ -> mahjong_declared
+        | Pong _ -> td_2_pong_3
+        | Kong _ -> td_2_kong_3
+        | event -> raise (Irrelevant_event (event, "1_no_action_2"))))
 
-  and td_1_chow_2 = lazy (new_state (function
-    | No_action _ -> td_1_chow_3
-    | Mahjong _ -> mahjong_declared
-    | Pong _ -> td_2_pong_3
-    | Kong _ -> td_2_kong_3
-    | event -> raise (Irrelevant_event (event, "1_chow_2"))))
+  and td_1_chow_2 =
+    let accepted_events game =
+      List.fold_left (fun acc f -> f game @ acc)
+        []
+        [no_action_event;
+         mahjong_event ?irregular_hands;
+         pong_event;
+         kong_event;
+        ]
+    in
+    lazy (new_state
+      ~accepted_events
+        (function
+        | No_action _ -> td_1_chow_3
+        | Mahjong _ -> mahjong_declared
+        | Pong _ -> td_2_pong_3
+        | Kong _ -> td_2_kong_3
+        | event -> raise (Irrelevant_event (event, "1_chow_2"))))
 
-  and td_1_pong_2 = lazy (new_state (function
-    | No_action _ -> td_1_pong_3
-    | Mahjong _ -> mahjong_declared
-    | event -> raise (Irrelevant_event (event, "1_pong_2"))))
+  and td_1_pong_2 =
+    let accepted_events game =
+      List.fold_left (fun acc f -> f game @ acc)
+        []
+        [no_action_event;
+         mahjong_event ?irregular_hands;
+        ]
+    in
+    lazy (new_state
+      ~accepted_events
+      (function
+      | No_action _ -> td_1_pong_3
+      | Mahjong _ -> mahjong_declared
+      | event -> raise (Irrelevant_event (event, "1_pong_2"))))
 
-  and td_1_kong_2 = lazy (new_state (function
-    | No_action _ -> td_1_kong_3
-    | Mahjong _ -> mahjong_declared
-    | event -> raise (Irrelevant_event (event, "1_kong_2"))))
+  and td_1_kong_2 =
+    let accepted_events game =
+      List.fold_left (fun acc f -> f game @ acc)
+        []
+        [no_action_event;
+         mahjong_event ?irregular_hands;
+        ]
+    in
+    lazy (new_state
+      ~accepted_events
+        (function
+        | No_action _ -> td_1_kong_3
+        | Mahjong _ -> mahjong_declared
+        | event -> raise (Irrelevant_event (event, "1_kong_2"))))
 
-  and td_1_no_action_3 = lazy (new_state (function
-    | No_action _ -> wait_for_draw_in_wall
-    | Mahjong _ -> mahjong_declared
-    | Pong _ -> player_turn
-    | Kong _ -> kong_declared
-    | event -> raise (Irrelevant_event (event, "1_no_action_3"))))
+  and td_1_no_action_3 =
+    let accepted_events game =
+      List.fold_left (fun acc f -> f game @ acc)
+        []
+        [no_action_event;
+         mahjong_event ?irregular_hands;
+         pong_event;
+         kong_event;
+        ]
+    in
+    lazy (new_state
+      ~accepted_events
+        (function
+        | No_action _ -> wait_for_draw_in_wall
+        | Mahjong _ -> mahjong_declared
+        | Pong _ -> player_turn
+        | Kong _ -> kong_declared
+        | event -> raise (Irrelevant_event (event, "1_no_action_3"))))
 
-  and td_2_pong_3 = lazy (new_state (function
-    | No_action _ -> player_turn
-    | Mahjong _ -> mahjong_declared
-    | event -> raise (Irrelevant_event (event, "2_pong_3"))))
+  and td_2_pong_3 =
+    let accepted_events game =
+      List.fold_left (fun acc f -> f game @ acc)
+        []
+        [no_action_event;
+         mahjong_event ?irregular_hands;
+        ]
+    in
+    lazy (new_state
+        ~accepted_events
+        (function
+        | No_action _ -> player_turn
+        | Mahjong _ -> mahjong_declared
+        | event -> raise (Irrelevant_event (event, "2_pong_3"))))
 
-  and td_2_kong_3 = lazy (new_state (function
-    | No_action _ -> player_turn
-    | Mahjong _ -> mahjong_declared
-    | event -> raise (Irrelevant_event (event, "2_kong_3"))))
+  and td_2_kong_3 =
+    let accepted_events game =
+      List.fold_left (fun acc f -> f game @ acc)
+        []
+        [no_action_event;
+         mahjong_event ?irregular_hands;
+        ]
+    in
+    lazy (new_state
+        ~accepted_events
+        (function
+        | No_action _ -> player_turn
+        | Mahjong _ -> mahjong_declared
+        | event -> raise (Irrelevant_event (event, "2_kong_3"))))
 
-  and td_1_chow_3 = lazy (new_state (function
-    | No_action _ -> player_turn
-    | Mahjong _ -> mahjong_declared
-    | Pong _ -> player_turn
-    | Kong _ -> kong_declared
-    | event -> raise (Irrelevant_event (event, "1_chow_3"))))
+  and td_1_chow_3 =
+    let accepted_events game =
+      List.fold_left (fun acc f -> f game @ acc)
+        []
+        [no_action_event;
+         mahjong_event ?irregular_hands;
+         pong_event;
+         kong_event;
+        ]
+    in
+    lazy (new_state
+      ~accepted_events
+        (function
+        | No_action _ -> player_turn
+        | Mahjong _ -> mahjong_declared
+        | Pong _ -> player_turn
+        | Kong _ -> kong_declared
+        | event -> raise (Irrelevant_event (event, "1_chow_3"))))
 
-  and td_1_pong_3 = lazy (new_state (function
-    | No_action _ -> player_turn
-    | Mahjong _ -> mahjong_declared
-    | event -> raise (Irrelevant_event (event, "1_pong_3"))))
+  and td_1_pong_3 =
+    let accepted_events game =
+      List.fold_left (fun acc f -> f game @ acc)
+        []
+        [no_action_event;
+         mahjong_event ?irregular_hands;
+        ]
+    in
+    lazy (new_state
+      ~accepted_events
+        (function
+        | No_action _ -> player_turn
+        | Mahjong _ -> mahjong_declared
+        | event -> raise (Irrelevant_event (event, "1_pong_3"))))
 
-  and td_1_kong_3 = lazy (new_state (function
-    | No_action _ -> kong_declared
-    | Mahjong _ -> mahjong_declared
-    | event -> raise (Irrelevant_event (event, "1_kong_3"))))
+  and td_1_kong_3 =
+    let accepted_events game =
+      List.fold_left (fun acc f -> f game @ acc)
+        []
+        [no_action_event;
+         mahjong_event ?irregular_hands;
+        ]
+    in
+    lazy (new_state
+      ~accepted_events
+        (function
+        | No_action _ -> kong_declared
+        | Mahjong _ -> mahjong_declared
+        | event -> raise (Irrelevant_event (event, "1_kong_3"))))
 
   and mahjong_declared = lazy (new_state (fun _ -> mahjong_declared))
 
-  and kong_declared = lazy (new_state (function
-    | Draw _ -> player_turn
-    | event -> raise (Irrelevant_event (event, "kong_declared"))))
+  and kong_declared =
+    lazy (new_state
+      ~accepted_events: (fun _ -> [Draw (-1)])
+        (function
+        | Draw _ -> player_turn
+        | event -> raise (Irrelevant_event (event, "kong_declared"))))
 
-  and wait_for_kong_robbing = lazy (new_state (function
-    | Mahjong _ -> mahjong_declared
-    | No_action _ -> kr_2
-    | event -> raise (Irrelevant_event (event, "wait_for_kong_robbing"))))
+  and wait_for_kong_robbing =
+    let accepted_events game =
+      List.fold_left (fun acc f -> f game @ acc)
+        []
+        [no_action_event;
+         kr_mahjong_event ?irregular_hands;
+        ]
+    in
+    lazy (new_state
+      ~accepted_events
+        (function
+        | Mahjong _ -> mahjong_declared
+        | No_action _ -> kr_2
+        | event -> raise (Irrelevant_event (event, "wait_for_kong_robbing"))))
 
-  and kr_2 = lazy (new_state (function
-    | Mahjong _ -> mahjong_declared
-    | No_action _ -> kr_3
-    | event -> raise (Irrelevant_event (event, "kr_2"))))
+  and kr_2 =
+    let accepted_events game =
+      List.fold_left (fun acc f -> f game @ acc)
+        []
+        [no_action_event;
+         kr_mahjong_event ?irregular_hands;
+        ]
+    in
+    lazy (new_state
+      ~accepted_events
+        (function
+        | Mahjong _ -> mahjong_declared
+        | No_action _ -> kr_3
+        | event -> raise (Irrelevant_event (event, "kr_2"))))
 
-  and kr_3 = lazy (new_state (function
-    | Mahjong _ -> mahjong_declared
-    | No_action _ -> kong_declared
-    | event -> raise (Irrelevant_event (event, "kr_3"))))
-
+  and kr_3 =
+    let accepted_events game =
+      List.fold_left (fun acc f -> f game @ acc)
+        []
+        [no_action_event;
+         kr_mahjong_event ?irregular_hands;
+        ]
+    in
+    lazy (new_state
+      ~accepted_events
+        (function
+        | Mahjong _ -> mahjong_declared
+        | No_action _ -> kong_declared
+        | event -> raise (Irrelevant_event (event, "kr_3"))))
   in
   let action_handler =
     empty_action_handler |>
