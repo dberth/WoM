@@ -390,6 +390,26 @@ let hand_with_discarded_tile game =
   let tile = get_discarded_tile game in
   add_tile tile hand
 
+let mahjong_event ?irregular_hands game =
+  let player_state = current_player_state game in
+  match Tileset.mahjong ?irregular_hands (4 - List.length player_state.declared) (hand_with_discarded_tile game) with
+  | [] -> []
+  | _ -> [Mahjong game.current_player]
+
+let pong_or_kong_event build n game =
+  let player_state = current_player_state game in
+  try
+    let pos = pos_of_tile_descr game.tiles player_state.hand_indexes n (tile_descr_of_tile (get_discarded_tile game)) in
+    [build (game.current_player, get_discarded_tile_pos game :: pos)]
+  with
+  | Not_found -> []
+
+let pong_event game = pong_or_kong_event (fun (x, y) -> Pong(x, y)) 2 game
+
+let kong_event game = pong_or_kong_event (fun (x, y) -> Kong(x, y)) 3 game
+
+
+  
 
 (*** Actions ***)
 
@@ -689,11 +709,6 @@ let build_engine ?irregular_hands () =
     let accepted_events game =
       let player_state = current_player_state game in
       let no_action_event = [No_action game.current_player] in
-      let mahjong_event =
-          match Tileset.mahjong ?irregular_hands (4 - List.length player_state.declared) (hand_with_discarded_tile game) with
-          | [] -> []
-          | _ -> [Mahjong game.current_player]
-      in
       let chow_events =
         let tiles_to_chow = tiles_to_chow (tile_descr_of_tile (get_discarded_tile game)) in
         List.fold_left
@@ -707,14 +722,7 @@ let build_engine ?irregular_hands () =
           []
           tiles_to_chow
       in
-      let pong_events =
-        try
-          let pos = pos_of_tile_descr game.tiles player_state.hand_indexes 2 (tile_descr_of_tile (get_discarded_tile game)) in
-          [Pong(game.current_player, get_discarded_tile_pos game :: pos)]
-        with
-        | Not_found -> []
-      in
-      no_action_event @ mahjong_event @ chow_events @ pong_events
+      no_action_event @ mahjong_event ?irregular_hands game @ chow_events @ pong_event game @ kong_event game
     in
     lazy (new_state
         ~accepted_events
