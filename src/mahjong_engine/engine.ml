@@ -656,7 +656,7 @@ let build_engine ?irregular_hands () =
       | event -> raise (Irrelevant_event (event, "wait_for_deal"))))
     
   and wait_for_draw_in_wall = lazy (new_state
-    ~accepted_events: (fun _ -> [Draw (-1)])
+    ~accepted_events: (fun game -> [Draw (game.current_tile)])
       (function
       | Draw _ -> player_turn
       | event -> raise (Irrelevant_event (event, "wait_for_draw_in_wall"))))
@@ -915,7 +915,7 @@ let build_engine ?irregular_hands () =
 
   and kong_declared =
     lazy (new_state
-      ~accepted_events: (fun _ -> [Draw (-1)])
+      ~accepted_events: (fun game -> [Draw game.last_tile])
         (function
         | Draw _ -> player_turn
         | event -> raise (Irrelevant_event (event, "kong_declared"))))
