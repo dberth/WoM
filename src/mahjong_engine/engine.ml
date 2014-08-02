@@ -139,6 +139,39 @@ let string_of_player_state {hand; hand_indexes; declared; discarded_tiles} =
     (string_of_declared declared)
     (string_of_int_list discarded_tiles)
 
+let string_of_end_game = function
+  | No_winner -> "No_winner"
+  | Mahjong mahjong -> string_of_mahjong mahjong
+
+let string_of_game
+    {history = _;
+     tiles = _;
+     wall_breaker_roll = _;
+     current_tile;
+     last_tile;
+     player_0;
+     player_1;
+     player_2;
+     player_3;
+     current_player;
+     discarded_tile;
+     end_game;
+     discard_event;
+     small_kong_event;
+    } =
+  Printf.sprintf "{\ncurrent_tile: %i;\n last_tile: %i;\n player_0:\n%s;\nplayer_1:\n%s;\nplayer_2:\n%s;\nplayer_3:\n%s;\ncurrent_player: %i;\n;\n discarded_tile: %s;\n end_game: %s;\n discard_event: %s;\n small_kong_event: %s;\n}"
+    current_tile
+    last_tile
+    (string_of_player_state player_0)
+    (string_of_player_state player_1)
+    (string_of_player_state player_2)
+    (string_of_player_state player_3)
+    current_player
+    (match discarded_tile with Some i -> string_of_int i | None -> "None")
+    (match end_game with Some end_game -> string_of_end_game end_game | None -> "None")
+    (match discard_event with Some event -> string_of_event event | None -> "None")
+    (match small_kong_event with Some event -> string_of_event event | None -> "None")
+
 
 let update_player player f game =
   match player with
