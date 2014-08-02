@@ -132,6 +132,14 @@ let string_of_event = function
   | Kong (player, tiles_pos) -> Printf.sprintf "Kong(%i, %s)" player (string_of_int_list tiles_pos)
   | No_action player -> Printf.sprintf "No_action(%i)" player
 
+let string_of_player_state {hand; hand_indexes; declared; discarded_tiles} =
+  Printf.sprintf "{\nhand: %s;\nhand_indexes: %s;\ndeclared: %s;\ndiscarded_tiles: %s;\n}"
+    (string_of_tileset hand)
+    (string_of_int_list (IntSet.elements hand_indexes))
+    (string_of_declared declared)
+    (string_of_int_list discarded_tiles)
+
+
 let update_player player f game =
   match player with
   | 0 -> {game with player_0 = f game.player_0}
