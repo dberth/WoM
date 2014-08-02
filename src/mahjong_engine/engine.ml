@@ -93,6 +93,45 @@ let init_game =
     small_kong_event = None;
   }
 
+let string_of_tileset tileset =
+  Printf.sprintf "[%s]" (tile_descr_of_tileset tileset |> List.map string_of_tile_descr |> String.concat "; ")
+
+let string_of_declared declared =
+  String.concat " ;"
+    (List.map
+       (fun (tileset, concealed) ->
+         let concealed = if concealed then "(concealed)" else "" in
+         Printf.sprintf "%s%s" (string_of_tileset tileset) concealed
+       )
+       declared
+    )
+
+let string_of_mahjong {declared; hand; discard_player; kong_robbing} =
+  Printf.sprintf "{\ndeclared: %s;\nhand: %s;\ndiscard_player: %s;\nkong_robbing: %b\n}"
+    (string_of_declared declared)
+    (string_of_tileset hand)
+    (match discard_player with Some i -> string_of_int i | None -> "None")
+    kong_robbing
+    
+let string_of_int_list is = Printf.sprintf "[%s]" (String.concat "; " (List.map string_of_int is))
+
+let string_of_event = function
+  | Init _ -> "Init"
+  | Wall_breaker_roll i ->
+    if i = 0 then "Wall_breaker_roll" else Printf.sprintf "Wall_breaker_roll(%i)" i
+  | Break_wall_roll i ->
+    if i = 0 then "Break_wall_roll" else Printf.sprintf "Break_wall_roll(%i)" i
+  | Deal -> "Deal"
+  | Draw player -> Printf.sprintf "Draw(%i)" player
+  | Discard(player, tile_pos) -> Printf.sprintf "Discard(%i, %i)" player tile_pos
+  | Mahjong player -> Printf.sprintf "Mahjong(%i)" player
+  | Concealed_kong (player, tiles_pos) -> Printf.sprintf "Concealed_kong(%i, %s)" player (string_of_int_list tiles_pos)
+  | Small_kong (player, tile_pos) -> Printf.sprintf "Small_kong(%i, %i)" player tile_pos
+  | Chow (player, tiles_pos) -> Printf.sprintf "Chow(%i, %s)" player (string_of_int_list tiles_pos)
+  | Pong (player, tiles_pos) -> Printf.sprintf "Pong(%i, %s)" player (string_of_int_list tiles_pos)
+  | Kong (player, tiles_pos) -> Printf.sprintf "Kong(%i, %s)" player (string_of_int_list tiles_pos)
+  | No_action player -> Printf.sprintf "No_action(%i)" player
+
 let update_player player f game =
   match player with
   | 0 -> {game with player_0 = f game.player_0}
