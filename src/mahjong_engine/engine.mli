@@ -6,6 +6,20 @@ type tile_pos = int (*A position in the initial array*)
 
 type game
 
+type declared = (Tileset.tileset * bool (*is_concealed*)) list
+
+type mahjong =
+  {
+    declared: declared;
+    hand: Tileset.tileset;
+    discard_player: player option;
+    kong_robbing: bool
+  }
+
+type end_game =
+  | No_winner
+  | Mahjong of mahjong
+
 type event =
   | Init of Tileset.tile_descr option array
   | Wall_breaker_roll of int
@@ -25,7 +39,13 @@ exception Irrelevant_event of (event * string)
 
 val build_engine:
   ?irregular_hands: Tileset.irregular_hands ->
-  unit ->
-  (game ->
-   event list ->
-   (event, game) Fsm.action_handler * game * (event, game) Fsm.state)
+  event list ->
+  (event, game) Fsm.action_handler * game * (event, game) Fsm.state
+
+val finished: game -> end_game option
+
+val string_of_end_game: end_game -> string
+
+val string_of_game: game -> string
+
+val string_of_event: event -> string

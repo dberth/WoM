@@ -28,7 +28,15 @@ Executable mahjong_engine_perf_test
   BuildDepends:    unix, mahjong_engine
   Build:           true
   MainIs:          mahjong_engine_performance.ml
-  CompiledObject:   best
+  CompiledObject:  best
+
+Executable engine_debugger
+  Path:            src/engine_debugger
+  BuildTools:      ocamlbuild
+  BuildDepends:    mahjong_engine
+  Build:           true
+  MainIs:          engine_debugger.ml
+  CompiledObject:  best
 
 Test mahjong_engine
   WorkingDirectory: _build/test

@@ -722,7 +722,7 @@ let on_kr_3_exit (event: event) game =
   | _ -> assert false
 
 
-let build_engine ?irregular_hands () = 
+let build_engine ?irregular_hands events = 
   let rec game_start = lazy (new_state
     ~accepted_events: (fun _ -> [Init [||]])
       (function
@@ -1083,6 +1083,7 @@ let build_engine ?irregular_hands () =
       on_exit kr_3 on_kr_3_exit
 
   in
-  fun world events ->
-    let world, state = run action_handler world game_start events in
-    action_handler, world, state
+  let world, state = run action_handler init_game game_start events in
+  action_handler, world, state
+
+let finished {end_game; _} = end_game
