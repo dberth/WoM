@@ -539,6 +539,18 @@ let on_wait_for_deal_exit event game =
       deal_turn draw_tile
   | _ -> assert false
 
+let on_wait_for_draw_in_wall_entry _ ({current_tile; last_tile; _} as game) =
+  let remaining_tiles =
+    if last_tile < current_tile then
+      current_tile + nb_tiles - last_tile + 1
+    else
+      last_tile - current_tile + 1
+  in
+  if remaining_tiles < 14 then
+    {game with end_game = Some No_winner}
+  else
+    game
+
 let on_wait_for_draw_in_wall_exit event game =
   match event with
   | Draw player ->
@@ -1047,6 +1059,7 @@ let build_engine ?irregular_hands () =
   in
   let action_handler =
     empty_action_handler |>
+      on_entry wait_for_draw_in_wall on_wait_for_draw_in_wall_entry |>
       on_exit game_start on_game_start_exit |>
       on_exit wait_for_wall_breaker_roll on_wait_for_wall_breaker_roll_exit |>
       on_exit wait_for_break_roll on_wait_for_break_roll_exit |>
