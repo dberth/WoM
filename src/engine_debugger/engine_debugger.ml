@@ -21,9 +21,21 @@ let rec loop action_handler game state =
           read_event_loop ()
         else
           let event = List.nth possible_actions x in
+          let event =
+            match event with
+            | Init [||] -> Init (Array.make 136 None)
+            | Wall_breaker_roll _ ->
+              let i = Random.int 5 + Random.int 5 + 2 in
+              Wall_breaker_roll i
+            | Break_wall_roll _ ->
+              let i = Random.int 5 + Random.int 5 + 2 in
+              Break_wall_roll i
+            | _ ->  event
+          in
           let game, state = run action_handler game (lazy state) [event] in
           loop action_handler game state
-      | exception _ -> read_event_loop ()
+      | exception Scanf.Scan_failure _ ->
+        read_event_loop ()
       end
       
     in
