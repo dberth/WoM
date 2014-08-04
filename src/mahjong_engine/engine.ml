@@ -115,7 +115,13 @@ let string_of_mahjong {declared; hand; discard_player; kong_robbing} =
     
 let string_of_int_list is = Printf.sprintf "[%s]" (String.concat "; " (List.map string_of_int is))
 
-let string_of_event = function
+let string_of_tile_index tiles idx = Printf.sprintf "%s(%i)" (string_of_tile_descr (tile_descr_of_tile (tiles.(idx)))) idx
+
+let string_of_tile_indexes tiles indexes =
+  List.map (string_of_tile_index tiles) indexes |>
+    List.sort compare |> String.concat "; " |> Printf.sprintf "[%s]"
+
+let string_of_event tiles = function
   | Init _ -> "Init"
   | Wall_breaker_roll i ->
     if i = 0 then "Wall_breaker_roll" else Printf.sprintf "Wall_breaker_roll(%i)" i
@@ -123,21 +129,20 @@ let string_of_event = function
     if i = 0 then "Break_wall_roll" else Printf.sprintf "Break_wall_roll(%i)" i
   | Deal -> "Deal"
   | Draw player -> Printf.sprintf "Draw(%i)" player
-  | Discard(player, tile_pos) -> Printf.sprintf "Discard(%i, %i)" player tile_pos
+  | Discard(player, tile_pos) -> Printf.sprintf "Discard(%i, %s)" player (string_of_tile_index tiles tile_pos)
   | Mahjong player -> Printf.sprintf "Mahjong(%i)" player
-  | Concealed_kong (player, tiles_pos) -> Printf.sprintf "Concealed_kong(%i, %s)" player (string_of_int_list tiles_pos)
-  | Small_kong (player, tile_pos) -> Printf.sprintf "Small_kong(%i, %i)" player tile_pos
-  | Chow (player, tiles_pos) -> Printf.sprintf "Chow(%i, %s)" player (string_of_int_list tiles_pos)
-  | Pong (player, tiles_pos) -> Printf.sprintf "Pong(%i, %s)" player (string_of_int_list tiles_pos)
-  | Kong (player, tiles_pos) -> Printf.sprintf "Kong(%i, %s)" player (string_of_int_list tiles_pos)
+  | Concealed_kong (player, tiles_pos) -> Printf.sprintf "Concealed_kong(%i, %s)" player (string_of_tile_indexes tiles tiles_pos)
+  | Small_kong (player, tile_pos) -> Printf.sprintf "Small_kong(%i, %s)" player (string_of_tile_index tiles tile_pos)
+  | Chow (player, tiles_pos) -> Printf.sprintf "Chow(%i, %s)" player (string_of_tile_indexes tiles tiles_pos)
+  | Pong (player, tiles_pos) -> Printf.sprintf "Pong(%i, %s)" player (string_of_tile_indexes tiles tiles_pos)
+  | Kong (player, tiles_pos) -> Printf.sprintf "Kong(%i, %s)" player (string_of_tile_indexes tiles tiles_pos)
   | No_action player -> Printf.sprintf "No_action(%i)" player
 
-let string_of_player_state {hand; hand_indexes; declared; discarded_tiles} =
-  Printf.sprintf "{\nhand: %s;\nhand_indexes: %s;\ndeclared: %s;\ndiscarded_tiles: %s;\n}"
-    (string_of_tileset hand)
-    (string_of_int_list (IntSet.elements hand_indexes))
+let string_of_player_state tiles {hand; hand_indexes; declared; discarded_tiles} =
+  Printf.sprintf "{\nhand: %s;\ndeclared: %s;\ndiscarded_tiles: %s;\n}"
+    (string_of_tile_indexes tiles (IntSet.elements hand_indexes))
     (string_of_declared declared)
-    (string_of_int_list discarded_tiles)
+    (string_of_tile_indexes tiles discarded_tiles)
 
 let string_of_end_game = function
   | No_winner -> "No_winner"
@@ -145,7 +150,7 @@ let string_of_end_game = function
 
 let string_of_game
     {history = _;
-     tiles = _;
+     tiles;
      wall_breaker_roll = _;
      current_tile;
      last_tile;
@@ -162,15 +167,17 @@ let string_of_game
   Printf.sprintf "{\ncurrent_tile: %i;\n last_tile: %i;\n player_0:\n%s;\nplayer_1:\n%s;\nplayer_2:\n%s;\nplayer_3:\n%s;\ncurrent_player: %i;\n;\n discarded_tile: %s;\n end_game: %s;\n discard_event: %s;\n small_kong_event: %s;\n}"
     current_tile
     last_tile
-    (string_of_player_state player_0)
-    (string_of_player_state player_1)
-    (string_of_player_state player_2)
-    (string_of_player_state player_3)
+    (string_of_player_state tiles player_0)
+    (string_of_player_state tiles player_1)
+    (string_of_player_state tiles player_2)
+    (string_of_player_state tiles player_3)
     current_player
     (match discarded_tile with Some i -> string_of_int i | None -> "None")
     (match end_game with Some end_game -> string_of_end_game end_game | None -> "None")
-    (match discard_event with Some event -> string_of_event event | None -> "None")
-    (match small_kong_event with Some event -> string_of_event event | None -> "None")
+    (match discard_event with Some event -> string_of_event tiles event | None -> "None")
+    (match small_kong_event with Some event -> string_of_event tiles event | None -> "None")
+
+let string_of_event {tiles; _} event = string_of_event tiles event
 
 
 let update_player player f game =
@@ -321,11 +328,11 @@ let remove_tile_from_hand tile_idx tiles event (player_state: player_state) =
     raise (Irrelevant_event (event, "No such tile in player hand."))
   end
 
-let next_player player = player + 1 mod 4
+let next_player player = (player + 1) mod 4
 
-let prev_player player = player + 3 mod 4
+let prev_player player = (player + 3) mod 4
 
-let prev_prev_player player = player + 2 mod 4
+let prev_prev_player player = (player + 2) mod 4
 
 let discard player tile_idx event game =
   {game with
@@ -748,7 +755,7 @@ let build_engine ?irregular_hands events =
       | event -> raise (Irrelevant_event (event, "wait_for_deal"))))
     
   and wait_for_draw_in_wall = lazy (new_state
-    ~accepted_events: (fun game -> [Draw (game.current_tile)])
+    ~accepted_events: (fun game -> [Draw (game.current_player)])
       (function
       | Draw _ -> player_turn
       | event -> raise (Irrelevant_event (event, "wait_for_draw_in_wall"))))

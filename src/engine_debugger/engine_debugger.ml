@@ -12,12 +12,15 @@ let rec loop action_handler game state =
     let rec read_event_loop () =
       List.iteri
         (fun i event ->
-          print_endline ((Printf.sprintf "%i) %s" i (string_of_event event)))
+          if i <> 0 && i mod 5 = 0 then print_endline "";
+          Printf.printf "%i) %s   " i (string_of_event game event);
         )
         possible_actions;
-      begin match Scanf.scanf "%i" (fun x -> x) with
+      print_string "\n>  ";
+      flush stdout;
+      begin match Scanf.scanf "%i\n" (fun x -> x) with
       | x ->
-         if x < 0 || List.length possible_actions <= x then
+        if x < 0 || List.length possible_actions <= x then
           read_event_loop ()
         else
           let event = List.nth possible_actions x in
@@ -34,7 +37,9 @@ let rec loop action_handler game state =
           in
           let game, state = run action_handler game (lazy state) [event] in
           loop action_handler game state
-      | exception Scanf.Scan_failure _ ->
+      | exception Scanf.Scan_failure msg ->
+        print_endline ("Scan failure: " ^ msg);
+        Scanf.scanf "%s\n" (fun _ -> ());
         read_event_loop ()
       end
       
