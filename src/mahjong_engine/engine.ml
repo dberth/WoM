@@ -360,7 +360,8 @@ let declare_tileset ~concealed player tiles_pos event game =
       let player_state =
         List.fold_left
           (fun player_state tile_idx ->
-            remove_tile_from_hand tile_idx game.tiles event player_state
+            let res = remove_tile_from_hand tile_idx game.tiles event player_state in
+            res
           )
           player_state
           tiles_pos
@@ -404,7 +405,7 @@ let set_discarded_tile player tiles_pos event game =
   match game.discarded_tile with
   | None -> assert false
   | Some discarded_tile ->
-    if List.mem discarded_tile tiles_pos then
+    if List.mem discarded_tile tiles_pos then begin
       {game with discarded_tile = None; current_player = player} |>
         update_player player
           (fun player_state ->
@@ -412,7 +413,7 @@ let set_discarded_tile player tiles_pos event game =
             let hand_indexes = IntSet.add discarded_tile player_state.hand_indexes in
             {player_state with hand; hand_indexes}
           )
-    else
+    end else
       raise (Irrelevant_event(event, "Event doesn't concern discarded tile."))
 
 let declare_discarded_tileset player tiles_pos event game =
@@ -799,8 +800,11 @@ let build_engine ?irregular_hands events =
         List.concat (
           List.map
             (fun tile_descr ->
-              let tiles_pos = pos_of_tile_descr game.tiles player_state.hand_indexes 1 tile_descr in
-              List.map (fun tile_pos -> Small_kong (game.current_player, tile_pos)) tiles_pos
+              try
+                let tiles_pos = pos_of_tile_descr game.tiles player_state.hand_indexes 1 tile_descr in
+                List.map (fun tile_pos -> Small_kong (game.current_player, tile_pos)) tiles_pos
+              with
+              | Not_found -> []
             )
             pong_descrs
         )

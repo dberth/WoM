@@ -35,6 +35,8 @@ Executable engine_debugger
   BuildTools:      ocamlbuild
   BuildDepends:    mahjong_engine
   Build:           true
+  ByteOpt:	   -g
+  NativeOpt:	   -g
   MainIs:          engine_debugger.ml
   CompiledObject:  best
 
