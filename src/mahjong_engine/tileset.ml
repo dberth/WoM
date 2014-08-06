@@ -237,13 +237,30 @@ let rec add_basic_tileset tile = function
     else
       tile :: hd :: tl
 
+let for_all_bytes f b =
+  let result = ref true in
+  let i = ref 0 in
+  while !result = true && !i < Bytes.length b do
+    result := f (Bytes.get b !i);
+    incr i
+  done;
+  !result
+
+let is_empty_basic_tile_set = function
+  | Num(_, s) -> for_all_bytes (fun b -> b = 'z') s
+  | Honor (_, n) -> n = 0 
+
 let rec remove_basic_tileset tile = function
   | [] -> raise Not_found
   | hd :: tl ->
     if compare_tile hd tile < 0 then
       hd :: (remove_basic_tileset tile tl)
     else if compare_tile hd tile = 0 then
-      (unmerge_tile hd tile) :: tl
+      let new_basic_tileset = unmerge_tile hd tile in
+      if is_empty_basic_tile_set new_basic_tileset then
+        tl
+      else
+        new_basic_tileset :: tl
     else
       raise Not_found
 
