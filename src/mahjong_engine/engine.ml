@@ -341,9 +341,14 @@ let discard player tile_idx event game =
   } |>
     update_player player (remove_tile_from_hand tile_idx game.tiles event)
 
-let mahjong ~discard_player ?(kong_robbing = false)player game =
+let mahjong ~discard_player ?(kong_robbing = false) player game =
   update_game_from_player player
     (fun {hand; declared; _} ->
+      let hand =
+        match game.discarded_tile with
+        | None -> hand
+        | Some discarded_tile -> Tileset.add_tile (game.tiles.(discarded_tile)) hand
+      in
       {game with end_game = Some (Mahjong {declared; hand; discard_player; kong_robbing})}
     )
     game
