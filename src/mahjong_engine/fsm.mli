@@ -58,6 +58,12 @@ val run: ?with_history: bool -> ('event, 'world) action_handler -> 'world -> ('e
 
 val accepted_events: 'world -> ('event, 'world) state -> 'event list
 
+(** {2 History handling} *)
+
+val history: ('event, 'world) state -> 'event list
+(**
+Returns the history of all events ran with the with_history flag. 
+*)
     
 (** {2 Usage Example} *)
 

@@ -36,6 +36,8 @@ let run ?(with_history = false) action_handler world state events =
   in
   new_world, new_state
 
+let history {history; _} = List.rev history
+
 let on_entry state event world =
   (Lazy.force state).set_on_entry event world
 
