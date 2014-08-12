@@ -177,6 +177,12 @@ let string_of_game
 
 let string_of_event {tiles; _} event = string_of_event tiles event
 
+let () =
+  Printexc.register_printer
+    (function Irrelevant_event (_event, s) ->
+      Some (Printf.sprintf "Irrelevant event: %s" s)
+      | _ -> None
+    )
 
 let update_player player f game =
   match player with

@@ -14,14 +14,14 @@ let rec loop action_handler game state =
       | Init _ :: tl
       | tl -> Init (known_tiles game) :: tl
     in
-    let action_handler, game, state = build_engine events in
-    let possible_actions = accepted_events game state in
-    print_endline (string_of_game game);
+    let _, partial_game, _ = build_engine events in
+    let possible_actions = accepted_events partial_game state in
+    print_endline (string_of_game partial_game);
     let rec read_event_loop () =
       List.iteri
         (fun i event ->
           if i <> 0 && i mod 5 = 0 then print_endline "";
-          Printf.printf "%i) %s   " i (string_of_event game event);
+          Printf.printf "%i) %s   " i (string_of_event partial_game event);
         )
         possible_actions;
       print_string "\n>  ";
@@ -43,6 +43,7 @@ let rec loop action_handler game state =
               Break_wall_roll i
             | _ ->  event
           in
+          print_endline (string_of_event partial_game event);
           let game, state = run ~with_history: true action_handler game (lazy state) [event] in
           loop action_handler game state
       | exception Scanf.Scan_failure msg ->
