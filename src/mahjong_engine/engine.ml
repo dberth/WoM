@@ -1101,3 +1101,21 @@ let build_engine ?irregular_hands events =
   action_handler, world, state
 
 let finished {end_game; _} = end_game
+
+let set_player_known_tiles ~viewer _player _player_state _known_tiles =
+  ignore viewer (*TODO*)
+
+let set_end_game_known_tiles _ _ = () (*TODO*)
+
+let known_tiles viewer game =
+  let known_tiles = Array.make (Array.length game.tiles) None in
+  set_player_known_tiles ~viewer 0 game.player_0 known_tiles;
+  set_player_known_tiles ~viewer 1 game.player_1 known_tiles;
+  set_player_known_tiles ~viewer 2 game.player_2 known_tiles;
+  set_player_known_tiles ~viewer 3 game.player_3 known_tiles;
+  begin match game.discarded_tile with
+  | None -> ()
+  | Some pos -> known_tiles.(pos) <- Some (game.tiles.(pos))
+  end;
+  set_end_game_known_tiles game.end_game known_tiles;
+  known_tiles
