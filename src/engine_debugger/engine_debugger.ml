@@ -7,6 +7,12 @@ let rec loop action_handler game state =
   match finished game with
   | Some end_game -> print_endline (string_of_end_game end_game)
   | None ->
+    (* let history = Fsm.history state in *)
+    (* List.iter *)
+    (*   (fun event -> *)
+    (*     print_endline (string_of_event game event) *)
+    (*   ) *)
+    (*   history; *)
     let possible_actions = accepted_events game state in
     print_endline (string_of_game game);
     let rec read_event_loop () =
@@ -35,7 +41,7 @@ let rec loop action_handler game state =
               Break_wall_roll i
             | _ ->  event
           in
-          let game, state = run action_handler game (lazy state) [event] in
+          let game, state = run ~with_history: true action_handler game (lazy state) [event] in
           loop action_handler game state
       | exception Scanf.Scan_failure msg ->
         print_endline ("Scan failure: " ^ msg);
