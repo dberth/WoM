@@ -1103,7 +1103,7 @@ let build_engine ?irregular_hands events =
 let finished {end_game; _} = end_game
 
 let set_known_tile tiles known_tiles tile_pos =
-  known_tiles.(tile_pos) <- Some (tiles.(tile_pos))
+  known_tiles.(tile_pos) <- Some (tile_descr_of_tile tiles.(tile_pos))
 
 let set_player_known_tiles ~viewer player tiles player_state known_tiles =
   if viewer = player then begin
@@ -1120,7 +1120,8 @@ let set_player_known_tiles ~viewer player tiles player_state known_tiles =
       
   
 
-let known_tiles viewer {tiles; player_0; player_1; player_2; player_3; discarded_tile; _} =
+let known_tiles {current_player; tiles; player_0; player_1; player_2; player_3; discarded_tile; _} =
+  let viewer = current_player in
   let known_tiles = Array.make (Array.length tiles) None in
   set_player_known_tiles ~viewer 0 tiles player_0 known_tiles;
   set_player_known_tiles ~viewer 1 tiles player_1 known_tiles;

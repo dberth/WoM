@@ -49,3 +49,5 @@ val string_of_end_game: end_game -> string
 val string_of_game: game -> string
 
 val string_of_event: game -> event -> string
+
+val known_tiles: game -> Tileset.tile_descr option array
