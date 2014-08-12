@@ -51,7 +51,6 @@ type player_state =
 
 type game =
   {
-    history: event list;
     tiles: tile array;
     wall_breaker_roll: int;
     current_tile: int;
@@ -77,7 +76,6 @@ let init_player =
 
 let init_game =
   {
-    history = [];
     tiles = [||];
     wall_breaker_roll = 0;
     current_tile = 0;
@@ -149,7 +147,7 @@ let string_of_end_game = function
   | Mahjong mahjong -> string_of_mahjong mahjong
 
 let string_of_game
-    {history = _;
+    {
      tiles;
      wall_breaker_roll = _;
      current_tile;
@@ -521,14 +519,13 @@ let on_game_start_exit event game =
   match event with
   | Init known_positions ->
     let tiles = shuffle known_positions in
-    let init_event = Array.map (fun x -> Some (tile_descr_of_tile x)) tiles in
-    {game with history = [Init init_event]; tiles;}
+    {game with tiles;}
   | _ -> assert false
 
 let on_wait_for_wall_breaker_roll_exit event game =
   match event with
   | Wall_breaker_roll wall_breaker_roll ->
-    {game with history = event :: game.history; wall_breaker_roll}
+    {game with wall_breaker_roll}
   | _ -> assert false
 
 let on_wait_for_break_roll_exit event game =
@@ -536,7 +533,6 @@ let on_wait_for_break_roll_exit event game =
   | Break_wall_roll dice ->
     let current_tile = first_tile_index game.wall_breaker_roll dice in 
     {game with
-      history = event :: game.history;
       current_tile;
       last_tile = (current_tile + nb_tiles - 1) mod nb_tiles;
     }
