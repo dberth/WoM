@@ -7,7 +7,7 @@ type player = int
 
 type tile_pos = int (*A position in the initial array*)
 
-type declared = (tileset * bool (*is_concealed*)) list
+type declared = (tileset * tile_pos list * bool (*is_concealed*)) list
 
 type mahjong =
   {
@@ -97,7 +97,7 @@ let string_of_tileset tileset =
 let string_of_declared declared =
   String.concat " ;"
     (List.map
-       (fun (tileset, concealed) ->
+       (fun (tileset, _, concealed) ->
          let concealed = if concealed then "(concealed)" else "" in
          Printf.sprintf "%s%s" (string_of_tileset tileset) concealed
        )
@@ -370,7 +370,7 @@ let declare_tileset ~concealed player tiles_pos event game =
           tiles_pos
       in
       let tileset = mk_tileset_of_tiles_pos game.tiles tiles_pos in
-      {player_state with declared = (tileset, concealed) :: player_state.declared}
+      {player_state with declared = (tileset, tiles_pos, concealed) :: player_state.declared}
     )
     game
 
@@ -380,13 +380,13 @@ let declare_concealed_kong player tiles_pos event game =
 let set_small_kong tile_pos tiles event player_state =
   let rec aux = function
     | [] -> raise (Irrelevant_event(event, "Cannot find pong to make a small kong."))
-    | (tileset, concealed as x) :: tl ->
+    | (tileset, tiles_pos, concealed as x) :: tl ->
       if is_kong tileset then
         x :: aux tl
       else
         let tileset = add_tile tiles.(tile_pos) tileset in
         if is_kong tileset then
-          (tileset, concealed) :: tl
+          (tileset, tile_pos :: tiles_pos, concealed) :: tl
         else
           x :: aux tl
   in
@@ -792,11 +792,11 @@ let build_engine ?irregular_hands events =
       in
       let small_kong_events =
         let declared_pongs =
-          List.filter (fun (tileset, _) -> is_pong tileset) player_state.declared
+          List.filter (fun (tileset, _, _) -> is_pong tileset) player_state.declared
         in
         let pong_descrs =
           List.map
-            (fun (pong, _) -> List.hd (tile_descr_of_tileset pong))
+            (fun (pong, _, _) -> List.hd (tile_descr_of_tileset pong))
             declared_pongs
         in
         List.concat (
@@ -1102,20 +1102,32 @@ let build_engine ?irregular_hands events =
 
 let finished {end_game; _} = end_game
 
-let set_player_known_tiles ~viewer _player _player_state _known_tiles =
-  ignore viewer (*TODO*)
+let set_known_tile tiles known_tiles tile_pos =
+  known_tiles.(tile_pos) <- Some (tiles.(tile_pos))
 
-let set_end_game_known_tiles _ _ = () (*TODO*)
-
-let known_tiles viewer game =
-  let known_tiles = Array.make (Array.length game.tiles) None in
-  set_player_known_tiles ~viewer 0 game.player_0 known_tiles;
-  set_player_known_tiles ~viewer 1 game.player_1 known_tiles;
-  set_player_known_tiles ~viewer 2 game.player_2 known_tiles;
-  set_player_known_tiles ~viewer 3 game.player_3 known_tiles;
-  begin match game.discarded_tile with
-  | None -> ()
-  | Some pos -> known_tiles.(pos) <- Some (game.tiles.(pos))
+let set_player_known_tiles ~viewer player tiles player_state known_tiles =
+  if viewer = player then begin
+    IntSet.iter
+      (set_known_tile tiles known_tiles)
+      player_state.hand_indexes
   end;
-  set_end_game_known_tiles game.end_game known_tiles;
+  List.iter
+    (fun (_, tiles_pos, _) ->
+      List.iter (set_known_tile tiles known_tiles) tiles_pos
+    )
+    player_state.declared;
+  List.iter (set_known_tile tiles known_tiles) player_state.discarded_tiles
+      
+  
+
+let known_tiles viewer {tiles; player_0; player_1; player_2; player_3; discarded_tile; _} =
+  let known_tiles = Array.make (Array.length tiles) None in
+  set_player_known_tiles ~viewer 0 tiles player_0 known_tiles;
+  set_player_known_tiles ~viewer 1 tiles player_1 known_tiles;
+  set_player_known_tiles ~viewer 2 tiles player_2 known_tiles;
+  set_player_known_tiles ~viewer 3 tiles player_3 known_tiles;
+  begin match discarded_tile with
+  | None -> ()
+  | Some pos -> set_known_tile tiles known_tiles pos
+  end;
   known_tiles

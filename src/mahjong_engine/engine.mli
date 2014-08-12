@@ -6,7 +6,7 @@ type tile_pos = int (*A position in the initial array*)
 
 type game
 
-type declared = (Tileset.tileset * bool (*is_concealed*)) list
+type declared = (Tileset.tileset * tile_pos list * bool (*is_concealed*)) list
 
 type mahjong =
   {
