@@ -11,8 +11,8 @@ let rec loop action_handler game state =
     let events =
       match history with
       | [] -> []
-      | Init _ :: tl -> Init (known_tiles game) :: tl
-      | _ -> assert false
+      | Init _ :: tl
+      | tl -> Init (known_tiles game) :: tl
     in
     let action_handler, game, state = build_engine events in
     let possible_actions = accepted_events game state in
