@@ -432,7 +432,6 @@ match game.discarded_tile with
   { game with
     current_player = next_player player;
     discarded_tile = None;
-    discard_event = None;
   } |> update_player player
       (fun player_state ->
         {player_state with
@@ -563,6 +562,8 @@ let on_wait_for_draw_in_wall_entry _ ({current_tile; last_tile; _} as game) =
     {game with end_game = Some No_winner}
   else
     game
+
+let on_player_turn_entry _ game = {game with discard_event = None}
 
 let on_wait_for_draw_in_wall_exit event game =
   match event with
@@ -1076,6 +1077,7 @@ let build_engine ?irregular_hands events =
   let action_handler =
     empty_action_handler |>
       on_entry wait_for_draw_in_wall on_wait_for_draw_in_wall_entry |>
+      on_entry player_turn on_player_turn_entry |>
       on_exit game_start on_game_start_exit |>
       on_exit wait_for_wall_breaker_roll on_wait_for_wall_breaker_roll_exit |>
       on_exit wait_for_break_roll on_wait_for_break_roll_exit |>
