@@ -629,3 +629,82 @@ let tiles_to_chow = function
   | Dot i -> tiles_to_chow (fun i -> Dot i) i
   | Char i -> tiles_to_chow (fun i -> Char i) i
   | _ -> [] 
+
+type tileset_status =
+  {
+    alone: tile_descr list;
+    in_sub_chow: tile_descr list;
+    in_pair: tile_descr list;
+    in_3set: tile_descr list;
+  }
+
+let status_of_honor_set alone set2 set3 kind x =
+  let tile = honor_tile_descr_of_kind kind in
+  match x with
+  | 0 -> alone, set2, set3
+  | 1 -> tile :: alone, set2, set3
+  | 2 -> alone, tile :: set2, set3
+  | 3 | 4 -> alone, set2, tile :: set3
+  | _ -> assert false
+
+let set_series bytes status_array =
+  let set i status =
+    status_array.(i - 1) <- max status_array.(i - 1) status
+  in
+  for i = 1 to 7 do
+    match Bytes.get bytes i <> 'z', Bytes.get bytes (i + 1) <> 'z', Bytes.get bytes (i + 2) <> 'z' with
+    | false, false, false -> ()
+    | true, false, false -> set i 1
+    | false, true, false -> set (i + 1) 1
+    | true, true, false -> set i 2; set (i + 1) 2
+    | false, false, true -> set (i + 2) 1
+    | true, false, true -> set i 2; set (i + 2) 2
+    | false, true, true -> set (i + 1) 2; set (i + 2) 2
+    | true, true, true -> set i 4; set (i + 1) 4; set (i + 2) 4
+  done
+
+let set_groups bytes status_array =
+  let set i status =
+    status_array.(i - 1) <- max status_array.(i - 1) status
+  in
+  for i = 1 to 9 do
+    match Bytes.get bytes i with
+    | 'z' -> ()
+    | 'a' -> set i 1
+    | 'b' -> set i 3
+    | 'c' | 'd' -> set i 4
+    | _ -> assert false
+  done
+
+let status_of_num_set alone sub_chow set2 set3 kind bytes =
+  let status_array = Array.make 9 0 in
+  set_series bytes status_array;
+  set_groups bytes status_array;
+  let alone = ref alone in
+  let sub_chow = ref sub_chow in
+  let set2 = ref set2 in
+  let set3 = ref set3 in
+  Array.iteri
+    (fun i status -> 
+      match status with
+      | 0 -> ()
+      | 1 -> alone := num_tile_descr_of_kind (i + 1) kind :: !alone
+      | 2 -> sub_chow := num_tile_descr_of_kind (i + 1) kind :: !sub_chow
+      | 3 -> set2 := num_tile_descr_of_kind (i + 1) kind :: !set2
+      | 4 -> set3 := num_tile_descr_of_kind (i + 1) kind :: !set3
+      | _ -> assert false
+    )
+    status_array;
+  !alone, !sub_chow, !set2, !set3
+
+let status_of_tileset tileset =
+  let rec aux alone sub_chow set2 set3 = function
+    | [] -> {alone; in_sub_chow = sub_chow; in_pair = set2; in_3set = set3}
+    | Honor (kind, x) :: tl ->
+      let alone, set2, set3 = status_of_honor_set alone set2 set3 kind x in
+      aux alone sub_chow set2 set3 tl
+    | Num (kind, bytes) :: tl ->
+      let alone, sub_chow, set2, set3 = status_of_num_set alone sub_chow set2 set3 kind bytes in
+      aux alone set2 sub_chow set3 tl
+  in
+  aux [] [] [] [] tileset
