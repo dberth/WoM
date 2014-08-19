@@ -13,6 +13,14 @@ Library mahjong_engine
   Build:           true
   Modules:         Tileset, Fsm, Engine
   Findlibname:     mahjong_engine
+
+Library mahjong_ai
+  Path:		   src/mahjong_ai
+  BuildTools:	   ocamlbuild
+  CompiledObject:  best
+  Build:	   true
+  Modules:	   Mahjong_ai
+  Findlibname:	   mahjong_ai
   
 Executable mahjong_engine_test
   Path:		   test
