@@ -51,3 +51,9 @@ val string_of_game: game -> string
 val string_of_event: game -> event -> string
 
 val known_tiles: game -> Tileset.tile_descr option array
+
+val current_player: game -> player
+
+val current_player_hand: game -> Tileset.tileset
+
+val descr_of_tile_pos: game -> int -> Tileset.tile_descr

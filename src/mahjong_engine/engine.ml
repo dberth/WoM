@@ -1138,3 +1138,12 @@ let known_tiles {current_player; tiles; player_0; player_1; player_2; player_3; 
   | Some pos -> set_known_tile tiles known_tiles pos
   end;
   known_tiles
+
+let current_player {current_player; _} = current_player
+
+let current_player_hand game =
+  let {hand; _} = current_player_state game in
+  hand
+
+let descr_of_tile_pos {tiles; _} pos =
+  tile_descr_of_tile tiles.(pos)

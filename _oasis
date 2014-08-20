@@ -19,6 +19,7 @@ Library mahjong_ai
   BuildTools:	   ocamlbuild
   CompiledObject:  best
   Build:	   true
+  BuildDepends:	   mahjong_engine
   Modules:	   Mahjong_ai
   Findlibname:	   mahjong_ai
   
