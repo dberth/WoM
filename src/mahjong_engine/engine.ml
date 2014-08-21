@@ -459,11 +459,12 @@ let rec pos_of_tile_descr tiles hand_indexes size tile_descr =
       )
       hand_indexes
   in
-  if IntSet.cardinal s < size then
+  let c = IntSet.cardinal s in
+  if c < size then
     raise Not_found
-  else if IntSet.cardinal s = size then
+  else if c = size then
     IntSet.elements s
-  else if IntSet.cardinal s = size + 1 then
+  else if c = size + 1 then
     List.tl (IntSet.elements s)
   else if size = 1 then
     [List.hd (IntSet.elements s)]
