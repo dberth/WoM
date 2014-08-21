@@ -1026,7 +1026,7 @@ let build_engine ?irregular_hands events =
 
   and kong_declared =
     lazy (new_state
-      ~accepted_events: (fun game -> [Draw game.last_tile])
+      ~accepted_events: (fun game -> [Draw game.current_player])
         (function
         | Draw _ -> player_turn
         | event -> raise (Irrelevant_event (event, "kong_declared"))))

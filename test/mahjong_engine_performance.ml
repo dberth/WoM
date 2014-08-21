@@ -1,6 +1,7 @@
 (*Copyright (C) 2014 Denis Berthod*)
 
 open Tileset
+open Engine
 
 let tiles =
   [|
@@ -42,9 +43,43 @@ let test hands =
     hands
 
 let () =
-  let nb_hands = 1_000_000 in
+  let nb_hands = 1_000 in
   let hands = random_hands nb_hands in
   let ti = Unix.gettimeofday () in
   ignore (test hands);
   let tf = Unix.gettimeofday () in
   print_endline (Printf.sprintf "%i mahjong tests in %.4f seconds." nb_hands (tf -. ti))
+
+
+let () =
+  let nb_games = ref 0 in
+  let nb_draw_games = ref 0 in
+  let evaluate_game player game =
+    incr nb_games;
+    match finished game with
+    | None -> assert false
+    | Some No_winner -> incr nb_draw_games; 0.
+    | Some (Mahjong _) ->
+      if current_player game = player then
+        1.
+      else
+        -1.
+  in
+  let nb_simulations = 1 in
+  let nb_trajectory = 1_000 in
+  let ti = Unix.gettimeofday () in
+  let events =
+    [
+      Init (Array.make 136 None);
+      Wall_breaker_roll 3;
+      Break_wall_roll 11;
+      Deal;
+      Draw 0;
+    ]
+  in
+  for i = 1 to nb_simulations do
+    ignore (Mahjong_ai.mc_ai_with_bias ~evaluate_game ~nb_trajectory  events 0.8)
+  done;
+  let tf = Unix.gettimeofday () in
+  print_endline (Printf.sprintf "%i simulation with %i trajectory in %.4f seconds." nb_simulations nb_trajectory (tf -. ti));
+  print_endline (Printf.sprintf "%i / %i draw games i.e. %.2f%%." !nb_draw_games !nb_games ((float !nb_draw_games) /. (float !nb_games) *. 100.))

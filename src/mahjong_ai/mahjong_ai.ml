@@ -2,15 +2,27 @@
 
 open Engine
 
-let rec apply_bias bias = function
-  | [] -> assert false
-  | [[x]] -> x
-  | [set] -> List.nth set (Random.int (List.length set))
-  | hd :: tl ->
-    if Random.float 1. < bias then
-      List.nth hd (Random.int (List.length hd))
-    else
-      apply_bias bias tl
+let rec remove_empty = function
+  | [] -> []
+  | [] :: tl -> remove_empty tl
+  | hd :: tl -> hd :: remove_empty tl 
+
+let apply_bias bias buckets =
+  let rec aux = function
+    | [] -> assert false
+    | [[x]] -> x
+    | [set] -> List.nth set (Random.int (List.length set))
+    | hd :: tl ->
+      if Random.float 1. < bias then begin
+        List.nth hd (Random.int (List.length hd))
+      end else
+        aux tl
+  in
+  aux (remove_empty buckets)
+
+
+let string_of_tile_descrs tile_descrs =
+  String.concat "; " (List.map Tileset.string_of_tile_descr tile_descrs)
 
 let mc_next_event_with_bias game state bias =
   let possible_actions = Fsm.accepted_events game state in

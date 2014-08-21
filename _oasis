@@ -34,7 +34,7 @@ Executable mahjong_engine_test
 Executable mahjong_engine_perf_test
   Path:            test
   BuildTools:      ocamlbuild
-  BuildDepends:    unix, mahjong_engine
+  BuildDepends:    unix, mahjong_engine, mahjong_ai
   Build:           true
   MainIs:          mahjong_engine_performance.ml
   CompiledObject:  best
