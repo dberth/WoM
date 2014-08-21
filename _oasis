@@ -22,6 +22,15 @@ Library mahjong_ai
   BuildDepends:	   mahjong_engine
   Modules:	   Mahjong_ai
   Findlibname:	   mahjong_ai
+
+Executable wom_cli
+  Path:            src/cli
+  BuildTools:	   ocamlbuild
+  BuildDepends:	   mahjong_engine, mahjong_ai
+  Build:	   true
+  MainIs:	   cli.ml
+  CompiledObject:  best
+
   
 Executable mahjong_engine_test
   Path:		   test
