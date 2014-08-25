@@ -221,64 +221,127 @@ let init_tiles =
 
 let nb_tiles = Array.length init_tiles
 
+let init_tile_descrs = Hashtbl.create nb_tiles
+
+let () =
+  Array.iter
+    (fun tile ->
+      Hashtbl.add init_tile_descrs (tile_descr_of_tile tile) tile
+    )
+    init_tiles
+
 let random_game = Array.make nb_tiles (None: tile_descr option)
 
-let init_tile_descrs = Array.map tile_descr_of_tile init_tiles
+(* let init_tile_descrs = Array.map tile_descr_of_tile init_tiles *)
 
-let find_index tile_descr tile_descrs =
-  let i = ref 0 in
-  let l = Array.length tile_descrs in
-  while !i < l && tile_descrs.(!i) <> tile_descr do incr i done;
-  !i
+(* let find_index tile_descr known_positions tile_descrs = *)
+(*   let i = ref 0 in *)
+(*   let l = Array.length tile_descrs in *)
+(*   let check_known_positions () = *)
+(*     if tile_descrs.(!i) = tile_descr then *)
+(*       match known_positions.(!i) with *)
+(*       | Some descr when descr = tile_descr -> true *)
+(*       | _ -> false *)
+(*     else *)
+(*       true *)
+(*   in *)
+(*   while !i < l && tile_descrs.(!i) <> tile_descr && check_known_positions () do incr i done; *)
+(*   !i *)
 
-let find_free_backward i known_positions =
-  let i = ref i in
-  while 0 <= !i && known_positions.(!i) <> None do decr i done;
-  if !i = (-1) then
-    None
-  else
-    Some !i
+(* let find_free_backward i known_positions = *)
+(*   let i = ref i in *)
+(*   while 0 <= !i && known_positions.(!i) <> None do decr i done; *)
+(*   if !i = (-1) then *)
+(*     None *)
+(*   else *)
+(*     Some !i *)
 
-let find_free_forward i known_positions =
-  let i = ref i in
-  let l = Array.length known_positions in
-  while !i < l && known_positions.(!i) <> None do incr i done;
-  if !i = l then
-    None
-  else
-    Some !i
+(* let find_free_forward i known_positions = *)
+(*   let i = ref i in *)
+(*   let l = Array.length known_positions in *)
+(*   while !i < l && known_positions.(!i) <> None do incr i done; *)
+(*   if !i = l then *)
+(*     None *)
+(*   else *)
+(*     Some !i *)
 
-let find_swap_index i known_positions tile_descrs =
-  match known_positions.(i) with
-  | Some tile_desc -> find_index tile_desc tile_descrs
-  | None ->
-    let j = Random.int (i + 1) in
-    match known_positions.(j) with
-    | None -> j
-    | Some _ ->
-      match find_free_backward j known_positions with
-      | Some k -> k
-      | None ->
-        match find_free_forward j known_positions with
-        | Some k -> k
-        | None -> assert false
+(* let find_swap_index i known_positions tile_descrs = *)
+(*   match known_positions.(i) with *)
+(*   | Some tile_desc -> *)
+(*     if tile_descrs.(i) = tile_desc then *)
+(*       i *)
+(*     else *)
+(*       find_index tile_desc known_positions tile_descrs *)
+(*   | None -> *)
+(*     let j = Random.int (i + 1) in *)
+(*     match known_positions.(j) with *)
+(*     | None -> j *)
+(*     | Some _ -> *)
+(*       match find_free_backward j known_positions with *)
+(*       | Some k -> k *)
+(*       | None -> *)
+(*         match find_free_forward j known_positions with *)
+(*         | Some k -> k *)
+(*         | None -> assert false *)
 
-let swap arr i j =
-  let x = arr.(i) in
-  arr.(i) <- arr.(j);
-  arr.(j) <- x
+(* let swap arr i j = *)
+(*   let x = arr.(i) in *)
+(*   arr.(i) <- arr.(j); *)
+(*   arr.(j) <- x *)
+
+(* let shuffle known_positions = *)
+(*   let tiles = Array.copy init_tiles in *)
+(*   let tile_descrs = Array.copy init_tile_descrs in *)
+(*   assert (Array.length tiles = Array.length known_positions); *)
+(*   Random.self_init (); *)
+(*   for i = Array.length tiles - 1 downto 0 do *)
+(*     let j = find_swap_index i known_positions tile_descrs in *)
+(*     swap tiles i j; *)
+(*     swap tile_descrs i j *)
+(*   done; *)
+(*   for i = 0 to Array.length tiles - 1 do *)
+(*     match known_positions.(i) with *)
+(*     | None -> () *)
+(*     | Some tile -> if tile <> tile_descrs.(i) then begin *)
+(*         print_endline (Printf.sprintf "%i, %s, %s" i (string_of_tile_descr tile) (string_of_tile_descr tile_descrs.(i))); *)
+(*         assert false *)
+(*       end *)
+(*   done; *)
+(*   tiles *)
+
+let shuffle_array arr =
+  for i = Array.length arr - 1 downto 1 do
+    let j = Random.int i in
+    let x = arr.(i) in
+    arr.(i) <- arr.(j);
+    arr.(j) <- x
+  done
 
 let shuffle known_positions =
-  let tiles = Array.copy init_tiles in
-  let tile_descrs = Array.copy init_tile_descrs in
-  assert (Array.length tiles = Array.length known_positions);
-  Random.self_init ();
-  for i = Array.length tiles - 1 downto 0 do
-    let j = find_swap_index i known_positions tile_descrs in
-    swap tiles i j;
-    swap tile_descrs i j
+  let tile_descrs = Hashtbl.copy init_tile_descrs in
+  Array.iter
+    (function
+      | None -> ()
+      | Some tile_descr -> Hashtbl.remove tile_descrs tile_descr
+    )
+    known_positions;
+  let l = Hashtbl.length tile_descrs in
+  let arr = Array.make l d1 in
+  let i = ref 0 in
+  Hashtbl.iter (fun _ tile -> arr.(!i) <- tile; incr i) tile_descrs;
+  shuffle_array arr;
+  let result = Array.make nb_tiles d1 in
+  let j = ref 0 in
+  for i = 0 to nb_tiles - 1 do
+    match known_positions.(i) with
+    | None -> result.(i) <- arr.(!j); incr j
+    | Some tile_descr ->
+      try
+        result.(i) <- Hashtbl.find init_tile_descrs tile_descr
+      with
+      | Not_found -> assert false
   done;
-  tiles
+  result
 
 let first_tile_index wall_breaker_roll break_wall_roll =
   let wall_breaker = (break_wall_roll - 1) mod 4 in
@@ -460,17 +523,17 @@ let rec pos_of_tile_descr tiles hand_indexes size tile_descr =
       hand_indexes
   in
   let c = IntSet.cardinal s in
+  let elems = List.sort compare (IntSet.elements s) in
   if c < size then
     raise Not_found
   else if c = size then
-    IntSet.elements s
+    elems
   else if c = size + 1 then
-    List.tl (IntSet.elements s)
+    List.tl elems
   else if size = 1 then
-    [List.hd (IntSet.elements s)]
+    [List.hd elems]
   else if size = 2 then
-    let l = IntSet.elements s in
-    [List.hd l; List.hd (List.tl l)]
+    [List.hd elems; List.hd (List.tl elems)]
   else
     assert false
 
