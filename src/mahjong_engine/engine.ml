@@ -956,7 +956,7 @@ let build_engine ?irregular_hands events =
     lazy (new_state
         ~accepted_events
         (function
-        | No_action _ -> player_turn
+        | No_action _ -> kong_declared
         | Mahjong _ -> mahjong_declared
         | event -> raise (Irrelevant_event (event, "2_kong_3"))))
 

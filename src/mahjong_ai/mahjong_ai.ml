@@ -27,6 +27,13 @@ let string_of_tile_descrs tile_descrs =
 let mc_next_event_with_bias game state bias =
   let possible_actions = Fsm.accepted_events game state in
   match possible_actions with
+  | [] ->
+    List.iter
+      (fun event ->
+        print_endline (string_of_event game event)
+      )
+      (Fsm.history state);
+    assert false
   | [unique_action] -> unique_action
   | _ ->
     let high_priority_actions =
@@ -57,18 +64,7 @@ let mc_next_event_with_bias game state bias =
         end
       | _ ->
         let {Tileset.alone; in_sub_chow; in_pair; in_3set} = Tileset.status_of_tileset (current_player_hand game) in
-        let tile_descr =
-          try
-            apply_bias bias [alone; in_sub_chow; in_pair; in_3set]
-          with
-          | Failure _ ->
-            List.iter
-              (fun event ->
-                print_endline (string_of_event game event)
-              )
-              (Fsm.history state);
-            assert false
-        in
+        let tile_descr = apply_bias bias [alone; in_sub_chow; in_pair; in_3set] in
         try
           List.find
             (function
@@ -89,7 +85,7 @@ let mc_trajectory_with_bias ~event_history ~possible_actions bias =
     | Some _ -> game, chosen_event
     | None ->
       let event = mc_next_event_with_bias game state bias in
-      let game, state = Fsm.run action_handler game (lazy state) [event] in
+      let game, state = Fsm.run (*~with_history: true*) action_handler game (lazy state) [event] in
       loop game state
   in
   loop game state
@@ -110,10 +106,9 @@ let apply_amaf possible_actions_tab possible_actions chosen_action game score =
     )
     possible_actions
 
-let mc_ai_with_bias ~evaluate_game ~nb_trajectory event_history bias =
+let mc_ai_with_bias ?(debug = false) ~evaluate_game ~nb_trajectory event_history bias =
   let _, game, state = build_engine event_history in
   let possible_actions = Fsm.accepted_events game state in
-  print_endline (String.concat "; " (List.map (string_of_event game) possible_actions));
   let possible_actions_tab = Hashtbl.create 14 in
   List.iter (fun x -> Hashtbl.add possible_actions_tab x (0., 0.)) possible_actions;
   match possible_actions with
@@ -132,11 +127,11 @@ let mc_ai_with_bias ~evaluate_game ~nb_trajectory event_history bias =
           match result with
           | None ->
             let average = sum /. nb in
-            print_endline (Printf.sprintf "%.2f, %s" average (string_of_event game event));
+            if debug then print_endline (Printf.sprintf "%.2f, %s" average (string_of_event game event));
             Some (average, event)
           | Some (old_average, old_event) ->
             let average = sum /. nb in
-            print_endline (Printf.sprintf "%.2f, %s" average (string_of_event game event));
+            if debug then print_endline (Printf.sprintf "%.2f, %s" average (string_of_event game event));
             if old_average <  average then
               Some (average, event)
             else
@@ -145,7 +140,7 @@ let mc_ai_with_bias ~evaluate_game ~nb_trajectory event_history bias =
         possible_actions_tab
         None
     in
-    Scanf.scanf "%s\n" (fun _ -> ());
+    if debug then Scanf.scanf "%s\n" (fun _ -> ());
     match result with
     | None -> assert false
     | Some (_, event) -> event
