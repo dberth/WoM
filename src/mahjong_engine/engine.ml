@@ -1134,3 +1134,18 @@ let current_player_hand game =
 
 let descr_of_tile_pos {tiles; _} pos =
   tile_descr_of_tile tiles.(pos)
+
+let rec is_in_declared pos = function
+  | [] -> false
+  | (_, positions, _) :: tl ->
+    if List.mem pos positions then
+      true
+    else
+      is_in_declared pos tl
+
+let is_in_current_player_hand game pos =
+  let {declared; hand_indexes; _} = current_player_state game in
+  if is_in_declared pos declared then
+    true
+  else
+    IntSet.mem pos hand_indexes

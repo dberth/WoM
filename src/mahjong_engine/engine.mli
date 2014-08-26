@@ -57,3 +57,5 @@ val current_player: game -> player
 val current_player_hand: game -> Tileset.tileset
 
 val descr_of_tile_pos: game -> int -> Tileset.tile_descr
+
+val is_in_current_player_hand: game -> int -> bool

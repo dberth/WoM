@@ -94,6 +94,22 @@ let mc_trajectory_with_bias ~event_history ~possible_actions bias =
   in
   loop game state
 
+let apply_score possible_actions_tab action score =
+  let (nb, sum) = try Hashtbl.find possible_actions_tab action with Not_found -> assert false in
+  Hashtbl.replace possible_actions_tab action (nb +. 1., sum +. score)
+
+let apply_amaf possible_actions_tab possible_actions chosen_action game score =
+  List.iter
+    (function
+      | Discard (_, tile_pos) as action ->
+        if not (is_in_current_player_hand game tile_pos) then
+          apply_score possible_actions_tab action score
+      | action when action = chosen_action ->
+        apply_score possible_actions_tab action score
+      | _ -> ()
+    )
+    possible_actions
+
 let mc_ai_with_bias ~evaluate_game ~nb_trajectory event_history bias =
   let _, game, state = build_engine event_history in
   let possible_actions = Fsm.accepted_events game state in
@@ -108,8 +124,7 @@ let mc_ai_with_bias ~evaluate_game ~nb_trajectory event_history bias =
     for i = 1 to nb_trajectory do
       let game, chosen_action = mc_trajectory_with_bias ~event_history ~possible_actions bias in
       let score = evaluate_game player game in
-      let (nb, sum) = try Hashtbl.find possible_actions_tab chosen_action with Not_found -> assert false in
-      Hashtbl.replace possible_actions_tab chosen_action (nb +. 1., sum +. score)
+      apply_amaf possible_actions_tab possible_actions chosen_action game score
     done;
     let result =
       Hashtbl.fold
@@ -117,7 +132,7 @@ let mc_ai_with_bias ~evaluate_game ~nb_trajectory event_history bias =
           match result with
           | None ->
             let average = sum /. nb in
-            (*print_endline (Printf.sprintf "%.2f, %s" average (string_of_event game event));*)
+            print_endline (Printf.sprintf "%.2f, %s" average (string_of_event game event));
             Some (average, event)
           | Some (old_average, old_event) ->
             let average = sum /. nb in
@@ -130,7 +145,7 @@ let mc_ai_with_bias ~evaluate_game ~nb_trajectory event_history bias =
         possible_actions_tab
         None
     in
-    (* Scanf.scanf "%s\n" (fun _ -> ()); *)
+    Scanf.scanf "%s\n" (fun _ -> ());
     match result with
     | None -> assert false
     | Some (_, event) -> event
