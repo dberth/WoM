@@ -5,9 +5,77 @@ open Engine
 let show_end_game end_game =
   print_endline (string_of_end_game end_game)
 
-let show_game game =
+let rec make_list x n =
+  if n = 0 then
+    []
+  else
+    x :: make_list x (n - 1)
+
+let show_tile tile_descr =
+  Printf.sprintf "[%s]" (Tileset.string_of_tile_descr tile_descr)
+
+let show_tileset ?(concealed = false) tileset =
+  let tile_descrs = Tileset.tile_descr_of_tileset tileset in
+  if concealed && List.length tile_descrs = 4 then
+    let tile = Tileset.string_of_tile_descr (List.hd tile_descrs) in
+    Printf.sprintf "[XX][%s][%s][XX]" tile tile
+  else
+    String.concat "" (List.map show_tile tile_descrs)
+
+let show_declared declared =
+  let rec aux = function
+    | [] -> []
+    | (tileset, _, concealed) :: tl ->
+      show_tileset ~concealed: true tileset :: aux tl
+  in
+  print_endline (String.concat " " (aux declared))
+
+let show_discarded_tiles discarded = print_endline (String.concat "" (List.map show_tile discarded))
+
+let show_hand tileset = print_endline (show_tileset tileset)
+
+let show_hand_nb nb =
+  let rec aux n =
+    if n = 0 then
+      []
+    else
+      let s = string_of_int n in
+      let padding = String.make (3 - String.length s) ' ' in
+      (" " ^ s ^ padding) :: aux (n - 1)
+  in
+  print_endline (String.concat "" (List.rev (aux nb)))
+
+let show_discarded_tile = function
+  | None -> print_endline ""
+  | Some tile_descr ->
+      print_endline (show_tile tile_descr)
+
+let show_player viewer player game =
+  if player <> 0 then print_endline "--------------------";
+  let s1, s2 =
+    if player = current_player game then "[","]" else " ", " "
+  in
+  print_endline (Printf.sprintf "%sPLAYER %i%s:" s1 player s2);
+  show_declared (player_declared_sets player game);
+  begin
+    if player = viewer then begin
+      show_hand (player_hand player game);
+      show_hand_nb (nb_tiles_in_hand player game)
+    end else
+      let n = nb_tiles_in_hand player game in
+      print_endline (String.concat "" (make_list "[XX]" n));
+      print_endline ""
+  end;
+  show_discarded_tiles (player_discarded_tiles player game)
+
+let show_game viewer game =
   print_endline "====================";
-  print_endline (string_of_game game)
+  for i = 0 to 3 do
+    show_player viewer i game
+  done;
+  print_string "DISCARD: ";
+  show_discarded_tile (discarded_tile game);
+  print_endline ""
 
 let read_event events = List.hd events
 
@@ -40,7 +108,7 @@ let rec loop human_players action_handler game state =
       | Init _ :: tl
       | tl -> Init (known_tiles game) :: tl
     in
-    show_game game;
+    show_game 0 game;
     let possible_actions = Fsm.accepted_events game state in
     let event =
       match possible_actions with

@@ -429,13 +429,15 @@ match game.discarded_tile with
         }
       )
 
-let current_player_state {current_player; player_0; player_1; player_2; player_3; _} =
-  match current_player with
+let player_state player {player_0; player_1; player_2; player_3; _} =
+  match player with
   | 0 -> player_0
   | 1 -> player_1
   | 2 -> player_2
   | 3 -> player_3
   | _ -> assert false
+
+let current_player_state game = player_state game.current_player game
 
 let rec pos_of_tile_descr tiles hand_indexes size tile_descr =
   let s =
@@ -1132,6 +1134,28 @@ let current_player_hand game =
   let {hand; _} = current_player_state game in
   hand
 
+let player_hand player game =
+  let {hand; _} = player_state player game in
+  hand
+
+let player_declared_sets player game =
+  let {declared; _} = player_state player game in
+  declared
+
+let player_discarded_tiles player game =
+  let {discarded_tiles; _} = player_state player game in
+  List.fold_right
+    (fun i acc ->
+      tile_descr_of_tile game.tiles.(i) :: acc
+    )
+    discarded_tiles
+    []
+
+let nb_tiles_in_hand player game =
+  let {hand_indexes; _} = player_state player game in
+  IntSet.cardinal hand_indexes
+    
+
 let descr_of_tile_pos {tiles; _} pos =
   tile_descr_of_tile tiles.(pos)
 
@@ -1149,3 +1173,8 @@ let is_in_current_player_hand game pos =
     true
   else
     IntSet.mem pos hand_indexes
+
+let discarded_tile game =
+  match game.discarded_tile with
+  | None -> None
+  | Some pos -> Some (tile_descr_of_tile (game.tiles.(pos)))
