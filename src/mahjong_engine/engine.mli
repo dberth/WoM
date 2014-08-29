@@ -71,3 +71,5 @@ val descr_of_tile_pos: game -> int -> Tileset.tile_descr
 val is_in_current_player_hand: game -> int -> bool
 
 val discarded_tile: game -> Tileset.tile_descr option
+
+val discard_player: game -> int option

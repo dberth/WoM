@@ -61,6 +61,7 @@ type game =
     player_3: player_state;
     current_player: int;
     discarded_tile: int option;
+    discard_player: int option;
     end_game: end_game option;
     discard_event: event option;
     small_kong_event: event option;
@@ -86,6 +87,7 @@ let init_game =
     player_3 = init_player;
     current_player = 0;
     discarded_tile = None;
+    discard_player = None;
     end_game = None;
     discard_event = None;
     small_kong_event = None;
@@ -149,20 +151,21 @@ let string_of_end_game = function
 let string_of_game
     {
      tiles;
-     wall_breaker_roll = _;
+      wall_breaker_roll = _;
      current_tile;
-     last_tile;
-     player_0;
-     player_1;
-     player_2;
-     player_3;
-     current_player;
-     discarded_tile;
-     end_game;
-     discard_event;
-     small_kong_event;
+      last_tile;
+      player_0;
+      player_1;
+      player_2;
+      player_3;
+      current_player;
+      discarded_tile;
+      discard_player;
+      end_game;
+      discard_event;
+      small_kong_event;
     } =
-  Printf.sprintf "{\ncurrent_tile: %i;\n last_tile: %i;\n player_0:\n%s;\nplayer_1:\n%s;\nplayer_2:\n%s;\nplayer_3:\n%s;\ncurrent_player: %i;\n;\n discarded_tile: %s;\n end_game: %s;\n discard_event: %s;\n small_kong_event: %s;\n}"
+  Printf.sprintf "{\ncurrent_tile: %i;\n last_tile: %i;\n player_0:\n%s;\nplayer_1:\n%s;\nplayer_2:\n%s;\nplayer_3:\n%s;\ncurrent_player: %i;\n;\n discarded_tile: %s;\n discard_player: %s; end_game: %s;\n discard_event: %s;\n small_kong_event: %s;\n}"
     current_tile
     last_tile
     (string_of_player_state tiles player_0)
@@ -171,6 +174,7 @@ let string_of_game
     (string_of_player_state tiles player_3)
     current_player
     (match discarded_tile with Some i -> string_of_int i | None -> "None")
+    (match discard_player with Some i -> string_of_int i | None -> "None")
     (match end_game with Some end_game -> string_of_end_game end_game | None -> "None")
     (match discard_event with Some event -> string_of_event tiles event | None -> "None")
     (match small_kong_event with Some event -> string_of_event tiles event | None -> "None")
@@ -327,6 +331,7 @@ let prev_prev_player player = (player + 2) mod 4
 let discard player tile_idx event game =
   {game with
     discarded_tile = Some tile_idx;
+    discard_player = Some player;
     current_player = next_player player
   } |>
     update_player player (remove_tile_from_hand tile_idx game.tiles event)
@@ -401,7 +406,7 @@ let set_discarded_tile player tiles_pos event game =
   | None -> assert false
   | Some discarded_tile ->
     if List.mem discarded_tile tiles_pos then begin
-      {game with discarded_tile = None; current_player = player} |>
+      {game with discarded_tile = None; discard_player = None; current_player = player} |>
         update_player player
           (fun player_state ->
             let hand = add_tile (game.tiles.(discarded_tile)) player_state.hand in
@@ -416,18 +421,19 @@ let declare_discarded_tileset player tiles_pos event game =
     declare_tileset ~concealed: false player tiles_pos event
 
 let set_discarded_tile player game =
-match game.discarded_tile with
-| None -> assert false
-| Some discarded_tile ->
-  { game with
-    current_player = next_player player;
-    discarded_tile = None;
-  } |> update_player player
-      (fun player_state ->
-        {player_state with
-          discarded_tiles = discarded_tile :: player_state.discarded_tiles
-        }
-      )
+  match game.discarded_tile with
+  | None -> assert false
+  | Some discarded_tile ->
+    { game with
+      current_player = next_player player;
+      discarded_tile = None;
+      discard_player = None;
+    } |> update_player player
+        (fun player_state ->
+          {player_state with
+            discarded_tiles = discarded_tile :: player_state.discarded_tiles
+          }
+        )
 
 let player_state player {player_0; player_1; player_2; player_3; _} =
   match player with
@@ -1178,3 +1184,5 @@ let discarded_tile game =
   match game.discarded_tile with
   | None -> None
   | Some pos -> Some (tile_descr_of_tile (game.tiles.(pos)))
+
+let discard_player {discard_player; _} = discard_player

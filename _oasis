@@ -30,7 +30,6 @@ Executable wom_cli
   Build:	   true
   MainIs:	   cli.ml
   CompiledObject:  best
-
   
 Executable mahjong_engine_test
   Path:		   test

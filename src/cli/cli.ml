@@ -14,13 +14,15 @@ let rec make_list x n =
 let show_tile tile_descr =
   Printf.sprintf "[%s]" (Tileset.string_of_tile_descr tile_descr)
 
-let show_tileset ?(concealed = false) tileset =
+let show_tileset ?(sorted = false) ?(concealed = false) tileset =
   let tile_descrs = Tileset.tile_descr_of_tileset tileset in
   if concealed && List.length tile_descrs = 4 then
     let tile = Tileset.string_of_tile_descr (List.hd tile_descrs) in
     Printf.sprintf "[XX][%s][%s][XX]" tile tile
   else
-    String.concat "" (List.map show_tile tile_descrs)
+    let tiles = List.map show_tile tile_descrs in
+    let tiles = if sorted then List.sort compare tiles else tiles in
+    String.concat "" tiles
 
 let show_declared declared =
   let rec aux = function
@@ -32,7 +34,7 @@ let show_declared declared =
 
 let show_discarded_tiles discarded = print_endline (String.concat "" (List.map show_tile discarded))
 
-let show_hand tileset = print_endline (show_tileset tileset)
+let show_hand tileset = print_endline (show_tileset ~sorted: true tileset)
 
 let show_hand_nb nb =
   let rec aux n =
@@ -45,15 +47,23 @@ let show_hand_nb nb =
   in
   print_endline (String.concat "" (List.rev (aux nb)))
 
-let show_discarded_tile = function
+let show_discarded_tile player discard_player = function
   | None -> print_endline ""
   | Some tile_descr ->
+    if Some player = discard_player then
       print_endline (show_tile tile_descr)
+    else
+      print_endline ""
 
 let show_player viewer player game =
   if player <> 0 then print_endline "--------------------";
   let s1, s2 =
-    if player = current_player game then "[","]" else " ", " "
+    if player = current_player game then
+      "[","]"
+    else if Some player = discard_player game then
+      "<", ">"
+    else
+      " ", " "
   in
   print_endline (Printf.sprintf "%sPLAYER %i%s:" s1 player s2);
   show_declared (player_declared_sets player game);
@@ -64,26 +74,114 @@ let show_player viewer player game =
     end else
       let n = nb_tiles_in_hand player game in
       print_endline (String.concat "" (make_list "[XX]" n));
-      print_endline ""
   end;
+  print_string "DISCARD: ";
+  show_discarded_tile player (discard_player game) (discarded_tile game);
   show_discarded_tiles (player_discarded_tiles player game)
 
 let show_game viewer game =
   print_endline "====================";
   for i = 0 to 3 do
     show_player viewer i game
-  done;
-  print_string "DISCARD: ";
-  show_discarded_tile (discarded_tile game);
-  print_endline ""
+  done
 
-let read_event events = List.hd events
+let string_of_tile_pos game pos =
+  Tileset.string_of_tile_descr (descr_of_tile_pos game pos)
+
+let compare_discard_events game e1 e2 =
+  match e1, e2 with
+  | Discard(_, pos1), Discard(_, pos2) ->
+    compare (string_of_tile_pos game pos1) (string_of_tile_pos game pos2)
+  | _ -> assert false
+
+let discard_events game events =
+    List.sort (compare_discard_events game)
+      (List.filter (function Discard _ -> true | _ -> false) events)
+
+let read_event game events =
+  let rec loop () =
+    print_string "> "; flush stdout;
+    begin match Scanf.scanf "%i\n" (fun x -> x) with
+    | i ->
+      let discard_events = discard_events game events in
+      if 0 < i && i <= List.length discard_events then
+        List.nth discard_events (i - 1)
+      else
+        bad_move ()
+    | exception Scanf.Scan_failure _ ->
+      match Scanf.scanf "%s\n" (fun x -> x) with
+      | "" -> send_event (No_action (current_player game))
+      | "m" | "M" -> send_event (Mahjong (current_player game))
+      | "k" | "K" -> kong_loop ()
+      | "p" | "P" -> pong_loop ()
+      | "c" | "C" -> chow_loop ()
+      | _ -> bad_move ()
+    end
+  and bad_move () =
+    print_endline "Bad move. Retry.";
+    loop ()
+  and send_event event =
+    if List.mem event events then
+      event
+    else
+      bad_move ()
+  and declare_event filter get_set =
+    let events = List.filter filter events in
+    match events with
+    | [] -> bad_move ()
+    | [x] -> x
+    | _ ->
+      List.iteri
+        (fun i event ->
+          print_endline (Printf.sprintf "%i) %s" (i + 1) (String.concat "" (List.map  (fun pos -> Printf.sprintf "[%s]" (string_of_tile_pos game pos)) (get_set event))))
+        )
+        events;
+      declare_loop events
+  and bad_declare_move events  =
+    print_endline "Bad move.Retry.";
+    declare_loop events
+
+  and declare_loop events =
+    print_string "> "; flush stdout;
+    begin match Scanf.scanf "%i\n" (fun x -> x) with
+    | i ->
+      if 0 < i && i < List.length events then
+        List.nth events (i - 1)
+      else
+        bad_declare_move events
+    | exception Scanf.Scan_failure _ ->
+      ignore (Scanf.scanf "%s\n" (fun x -> x));
+      bad_declare_move events
+    end
+      
+  and kong_loop () =
+    declare_event
+      (function
+        | Concealed_kong _ | Small_kong _ | Kong _ -> true
+        | _ -> false
+      )
+      (function
+        | Concealed_kong (_, positions)
+        | Kong (_, positions) -> positions
+        | Small_kong (_, pos) -> [pos; pos; pos; pos]
+        | _ -> assert false
+      )
+  and pong_loop () =
+    declare_event
+      (function Pong _ -> true | _ -> false)
+      (function Pong (_, positions) -> positions | _ -> assert false)
+  and chow_loop () =
+    declare_event
+      (function Chow _ -> true | _ -> false)
+      (function Chow (_, positions) -> positions | _ -> assert false)
+  in
+  loop ()
 
 let human_player_event possible_actions game state =
   match possible_actions with
   | [] -> assert false
-  | [x] -> x
-  | _ -> read_event possible_actions
+  | [Init _ as x] | [Break_wall_roll _ as x] | [Wall_breaker_roll _ as x] | [Deal as x] | [Draw _ as x]-> x 
+  | _ -> read_event game possible_actions
 
 
 let evaluate_game player game =
@@ -108,7 +206,7 @@ let rec loop human_players action_handler game state =
       | Init _ :: tl
       | tl -> Init (known_tiles game) :: tl
     in
-    show_game 0 game;
+    show_game 0 game; (*TODO*)
     let possible_actions = Fsm.accepted_events game state in
     let event =
       match possible_actions with
@@ -135,4 +233,4 @@ let rec loop human_players action_handler game state =
 let () =
   Random.self_init ();
   let action_handler, game, state = build_engine [] in
-  loop [] action_handler game state
+  loop [0] action_handler game state
