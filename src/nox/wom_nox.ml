@@ -2,9 +2,6 @@
 
 open Engine
 
-let show_end_game end_game =
-  print_endline (string_of_end_game end_game)
-
 let rec make_list x n =
   if n = 0 then
     []
@@ -55,7 +52,7 @@ let show_discarded_tile player discard_player = function
     else
       print_endline ""
 
-let show_player viewer player game =
+let show_player visibles player game =
   if player <> 0 then print_endline "--------------------";
   let s1, s2 =
     if player = current_player game then
@@ -68,7 +65,7 @@ let show_player viewer player game =
   print_endline (Printf.sprintf "%sPLAYER %i%s:" s1 player s2);
   show_declared (player_declared_sets player game);
   begin
-    if player = viewer then begin
+    if List.mem player visibles then begin
       show_hand (player_hand player game);
       show_hand_nb (nb_tiles_in_hand player game)
     end else
@@ -79,11 +76,18 @@ let show_player viewer player game =
   show_discarded_tile player (discard_player game) (discarded_tile game);
   show_discarded_tiles (player_discarded_tiles player game)
 
-let show_game viewer game =
+let show_game visibles game =
   print_endline "====================";
   for i = 0 to 3 do
-    show_player viewer i game
+    show_player visibles i game
   done
+
+let show_end_game game =
+  show_game [0; 1; 2; 3] game;
+  match finished game with
+  | None -> assert false
+  | Some No_winner -> print_endline "==== DRAW GAME ==="
+  | _ -> print_endline (Printf.sprintf "==== PLAYER %i WINS ===" (current_player game))
 
 let string_of_tile_pos game pos =
   Tileset.string_of_tile_descr (descr_of_tile_pos game pos)
@@ -197,7 +201,7 @@ let evaluate_game player game =
 let rec loop human_players action_handler game state =
   let nb_trajectory = 1_000 in
   match finished game with
-  | Some end_game -> show_end_game end_game
+  | Some _ -> show_end_game game
   | None ->
     let history = Fsm.history state in
     let events =
@@ -206,7 +210,7 @@ let rec loop human_players action_handler game state =
       | Init _ :: tl
       | tl -> Init (known_tiles game) :: tl
     in
-    show_game 0 game; (*TODO*)
+    show_game human_players game;
     let possible_actions = Fsm.accepted_events game state in
     let event =
       match possible_actions with
