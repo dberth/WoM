@@ -16,7 +16,7 @@ type basic_tileset =
   | Num of (tile_kind * Bytes.t)
   | Honor of (tile_kind * int)
 
-type tile = basic_tileset
+type tile = int
 
 type tileset = basic_tileset list
 
@@ -163,11 +163,6 @@ let tile_descr_of_basic_tileset = function
   | Num (kind, bytes) -> mk_num_tile_descr kind (ints_of_bytes bytes)
   | Honor (kind, nb) -> mk_honor_tile_descr kind nb
 
-let tile_descr_of_tile tile =
-  match tile_descr_of_basic_tileset tile with
-  | [x] -> x
-  | _ -> assert false
-
 let tile_descr_of_tileset tileset =
   List.concat (List.map tile_descr_of_basic_tileset tileset)
 
@@ -264,21 +259,37 @@ let rec remove_basic_tileset tile = function
     else
       raise Not_found
 
-let add_tile = add_basic_tileset
+let nb_tiles = 34
 
-let remove_tile = remove_basic_tileset
+let tiles_rep = Array.make nb_tiles (Honor (Red_dragon, 0))
+
+let tiles_descr = Array.make nb_tiles Red_dragon
+
+let tile_descr_of_tile tile = tiles_descr.(tile)
+
+let add_tile tile tileset = add_basic_tileset tiles_rep.(tile) tileset
+
+let remove_tile tile tileset = remove_basic_tileset tiles_rep.(tile) tileset
 
 let tileset_of_basic_tilesets l =
   List.fold_left (fun set tile -> add_basic_tileset tile set) [] l
 
-let tileset_of_tiles l = tileset_of_basic_tilesets l
+let tileset_of_tiles l = tileset_of_basic_tilesets (List.map (fun i -> tiles_rep.(i)) l)
 
 let basic_tileset_of_tiles l =
   match tileset_of_basic_tilesets l with
   | [x] -> x
   | _ -> raise (Invalid_argument "basic_tileset_of_tiles")
 
-let new_char x = Num (Char, new_num x)
+let new_tile =
+  let i = ref (-1) in
+  fun () -> incr i; !i
+
+let new_char x =
+  let tile = new_tile () in
+  tiles_rep.(tile) <- Num (Char, new_num x);
+  tiles_descr.(tile) <- Char x;
+  tile
 
 let c1 = new_char 1
 let c2 = new_char 2
@@ -290,7 +301,11 @@ let c7 = new_char 7
 let c8 = new_char 8
 let c9 = new_char 9
 
-let new_dot x = Num (Dot, new_num x)
+let new_dot x =
+  let tile = new_tile () in
+  tiles_rep.(tile) <- Num (Dot, new_num x);
+  tiles_descr.(tile) <- Dot x;
+  tile
 
 let d1 = new_dot 1
 let d2 = new_dot 2
@@ -302,7 +317,11 @@ let d7 = new_dot 7
 let d8 = new_dot 8
 let d9 = new_dot 9
 
-let new_bam x = Num(Bam, new_num x)
+let new_bam x =
+  let tile = new_tile () in
+  tiles_rep.(tile) <- Num(Bam, new_num x);
+  tiles_descr.(tile) <- Bam x;
+  tile
 
 let b1 = new_bam 1
 let b2 = new_bam 2
@@ -314,14 +333,20 @@ let b7 = new_bam 7
 let b8 = new_bam 8
 let b9 = new_bam 9
 
-let rd = Honor (Red_dragon, 1)
-let wd = Honor (White_dragon, 1)
-let gd = Honor (Green_dragon, 1)
+let new_honor kind descr =
+  let tile = new_tile () in
+  tiles_rep.(tile) <- Honor(kind, 1);
+  tiles_descr.(tile) <- descr;
+  tile
 
-let ew = Honor (East_wind, 1)
-let sw = Honor (South_wind, 1)
-let ww = Honor (West_wind, 1)
-let nw = Honor (North_wind, 1)
+let rd = new_honor Red_dragon Red_dragon
+let wd = new_honor White_dragon White_dragon
+let gd = new_honor Green_dragon Green_dragon
+
+let ew = new_honor East_wind East_wind
+let sw = new_honor South_wind South_wind
+let ww = new_honor West_wind West_wind
+let nw = new_honor North_wind North_wind
 
 let rec read_zaz index s =
   if 8 < index then
