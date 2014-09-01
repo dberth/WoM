@@ -13,7 +13,7 @@ type tile_kind =
   | West_wind
 
 type basic_tileset =
-  | Num of (tile_kind * Bytes.t)
+  | Num of (tile_kind * int array)
   | Honor of (tile_kind * int)
 
 type tile = int
@@ -46,7 +46,7 @@ type tile_descr =
 
 let empty = []
 
-let default = String.make 11 'z'
+let default = Array.make 11 0
 
 let incr_byte = function
   | 'z' -> 'a'
@@ -81,35 +81,35 @@ let sub_byte b1 b2 =
 
 
 let num_op op x s =
-  let s = Bytes.copy s in
-  Bytes.set s x (op (Bytes.get s x));
+  let s = Array.copy s in
+  s.(x) <- op s.(x);
   s
 
-let mk_byte_show start =
-  let s = Bytes.copy default in
-  Bytes.set s start 'a';
-  Bytes.set s (start + 1) 'a';
-  Bytes.set s (start + 2) 'a';
+let mk_position_chow start =
+  let s = Array.copy default in
+  s.(start) <- 1;
+  s.(start + 1) <- 1;
+  s.(start + 2) <- 1;
   s
 
-let mk_byte_pong index =
-  let s = Bytes.copy default in
-  Bytes.set s index 'c';
+let mk_position_pong index =
+  let s = Array.copy default in
+  s.(index) <- 3;
   s
 
-let mk_byte_kong index =
-  let s = Bytes.copy default in
-  Bytes.set s index 'd';
+let mk_position_kong index =
+  let s = Array.copy default in
+  s.(index) <- 4;
   s
 
-let mk_byte_pair index =
-  let s = Bytes.copy default in
-  Bytes.set s index 'b';
+let mk_position_pair index =
+  let s = Array.copy default in
+  s.(index) <- 2;
   s
 
-let incr_num = num_op incr_byte
+let incr_num = num_op succ
 
-let decr_num = num_op decr_byte
+let decr_num = num_op pred
 
 let new_num x = incr_num x default
 
@@ -121,10 +121,10 @@ let int_of_byte = function
   | 'd' -> 4
   | _ -> raise (Invalid_argument "int_of_byte")
 
-let ints_of_bytes b =
+let ints_of_positions positions =
   let result = ref [] in
-  for i = Bytes.length b - 2 downto 1 do
-    let t = int_of_byte (Bytes.get b i) in
+  for i = Array.length positions - 2 downto 1 do
+    let t = positions.(i) in
     if t <> 0 then result := (i, t) :: !result
   done;
   !result
@@ -160,7 +160,7 @@ let mk_num_tile_descr kind nums =
 
 
 let tile_descr_of_basic_tileset = function
-  | Num (kind, bytes) -> mk_num_tile_descr kind (ints_of_bytes bytes)
+  | Num (kind, positions) -> mk_num_tile_descr kind (ints_of_positions positions)
   | Honor (kind, nb) -> mk_honor_tile_descr kind nb
 
 let tile_descr_of_tileset tileset =
@@ -188,17 +188,17 @@ let compare_tile t1 t2 =
   | Honor (kind1, _), Honor (kind2, _) -> compare kind1 kind2
   | _ -> compare t1 t2
 
-let merge_byte s1 s2 =
-  let s = Bytes.copy default in
+let merge_positions s1 s2 =
+  let s = Array.copy default in
   for i = 0 to 10 do
-    Bytes.set s i (add_byte (Bytes.get s1 i) (Bytes.get s2 i))
+    s.(i) <- s1.(i) + s2.(i)
   done;
   s
 
-let unmerge_byte s1 s2 =
-  let s = Bytes.copy default in
+let unmerge_positions s1 s2 =
+  let s = Array.copy default in
   for i = 0 to 10 do
-    Bytes.set s i (sub_byte (Bytes.get s1 i) (Bytes.get s2 i))
+    s.(i) <- s1.(i) - s2.(i)
   done;
   s
 
@@ -206,7 +206,7 @@ let merge_tile t1 t2 =
   match t1, t2 with
   | Num(kind1, s1), Num(kind2, s2) ->
     assert (kind1 = kind2);
-    Num(kind1, merge_byte s1 s2)
+    Num(kind1, merge_positions s1 s2)
   | Honor(kind1, s1), Honor(kind2, s2) ->
     assert (kind1 = kind2);
     Honor(kind1, s1 + s2)
@@ -216,7 +216,7 @@ let unmerge_tile t1 t2 =
   match t1, t2 with
   | Num(kind1, s1), Num(kind2, s2) ->
     assert (kind1 = kind2);
-    Num(kind1, unmerge_byte s1 s2)
+    Num(kind1, unmerge_positions s1 s2)
   | Honor(kind1, s1), Honor(kind2, s2) ->
     assert (kind1 = kind2);
     Honor(kind1, s1 - s2)
@@ -232,17 +232,17 @@ let rec add_basic_tileset tile = function
     else
       tile :: hd :: tl
 
-let for_all_bytes f b =
+let for_all_positions f b =
   let result = ref true in
   let i = ref 0 in
-  while !result = true && !i < Bytes.length b do
-    result := f (Bytes.get b !i);
+  while !result = true && !i < Array.length b do
+    result := f b.(!i);
     incr i
   done;
   !result
 
 let is_empty_basic_tile_set = function
-  | Num(_, s) -> for_all_bytes (fun b -> b = 'z') s
+  | Num(_, s) -> for_all_positions (fun b -> b = 0) s
   | Honor (_, n) -> n = 0 
 
 let rec remove_basic_tileset tile = function
@@ -348,96 +348,96 @@ let sw = new_honor South_wind South_wind
 let ww = new_honor West_wind West_wind
 let nw = new_honor North_wind North_wind
 
-let rec read_zaz index s =
+let rec read_010 index s =
   if 8 < index then
     false
   else
-  if s.[index] = 'z' then
-    read_az (index + 1) s
+  if s.(index) = 0 then
+    read_10 (index + 1) s
   else
-    read_zaz (index + 1) s
+    read_010 (index + 1) s
 
-and read_az index s =
+and read_10 index s =
   if 9 < index then
     false
   else
-    match s.[index] with
-    | 'a' ->
-      if s.[index + 1] = 'z' then true else read_zaz (index + 2) s
-    | 'z' -> read_az (index + 1) s
-    | _ -> read_zaz (index + 1) s
+    match s.(index) with
+    | 1 ->
+      if s.(index + 1) = 0 then true else read_010 (index + 2) s
+    | 0 -> read_10 (index + 1) s
+    | _ -> read_010 (index + 1) s
 
 (*very quick test that eleminate most of the tileset that aren't mahjong*)
 let rec has_isolated_tile = function
   | [] -> false
   | Num (_, s) :: tl ->
-    if read_zaz 0 s then true else has_isolated_tile tl
+    if read_010 0 s then true else has_isolated_tile tl
   | Honor (_, i) :: tl ->
     if i = 1 then true else has_isolated_tile tl
 
-let rec read_1_show start index s =
-  if s.[start + index] <> 'z' then
-    if index = 2 then 1 else read_1_show start (index + 1) s
+let rec read_1_chow start index s =
+  if s.(start + index) <> 0 then
+    if index = 2 then 1 else read_1_chow start (index + 1) s
   else
     0
 
-and read_2_shows start index s =
-  match s.[start + index] with
-  | 'z' -> 0
-  | 'a' ->
-    if index = 2 then 1 else read_1_show start (index + 1) s
+and read_2_chows start index s =
+  match s.(start + index) with
+  | 0 -> 0
+  | 1 ->
+    if index = 2 then 1 else read_1_chow start (index + 1) s
   | _ ->
-    if index = 2 then 2 else read_2_shows start (index + 1) s
+    if index = 2 then 2 else read_2_chows start (index + 1) s
 
-and read_3_shows start index s =
-  match s.[start + index] with
-  | 'z' -> 0
-  | 'a' ->
-    if index = 2 then 1 else read_1_show start (index + 1) s
-  | 'b' ->
-    if index = 2 then 2 else read_2_shows start (index + 1) s
+and read_3_chows start index s =
+  match s.(start + index) with
+  | 0 -> 0
+  | 1 ->
+    if index = 2 then 1 else read_1_chow start (index + 1) s
+  | 2 ->
+    if index = 2 then 2 else read_2_chows start (index + 1) s
   | _ ->
-    if index = 2 then 3 else read_3_shows start (index + 1) s
+    if index = 2 then 3 else read_3_chows start (index + 1) s
 
-and read_4_shows start index s =
-  match s.[start + index] with
-  | 'z' -> 0
-  | 'a' ->
-    if index = 2 then 1 else read_1_show start (index + 1) s
-  | 'b' ->
-    if index = 2 then 2 else read_2_shows start (index + 1) s
-  | 'c' ->
-    if index = 2 then 3 else read_3_shows start (index + 1) s
-  | 'd' ->
-    if index = 2 then 4 else read_4_shows start (index + 1) s
+and read_4_chows start index s =
+  match s.(start + index) with
+  | 0 -> 0
+  | 1 ->
+    if index = 2 then 1 else read_1_chow start (index + 1) s
+  | 2 ->
+    if index = 2 then 2 else read_2_chows start (index + 1) s
+  | 3 ->
+    if index = 2 then 3 else read_3_chows start (index + 1) s
+  | 4 ->
+    if index = 2 then 4 else read_4_chows start (index + 1) s
   | _ -> assert false
 
-let rec get_byte_shows start s =
+let rec get_position_chows start s =
   if start = 8 then [] else
-    let nb_shows = read_4_shows start 0 s in
-    if nb_shows = 0 then
-      get_byte_shows (start + 1) s
+    let nb_chows = read_4_chows start 0 s in
+    if nb_chows = 0 then
+      get_position_chows (start + 1) s
     else
-      (make_list nb_shows (mk_byte_show start)) @ (get_byte_shows (start + 1) s)
+      (make_list nb_chows (mk_position_chow start)) @ (get_position_chows (start + 1) s)
 
-let rec get_shows = function
+let rec get_chows = function
   | [] -> []
-  | Honor _ :: tl -> get_shows tl
+  | Honor _ :: tl -> get_chows tl
   | Num (kind, s) :: tl ->
-    let shows = List.map (fun s -> Num (kind, s)) (get_byte_shows 1 s) in
-    shows @ (get_shows tl)
+    let chows = List.map (fun s -> Num (kind, s)) (get_position_chows 1 s) in
+    chows @ (get_chows tl)
 
-let rec get_byte_pong_and_kongs index s =
+let rec get_position_pong_and_kongs index s =
   if index = 10 then [] else
-    match s.[index] with
-    | 'c' -> (mk_byte_pong index) :: (get_byte_pong_and_kongs (index + 1) s)
-    | 'd' -> (mk_byte_kong index) :: (mk_byte_pong index) :: (get_byte_pong_and_kongs (index + 1) s)
-    | _ -> get_byte_pong_and_kongs (index + 1) s
+    match s.(index) with
+    | 3 -> (mk_position_pong index) :: (get_position_pong_and_kongs (index + 1) s)
+    | 4 -> (mk_position_kong index) :: (mk_position_pong index) :: (get_position_pong_and_kongs (index + 1) s)
+    | _ -> get_position_pong_and_kongs (index + 1) s
 
 let rec get_pong_and_kongs = function
   | [] -> []
   | Num (kind, s) :: tl ->
-    let pong_and_kongs = List.map (fun s -> Num (kind, s)) (get_byte_pong_and_kongs 1 s) in
+    let pong_and_kongs = List.map (fun s -> Num (kind, s)) (get_position_pong_and_kongs 1 s) in
     pong_and_kongs @ (get_pong_and_kongs tl)
   | Honor (kind, i) :: tl ->
     match i with
@@ -445,17 +445,17 @@ let rec get_pong_and_kongs = function
     | 4 -> Honor (kind, 4) :: Honor (kind, 3) :: (get_pong_and_kongs tl)
     | _ -> get_pong_and_kongs tl
 
-let rec get_byte_pairs index s =
+let rec get_position_pairs index s =
   if index = 10 then [] else
-    match s.[index] with
-    | 'b' | 'c' -> (mk_byte_pair index) :: (get_byte_pairs (index + 1) s)
-    | 'd' -> let p = mk_byte_pair index in p :: p :: (get_byte_pairs (index + 1) s)
-    | _ -> get_byte_pairs (index +1) s
+    match s.(index) with
+    | 2 | 3 -> (mk_position_pair index) :: (get_position_pairs (index + 1) s)
+    | 4 -> let p = mk_position_pair index in p :: p :: (get_position_pairs (index + 1) s)
+    | _ -> get_position_pairs (index +1) s
 
 let rec get_pairs = function
   | [] -> []
   | Num(kind, s) :: tl ->
-    let pairs = List.map (fun s -> Num (kind, s)) (get_byte_pairs 1 s) in
+    let pairs = List.map (fun s -> Num (kind, s)) (get_position_pairs 1 s) in
     pairs @ (get_pairs tl)
   | Honor(kind, i) :: tl ->
     let p = Honor(kind, 2) in
@@ -465,7 +465,7 @@ let rec get_pairs = function
     | _ -> get_pairs tl
 
 let get_3sets tileset =
-  get_shows tileset @ get_pong_and_kongs tileset
+  get_chows tileset @ get_pong_and_kongs tileset
 
 
 let rec add_tileset_to_trie ts trie =
@@ -578,14 +578,14 @@ let mahjong ?(irregular_hands = no_irregular_hands) nb_3sets hand =
   end else
     real_mahjong_check irregular_hands.without_isolated_tiles nb_3sets hand
 
-let is_kong_bytes b =
+let is_kong_position b =
   let has_wrong_tile = ref false in
   let has_kong = ref false in
-  for i = 0 to Bytes.length b - 1 do
-    match Bytes.get b i with
-    | 'z' -> ()
-    | 'a'..'c' -> has_wrong_tile := true
-    | 'd' ->
+  for i = 0 to Array.length b - 1 do
+    match b.(i) with
+    | 0 -> ()
+    | 1 | 2 | 3 -> has_wrong_tile := true
+    | 4 ->
       if !has_kong then
         has_wrong_tile := true
       else
@@ -594,14 +594,14 @@ let is_kong_bytes b =
   done;
   not !has_wrong_tile && !has_kong
 
-let is_pong_bytes b =
+let is_pong_position b =
   let has_wrong_tile = ref false in
   let has_pong = ref false in
-  for i = 0 to Bytes.length b - 1 do
-    match Bytes.get b i with
-    | 'z' -> ()
-    | 'a' | 'b' | 'd' -> has_wrong_tile := true
-    | 'c' ->
+  for i = 0 to Array.length b - 1 do
+    match b.(i) with
+    | 0 -> ()
+    | 1 | 2 | 4 -> has_wrong_tile := true
+    | 3 ->
       if !has_pong then
         has_wrong_tile := true
       else
@@ -612,7 +612,7 @@ let is_pong_bytes b =
 
 let is_kong = function
   | [Honor(_, 4)] -> true
-  | [Num(_, bytes)] -> is_kong_bytes bytes
+  | [Num(_, position)] -> is_kong_position position
   | _ -> false
 
 let get_kongs tileset =
@@ -628,7 +628,7 @@ let get_kongs tileset =
 
 let is_pong = function
   | [Honor (_, 3)] -> true
-  | [Num(_, bytes)] -> is_pong_bytes bytes
+  | [Num(_, position)] -> is_pong_position position
   | _ -> false
 
 let tiles_to_chow build i =
@@ -672,12 +672,12 @@ let status_of_honor_set alone set2 set3 kind x =
   | 3 | 4 -> alone, set2, tile :: set3
   | _ -> assert false
 
-let set_series bytes status_array =
+let set_series position status_array =
   let set i status =
     status_array.(i - 1) <- max status_array.(i - 1) status
   in
   for i = 1 to 7 do
-    match Bytes.get bytes i <> 'z', Bytes.get bytes (i + 1) <> 'z', Bytes.get bytes (i + 2) <> 'z' with
+    match position.(i) <> 0, position.(i + 1) <> 0, position.(i + 2) <> 0 with
     | false, false, false -> ()
     | true, false, false -> set i 1
     | false, true, false -> set (i + 1) 1
@@ -688,23 +688,23 @@ let set_series bytes status_array =
     | true, true, true -> set i 4; set (i + 1) 4; set (i + 2) 4
   done
 
-let set_groups bytes status_array =
+let set_groups position status_array =
   let set i status =
     status_array.(i - 1) <- max status_array.(i - 1) status
   in
   for i = 1 to 9 do
-    match Bytes.get bytes i with
-    | 'z' -> ()
-    | 'a' -> set i 1
-    | 'b' -> set i 3
-    | 'c' | 'd' -> set i 4
+    match position.(i) with
+    | 0 -> ()
+    | 1 -> set i 1
+    | 2 -> set i 3
+    | 3 | 4 -> set i 4
     | _ -> assert false
   done
 
-let status_of_num_set alone sub_chow set2 set3 kind bytes =
+let status_of_num_set alone sub_chow set2 set3 kind position =
   let status_array = Array.make 9 0 in
-  set_series bytes status_array;
-  set_groups bytes status_array;
+  set_series position status_array;
+  set_groups position status_array;
   let alone = ref alone in
   let sub_chow = ref sub_chow in
   let set2 = ref set2 in
@@ -728,8 +728,8 @@ let status_of_tileset tileset =
     | Honor (kind, x) :: tl ->
       let alone, set2, set3 = status_of_honor_set alone set2 set3 kind x in
       aux alone sub_chow set2 set3 tl
-    | Num (kind, bytes) :: tl ->
-      let alone, sub_chow, set2, set3 = status_of_num_set alone sub_chow set2 set3 kind bytes in
+    | Num (kind, position) :: tl ->
+      let alone, sub_chow, set2, set3 = status_of_num_set alone sub_chow set2 set3 kind position in
       aux alone set2 sub_chow set3 tl
   in
   aux [] [] [] [] tileset
