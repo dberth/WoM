@@ -30,6 +30,8 @@ val add_tile: tile -> tileset -> tileset
 
 val remove_tile: tile -> tileset -> tileset
 
+val compare_tiles: tile -> tile -> int
+
 val c1: tile
 val c2: tile
 val c3: tile
@@ -100,3 +102,15 @@ type tileset_status =
   }
 
 val status_of_tileset: tileset -> tileset_status
+
+type tile_multi_set
+
+val empty_multi_set: tile_multi_set
+
+val add_tile_in_multi_set: tile -> tile_multi_set -> tile_multi_set
+
+val remove_tile_from_multi_set: tile -> tile_multi_set -> tile_multi_set
+
+val iter_multi_set: (tile -> unit) -> tile_multi_set -> unit
+
+val multi_set_cardinal: tile_multi_set -> int

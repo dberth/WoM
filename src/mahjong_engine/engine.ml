@@ -22,7 +22,7 @@ type end_game =
   | Mahjong of mahjong
 
 type event =
-  | Init of tile_descr option array
+  | Init of tile option array
   | Wall_breaker_roll of int
   | Break_wall_roll of int
   | Deal
@@ -225,16 +225,12 @@ let init_tiles =
 
 let nb_tiles = Array.length init_tiles
 
-let init_tile_descrs = Hashtbl.create nb_tiles
+module TSet = Set.Make (struct type t = tile let compare x y = compare_tiles x y end)
 
-let () =
-  Array.iter
-    (fun tile ->
-      Hashtbl.add init_tile_descrs (tile_descr_of_tile tile) tile
-    )
-    init_tiles
+let init_tiles_set =
+  Array.fold_right Tileset.add_tile_in_multi_set init_tiles Tileset.empty_multi_set
 
-let random_game = Array.make nb_tiles (None: tile_descr option)
+let random_game = Array.make nb_tiles (None: tile option)
 
 let shuffle_array arr =
   for i = Array.length arr - 1 downto 1 do
@@ -245,28 +241,27 @@ let shuffle_array arr =
   done
 
 let shuffle known_positions =
-  let tile_descrs = Hashtbl.copy init_tile_descrs in
-  Array.iter
-    (function
-      | None -> ()
-      | Some tile_descr -> Hashtbl.remove tile_descrs tile_descr
-    )
-    known_positions;
-  let l = Hashtbl.length tile_descrs in
+  let remaining_tiles =
+    Array.fold_right
+      (fun tile set ->
+        match tile with
+        | None -> set
+        | Some tile -> Tileset.remove_tile_from_multi_set tile set
+      )
+      known_positions
+      init_tiles_set
+  in
+  let l = Tileset.multi_set_cardinal remaining_tiles in
   let arr = Array.make l d1 in
   let i = ref 0 in
-  Hashtbl.iter (fun _ tile -> arr.(!i) <- tile; incr i) tile_descrs;
+  Tileset.iter_multi_set (fun tile -> arr.(!i) <- tile; incr i) remaining_tiles;
   shuffle_array arr;
   let result = Array.make nb_tiles d1 in
   let j = ref 0 in
   for i = 0 to nb_tiles - 1 do
     match known_positions.(i) with
     | None -> result.(i) <- arr.(!j); incr j
-    | Some tile_descr ->
-      try
-        result.(i) <- Hashtbl.find init_tile_descrs tile_descr
-      with
-      | Not_found -> assert false
+    | Some tile -> result.(i) <- tile
   done;
   result
 
@@ -1104,7 +1099,7 @@ let build_engine ?irregular_hands events =
 let finished {end_game; _} = end_game
 
 let set_known_tile tiles known_tiles tile_pos =
-  known_tiles.(tile_pos) <- Some (tile_descr_of_tile tiles.(tile_pos))
+  known_tiles.(tile_pos) <- Some (tiles.(tile_pos))
 
 let set_player_known_tiles ~viewer player tiles player_state known_tiles =
   if viewer = player then begin

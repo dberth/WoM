@@ -44,41 +44,11 @@ type tile_descr =
   | West_wind
   | North_wind
 
+let compare_tiles x y = x - y
+
 let empty = []
 
 let default = Array.make 11 0
-
-let incr_byte = function
-  | 'z' -> 'a'
-  | 'a' -> 'b'
-  | 'b' -> 'c'
-  | 'c' -> 'd'
-  | _ -> raise (Invalid_argument "incr_byte")
-
-let decr_byte = function
-  | 'a' -> 'z'
-  | 'b' -> 'a'
-  | 'c' -> 'b'
-  | 'd' -> 'c'
-  | _ -> raise (Invalid_argument "decr_byte")
-
-let add_byte b1 b2 =
-  match b1, b2 with
-  | 'z', b | b, 'z' -> b
-  | 'a', b | b, 'a' -> incr_byte b
-  | 'b', b | b, 'b' -> incr_byte (incr_byte b)
-  | _ -> raise (Invalid_argument "add_byte")
-
-let sub_byte b1 b2 =
-  match b1, b2 with
-  | _, 'z' -> b1
-  | _, 'a' -> decr_byte b1
-  | _, 'b' -> decr_byte (decr_byte b1)
-  | 'c', 'c' -> 'z'
-  | 'd', 'c' -> 'a'
-  | 'd', 'd' -> 'z'
-  | _ -> raise (Invalid_argument "sub_byte")
-
 
 let num_op op x s =
   let s = Array.copy s in
@@ -112,14 +82,6 @@ let incr_num = num_op succ
 let decr_num = num_op pred
 
 let new_num x = incr_num x default
-
-let int_of_byte = function
-  | 'z' -> 0
-  | 'a' -> 1
-  | 'b' -> 2
-  | 'c' -> 3
-  | 'd' -> 4
-  | _ -> raise (Invalid_argument "int_of_byte")
 
 let ints_of_positions positions =
   let result = ref [] in
@@ -733,3 +695,41 @@ let status_of_tileset tileset =
       aux alone set2 sub_chow set3 tl
   in
   aux [] [] [] [] tileset
+
+type tile_multi_set =
+  | Empty
+  | Node of (tile_multi_set * tile * int * tile_multi_set)
+
+let empty_multi_set = Empty
+
+let rec multi_set_cardinal = function
+  | Empty -> 0
+  | Node (right, _, nb, left) -> multi_set_cardinal right + nb + multi_set_cardinal left
+
+let rec add_tile_in_multi_set tile = function
+  | Empty -> Node (Empty, tile, 1, Empty)
+  | Node (left, t, nb, right) ->
+    if t = tile then
+      Node(left, t, nb + 1, right)
+    else if tile < t then
+      Node (add_tile_in_multi_set tile left, t, nb, right)
+    else
+      Node (left, t, nb, add_tile_in_multi_set tile right)
+
+let rec remove_tile_from_multi_set tile = function
+  | Empty -> Empty
+  | Node (left, t, nb, right) ->
+    if t = tile then
+      Node (left, t, max (nb - 1)  0, right)
+    else if tile < t then
+      Node (remove_tile_from_multi_set tile left, t, nb, right)
+    else
+      Node (left, t, nb, remove_tile_from_multi_set tile right)
+      
+
+let rec iter_multi_set f = function
+  | Empty -> ()
+  | Node (left, t, nb, right) ->
+    if nb <> 0 then for i = 1 to nb do f t done;
+    iter_multi_set f left;
+    iter_multi_set f right

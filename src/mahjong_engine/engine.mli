@@ -21,7 +21,7 @@ type end_game =
   | Mahjong of mahjong
 
 type event =
-  | Init of Tileset.tile_descr option array
+  | Init of Tileset.tile option array
   | Wall_breaker_roll of int
   | Break_wall_roll of int
   | Deal
@@ -50,9 +50,9 @@ val string_of_game: game -> string
 
 val string_of_event: game -> event -> string
 
-val known_tiles: game -> Tileset.tile_descr option array
+val known_tiles: game -> Tileset.tile option array
 
-val random_game: Tileset.tile_descr option array
+val random_game: Tileset.tile option array
 
 val current_player: game -> player
 
