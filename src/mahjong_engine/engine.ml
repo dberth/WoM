@@ -38,7 +38,7 @@ type event =
 
 exception Irrelevant_event of (event * string)
 
-module IntSet = Set.Make(struct type t = int let compare = (-) end)
+module IntSet = Set.Make(struct type t = int let compare x y = x - y end)
 
 type player_state =
   {
