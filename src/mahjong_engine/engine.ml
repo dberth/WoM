@@ -1,5 +1,6 @@
 (*Copyright (C) 2014 Denis Berthod*)
 
+module IntSet = Set.Make(struct type t = int let compare x y = x - y end)
 open Tileset
 open Fsm
 
@@ -38,7 +39,6 @@ type event =
 
 exception Irrelevant_event of (event * string)
 
-module IntSet = Set.Make(struct type t = int let compare x y = x - y end)
 
 type player_state =
   {
@@ -225,10 +225,10 @@ let init_tiles =
 
 let nb_tiles = Array.length init_tiles
 
-module TSet = Set.Make (struct type t = tile let compare x y = compare_tiles x y end)
+module TSet = Tileset.Set
 
 let init_tiles_set =
-  Array.fold_right Tileset.add_tile_in_multi_set init_tiles Tileset.empty_multi_set
+  Array.fold_right TSet.add init_tiles TSet.empty
 
 let random_game = Array.make nb_tiles (None: tile option)
 
@@ -246,15 +246,15 @@ let shuffle known_positions =
       (fun tile set ->
         match tile with
         | None -> set
-        | Some tile -> Tileset.remove_tile_from_multi_set tile set
+        | Some tile -> TSet.remove tile set
       )
       known_positions
       init_tiles_set
   in
-  let l = Tileset.multi_set_cardinal remaining_tiles in
+  let l = TSet.cardinal remaining_tiles in
   let arr = Array.make l d1 in
   let i = ref 0 in
-  Tileset.iter_multi_set (fun tile -> arr.(!i) <- tile; incr i) remaining_tiles;
+  TSet.iter (fun tile -> arr.(!i) <- tile; incr i) remaining_tiles;
   shuffle_array arr;
   let result = Array.make nb_tiles d1 in
   let j = ref 0 in

@@ -696,40 +696,174 @@ let status_of_tileset tileset =
   in
   aux [] [] [] [] tileset
 
-type tile_multi_set =
-  | Empty
-  | Node of (tile_multi_set * tile * int * tile_multi_set)
+module Map = struct
+  type 'a t =
+    | Leaf of 'a
+    | Node of 'a t * 'a t
+    | Empty
 
-let empty_multi_set = Empty
+  let empty = Empty
 
-let rec multi_set_cardinal = function
-  | Empty -> 0
-  | Node (right, _, nb, left) -> multi_set_cardinal right + nb + multi_set_cardinal left
+  let add tile value map =
+    let rec aux acc map =
+      if acc = 0 then
+        Leaf value
+      else
+        let left, right =
+          match map with
+          | Empty -> Empty, Empty
+          | Leaf v -> Leaf v, Empty
+          | Node (left, right) -> left, right 
+        in
+        if acc mod 2 = 0 then
+          Node (aux (acc / 2) left, right)
+        else
+          Node (left, aux (acc / 2) right)
+    in
+    aux tile map
 
-let rec add_tile_in_multi_set tile = function
-  | Empty -> Node (Empty, tile, 1, Empty)
-  | Node (left, t, nb, right) ->
-    if t = tile then
-      Node(left, t, nb + 1, right)
-    else if tile < t then
-      Node (add_tile_in_multi_set tile left, t, nb, right)
-    else
-      Node (left, t, nb, add_tile_in_multi_set tile right)
+  let remove tile map =
+    let rec aux acc map =
+      if acc = 0 then
+        match map with
+        | Empty | Leaf _ -> Empty
+        | Node (left, right) -> Node(aux 0 left, right)
+      else
+        match map with
+        | Empty | Leaf _ -> map
+        | Node (left, right) ->
+          let left, right =
+            if acc mod 2 = 0 then
+              aux (acc / 2) left, right
+            else
+              left, aux (acc / 2) right
+          in
+          if (left, right) = (Empty, Empty) then
+            Empty
+          else
+            Node (left, right)
+    in
+    aux tile map
 
-let rec remove_tile_from_multi_set tile = function
-  | Empty -> Empty
-  | Node (left, t, nb, right) ->
-    if t = tile then
-      Node (left, t, max (nb - 1)  0, right)
-    else if tile < t then
-      Node (remove_tile_from_multi_set tile left, t, nb, right)
-    else
-      Node (left, t, nb, remove_tile_from_multi_set tile right)
+  let find tile map =
+    let rec aux acc map =
+      if acc = 0 then
+        match map with
+        | Empty -> raise Not_found
+        | Leaf v -> v
+        | Node (left, _) -> aux 0 left
+      else
+        match map with
+        | Empty | Leaf _ -> raise Not_found
+        | Node (left, right) ->
+          if acc mod 2 = 0 then
+            aux (acc / 2) left
+          else
+            aux (acc / 2) right
+    in
+    aux tile map
+
+  let apply_update f l =
+    let value =
+      match l with
+      | Empty -> None
+      | Leaf v -> Some v
+      | Node _ -> assert false
+    in
+    match f value with
+    | None -> Empty
+    | Some v -> Leaf v
+
+  let reduce = function
+    | Node (Empty, Empty) -> Empty
+    | x -> x
+
+  let update f tile map =
+    let rec aux acc map =
+      if acc = 0 then
+        match map with
+        | Node (left, right) -> reduce (Node (aux 0 left, right))
+        | term -> apply_update f term
+      else
+        let left, right =
+          match map with
+          | Empty -> Empty, Empty
+          | Leaf v -> Leaf v, Empty
+          | Node (right, left) -> right, left
+        in
+        if acc mod 2 = 0 then
+          reduce (Node (aux (acc / 2) left, right))
+        else
+          reduce (Node (left, aux (acc / 2) right))
+    in
+    aux tile map
+
+  let fold f map acc =
+    let rec aux tile power acc = function
+      | Empty -> acc
+      | Leaf v -> f tile v acc
+      | Node (left, right) ->
+        let acc = aux tile (power * 2) acc left in
+        aux (tile + power) (power * 2) acc right
+    in
+    aux 0 1 acc map
+
+  let rec iter f map =
+    let rec aux tile power = function
+      | Empty -> ()
+      | Leaf v -> f tile v
+      | Node (left, right) ->
+        aux tile (power * 2) left;
+        aux (tile + power) (power * 2) right
+    in
+    aux 0 1 map
+end
+
+
+module Set = struct
+  type t = int Map.t
       
+  let add tile set =
+    Map.update
+      (function
+        | None -> Some 1
+        | Some x -> Some (x + 1)
+      )
+      tile
+      set
 
-let rec iter_multi_set f = function
-  | Empty -> ()
-  | Node (left, t, nb, right) ->
-    if nb <> 0 then for i = 1 to nb do f t done;
-    iter_multi_set f left;
-    iter_multi_set f right
+  let remove tile set =
+    Map.update
+      (function
+        | None -> None
+        | Some x ->
+          let value = x - 1 in
+          if value = 0 then
+            None
+          else
+            Some value
+      )
+      tile
+      set
+
+  let empty = Map.empty
+      
+  let cardinal set = Map.fold (fun _ nb acc -> acc + nb) set 0
+
+  let iter f set =
+    Map.iter
+      (fun tile nb ->
+        for i = 1 to nb do f tile done
+      )
+      set
+
+  let elements set =
+    List.flatten
+      (Map.fold
+         (fun tile nb acc ->
+           make_list nb tile :: acc
+         )
+         set
+         []
+      )
+end

@@ -103,14 +103,36 @@ type tileset_status =
 
 val status_of_tileset: tileset -> tileset_status
 
-type tile_multi_set
+module Map: sig
+  type 'a t
 
-val empty_multi_set: tile_multi_set
+  val empty: 'a t
 
-val add_tile_in_multi_set: tile -> tile_multi_set -> tile_multi_set
+  val add: tile -> 'a -> 'a t -> 'a t
 
-val remove_tile_from_multi_set: tile -> tile_multi_set -> tile_multi_set
+  val remove: tile -> 'a t -> 'a t
 
-val iter_multi_set: (tile -> unit) -> tile_multi_set -> unit
+  val find: tile -> 'a t -> 'a
 
-val multi_set_cardinal: tile_multi_set -> int
+  val update: ('a option -> 'a option) -> tile -> 'a t -> 'a t
+
+  val fold: (tile -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
+
+  val iter: (tile -> 'a -> unit) -> 'a t -> unit
+end
+
+module Set: sig
+  type t
+
+  val empty: t
+
+  val add: tile -> t -> t
+
+  val remove: tile -> t -> t
+
+  val cardinal: t -> int
+
+  val iter: (tile -> unit) -> t -> unit
+
+  val elements: t -> tile list
+end
