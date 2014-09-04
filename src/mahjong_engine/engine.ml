@@ -113,8 +113,6 @@ let string_of_mahjong {declared; hand; discard_player; kong_robbing} =
     (match discard_player with Some i -> string_of_int i | None -> "None")
     kong_robbing
     
-let string_of_int_list is = Printf.sprintf "[%s]" (String.concat "; " (List.map string_of_int is))
-
 let string_of_tile_index tiles idx = Printf.sprintf "%s(%i)" (string_of_tile_descr (tile_descr_of_tile (tiles.(idx)))) idx
 
 let string_of_tile_indexes tiles indexes =
@@ -440,7 +438,7 @@ let player_state player {player_0; player_1; player_2; player_3; _} =
 
 let current_player_state game = player_state game.current_player game
 
-let rec pos_of_tile_descr tiles hand_indexes size tile_descr =
+let pos_of_tile_descr tiles hand_indexes size tile_descr =
   let s =
     IntSet.filter
       (fun pos ->

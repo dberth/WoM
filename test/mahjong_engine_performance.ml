@@ -77,7 +77,7 @@ let () =
       Draw 0;
     ]
   in
-  for i = 1 to nb_simulations do
+  for _ = 1 to nb_simulations do
     ignore (Mahjong_ai.mc_ai_with_bias ~evaluate_game ~nb_trajectory  events 0.8)
   done;
   let tf = Unix.gettimeofday () in

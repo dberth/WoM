@@ -79,8 +79,6 @@ let mk_position_pair index =
 
 let incr_num = num_op succ
 
-let decr_num = num_op pred
-
 let new_num x = incr_num x default
 
 let ints_of_positions positions =
@@ -237,11 +235,6 @@ let tileset_of_basic_tilesets l =
   List.fold_left (fun set tile -> add_basic_tileset tile set) [] l
 
 let tileset_of_tiles l = tileset_of_basic_tilesets (List.map (fun i -> tiles_rep.(i)) l)
-
-let basic_tileset_of_tiles l =
-  match tileset_of_basic_tilesets l with
-  | [x] -> x
-  | _ -> raise (Invalid_argument "basic_tileset_of_tiles")
 
 let new_tile =
   let i = ref (-1) in
@@ -459,35 +452,6 @@ let add_irregular_hand tiles {with_isolated_tiles; without_isolated_tiles} =
       with_isolated_tiles, add_tileset_to_trie tileset without_isolated_tiles
   in
   {with_isolated_tiles; without_isolated_tiles}
-
-let rev_flatten l =
-  List.fold_left (fun acc l -> List.rev_append l acc) [] l
-
-let bind l f =
-  let rec aux acc = function
-    | [] -> acc
-    | hd :: tl -> aux (f hd tl :: acc) tl
-  in
-  rev_flatten (aux [] l)
-
-let (>>=) = bind
-
-let rec mahjong_aux sets result nb_3_sets hand =
-  if nb_3_sets = 0 then
-    get_pairs hand >>= fun pair _ ->
-    [pair :: result]
-  else
-    sets >>= fun set rest ->
-    mahjong_aux rest (set :: result) (nb_3_sets - 1) hand
-
-let mahjong nb_3sets hand =
-  if has_isolated_tile hand then begin
-    []
-  end else begin
-    let candidates = mahjong_aux (get_3sets hand) [] nb_3sets hand in
-    List.filter (fun tiles -> try tileset_of_basic_tilesets tiles = hand with Invalid_argument _ -> false) candidates
-  end
-
 
 let rev_flatten l =
   List.fold_left (fun acc l -> List.rev_append l acc) [] l
@@ -808,7 +772,7 @@ module Map = struct
     in
     aux 0 1 acc map
 
-  let rec iter f map =
+  let iter f map =
     let rec aux tile power = function
       | Empty -> ()
       | Leaf v -> f tile v
@@ -853,7 +817,7 @@ module Set = struct
   let iter f set =
     Map.iter
       (fun tile nb ->
-        for i = 1 to nb do f tile done
+        for _ = 1 to nb do f tile done
       )
       set
 

@@ -21,9 +21,6 @@ let apply_bias bias buckets =
   aux (remove_empty buckets)
 
 
-let string_of_tile_descrs tile_descrs =
-  String.concat "; " (List.map Tileset.string_of_tile_descr tile_descrs)
-
 let mc_next_event_with_bias game state bias =
   let possible_actions = Fsm.accepted_events game state in
   match possible_actions with
@@ -116,7 +113,7 @@ let mc_ai_with_bias ?(debug = false) ~evaluate_game ~nb_trajectory event_history
   | [unique_action] -> unique_action
   | _ ->
     let player = current_player game in
-    for i = 1 to nb_trajectory do
+    for _ = 1 to nb_trajectory do
       let game, chosen_action = mc_trajectory_with_bias ~event_history ~possible_actions bias in
       let score = evaluate_game player game in
       apply_amaf possible_actions_tab possible_actions chosen_action game score
