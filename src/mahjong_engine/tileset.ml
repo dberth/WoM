@@ -225,6 +225,14 @@ let tiles_rep = Array.make nb_tiles (Honor (Red_dragon, 0))
 
 let tiles_descr = Array.make nb_tiles Red_dragon
 
+let tiles_offset_pred_pred = Array.make nb_tiles None
+
+let tiles_offset_pred = Array.make nb_tiles None
+
+let tiles_offset_succ = Array.make nb_tiles None
+
+let tiles_offset_succ_succ = Array.make nb_tiles None
+
 let tile_descr_of_tile tile = tiles_descr.(tile)
 
 let add_tile tile tileset = add_basic_tileset tiles_rep.(tile) tileset
@@ -240,10 +248,18 @@ let new_tile =
   let i = ref (-1) in
   fun () -> incr i; !i
 
+let set_neibours tile =
+  let x = tile mod 9 in
+  if 1 < x then tiles_offset_pred_pred.(tile) <- Some (tile - 2);
+  if 0 < x then tiles_offset_pred.(tile) <- Some (tile - 1);
+  if x < 8 then tiles_offset_succ.(tile) <- Some (tile + 1);
+  if x < 7 then tiles_offset_succ_succ.(tile) <- Some (tile + 2)
+
 let new_char x =
   let tile = new_tile () in
   tiles_rep.(tile) <- Num (Char, new_num x);
   tiles_descr.(tile) <- Char x;
+  set_neibours tile;
   tile
 
 let c1 = new_char 1
@@ -260,6 +276,7 @@ let new_dot x =
   let tile = new_tile () in
   tiles_rep.(tile) <- Num (Dot, new_num x);
   tiles_descr.(tile) <- Dot x;
+  set_neibours tile;
   tile
 
 let d1 = new_dot 1
@@ -276,6 +293,7 @@ let new_bam x =
   let tile = new_tile () in
   tiles_rep.(tile) <- Num(Bam, new_num x);
   tiles_descr.(tile) <- Bam x;
+  set_neibours tile;
   tile
 
 let b1 = new_bam 1
@@ -302,6 +320,14 @@ let ew = new_honor East_wind East_wind
 let sw = new_honor South_wind South_wind
 let ww = new_honor West_wind West_wind
 let nw = new_honor North_wind North_wind
+
+let tile_pred_pred tile = tiles_offset_pred_pred.(tile)
+
+let tile_pred tile = tiles_offset_pred.(tile)
+
+let tile_succ tile = tiles_offset_succ.(tile)
+
+let tile_succ_succ tile = tiles_offset_succ_succ.(tile)
 
 let rec read_010 index s =
   if 8 < index then
@@ -624,7 +650,7 @@ let set_groups position status_array =
     | 1 -> set i 1
     | 2 -> set i 3
     | 3 | 4 -> set i 4
-    | _ -> assert false
+    | x -> print_int x; assert false
   done
 
 let status_of_num_set alone sub_chow set2 set3 kind position =
@@ -643,7 +669,7 @@ let status_of_num_set alone sub_chow set2 set3 kind position =
       | 2 -> sub_chow := num_tile_descr_of_kind (i + 1) kind :: !sub_chow
       | 3 -> set2 := num_tile_descr_of_kind (i + 1) kind :: !set2
       | 4 -> set3 := num_tile_descr_of_kind (i + 1) kind :: !set3
-      | _ -> assert false
+      | x -> print_int x; assert false
     )
     status_array;
   !alone, !sub_chow, !set2, !set3
@@ -709,16 +735,16 @@ module Map = struct
     in
     aux tile map
 
-  let find tile map =
+  let find_default tile default map =
     let rec aux acc map =
       if acc = 0 then
         match map with
-        | Empty -> raise Not_found
+        | Empty -> default
         | Leaf v -> v
         | Node (left, _) -> aux 0 left
       else
         match map with
-        | Empty | Leaf _ -> raise Not_found
+        | Empty | Leaf _ -> default
         | Node (left, right) ->
           if acc mod 2 = 0 then
             aux (acc / 2) left

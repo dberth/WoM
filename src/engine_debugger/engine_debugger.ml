@@ -7,14 +7,15 @@ let rec loop action_handler game state =
   match finished game with
   | Some end_game -> print_endline (string_of_end_game end_game)
   | None ->
-    let history = Fsm.history state in
-    let events =
-      match history with
-      | [] -> []
-      | Init _ :: tl
-      | tl -> Init (known_tiles game) :: tl
-    in
-    let _, partial_game, _ = build_engine events in
+    (* let history = Fsm.history state in *)
+    (* let events = *)
+    (*   match history with *)
+    (*   | [] -> [] *)
+    (*   | Init _ :: tl *)
+    (*   | tl -> Init (known_tiles game) :: tl *)
+    (* in *)
+    (* let _, partial_game, _ = build_engine events in *)
+    let partial_game = game in
     let possible_actions = accepted_events partial_game state in
     print_endline (string_of_game partial_game);
     let rec read_event_loop () =

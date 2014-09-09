@@ -67,6 +67,11 @@ val sw: tile
 val ww: tile
 val nw: tile
 
+val tile_pred_pred: tile -> tile option
+val tile_pred: tile -> tile option
+val tile_succ: tile -> tile option
+val tile_succ_succ: tile -> tile option
+
 val tileset_of_tiles: tile list -> tileset
 
 val no_irregular_hand: irregular_hands
@@ -112,7 +117,7 @@ module Map: sig
 
   val remove: tile -> 'a t -> 'a t
 
-  val find: tile -> 'a t -> 'a
+  val find_default: tile -> 'a -> 'a t -> 'a
 
   val update: ('a option -> 'a option) -> tile -> 'a t -> 'a t
 
