@@ -28,6 +28,11 @@ let flag name =
   Hashtbl.add flags id flag;
   id
 
+let name_of_flag flag =
+  match Hashtbl.find flags flag with
+  | {name; _} -> name
+  | exception Not_found -> assert false
+
 type rule_builer_descr =
   {
     id: int;
@@ -59,7 +64,7 @@ let register_rule_builder ~is_default ~flags ~default_flags ~build_rule name =
 
 let current_rule = ref None
 
-let all () =
+let all_rule_builders () =
   Hashtbl.fold (fun id _ acc -> id :: acc) rule_builders []
 
 let all_flags rule_builder =
