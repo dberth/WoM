@@ -27,6 +27,17 @@ Library mahjong_ai
   NativeOpt:	   -w +32..39 -warn-error +32..39 -annot -bin-annot
   ByteOpt:	   -w +32..39 -warn-error +32..39 -annot -bin-annot
 
+Library rules
+  Path:		   src/rules
+  BuildTools:	   ocamlbuild
+  CompiledObject:  best
+  Build:	   true
+  BuildDepends:	   mahjong_engine
+  Modules:	   Rule_manager, Simple, Zung_jung
+  Findlibname:	   rules
+  NativeOpt:	   -w +32..39 -warn-error +32..39 -annot -bin-annot
+  ByteOpt:	   -w +32..39 -warn-error +32..39 -annot -bin-annot
+
 Executable wom_nox
   Path:            src/nox
   BuildTools:	   ocamlbuild
