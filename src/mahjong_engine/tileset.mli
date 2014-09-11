@@ -26,6 +26,8 @@ type tile_descr =
 
 val empty: tileset
 
+val tileset_of_basic_tileset: basic_tileset -> tileset
+
 val add_tile: tile -> tileset -> tileset
 
 val remove_tile: tile -> tileset -> tileset
@@ -80,9 +82,11 @@ val add_irregular_hand: tile list -> irregular_hands -> irregular_hands
 
 val mahjong: ?irregular_hands: irregular_hands -> int -> tileset -> mahjong list
 
-val is_kong: tileset -> bool
+val is_pair: tileset -> bool
 
-val get_kongs: tileset -> tile_descr list
+val is_chow: tileset -> bool
+
+val is_kong: tileset -> bool
 
 val is_pong: tileset -> bool
 

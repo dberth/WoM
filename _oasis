@@ -5,6 +5,9 @@ Synopsis:    Winds of Mahjong. A 4 player mahjong game.
 Authors:     Denis Berthod
 License:     BSD-3-clause
 Plugins:     DevFiles (0.4), META (0.4), StdFiles (0.4)
+AlphaFeatures: ocamlbuild_more_args
+XOCamlbuildPLuginTags: package(js_of_ocaml.ocamlbuild)
+OcamlVersion: >= 4.02
 
 Library mahjong_engine
   Path:            src/mahjong_engine

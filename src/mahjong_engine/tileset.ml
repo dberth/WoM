@@ -44,6 +44,8 @@ type tile_descr =
   | West_wind
   | North_wind
 
+let tileset_of_basic_tileset x = [x]
+
 let compare_tiles x y = x - y
 
 let empty = []
@@ -408,6 +410,11 @@ let rec get_chows = function
     let chows = List.map (fun s -> Num (kind, s)) (get_position_chows 1 s) in
     chows @ (get_chows tl)
 
+let is_chow tileset =
+  match get_chows tileset with
+  | [] -> false
+  | _ -> true
+
 let rec get_position_pong_and_kongs index s =
   if index = 10 then [] else
     match s.(index) with
@@ -444,6 +451,11 @@ let rec get_pairs = function
     | 2 | 3 -> p :: (get_pairs tl)
     | 4 -> p :: p :: (get_pairs tl)
     | _ -> get_pairs tl
+
+let is_pair tileset =
+  match get_pairs tileset with
+  | [] -> false
+  | _ -> true
 
 let get_3sets tileset =
   get_chows tileset @ get_pong_and_kongs tileset
@@ -566,17 +578,6 @@ let is_kong = function
   | [Honor(_, 4)] -> true
   | [Num(_, position)] -> is_kong_position position
   | _ -> false
-
-let get_kongs tileset =
-  List.fold_left
-    (fun acc basic_tileset ->
-      if is_kong [basic_tileset] then
-        List.hd (tile_descr_of_basic_tileset basic_tileset) :: acc
-      else
-        acc
-    )
-    []
-    tileset
 
 let is_pong = function
   | [Honor (_, 3)] -> true

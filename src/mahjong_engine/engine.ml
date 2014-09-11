@@ -498,7 +498,7 @@ let set_small_kong tile_pos tiles event player_state =
   let rec aux = function
     | [] -> raise (Irrelevant_event(event, "Cannot find pong to make a small kong."))
     | (tileset, tiles_pos, concealed as x) :: tl ->
-      if is_kong tileset then
+      if List.length tiles_pos = 4 then
         x :: aux tl
       else
         let tileset = add_tile tiles.(tile_pos) tileset in
