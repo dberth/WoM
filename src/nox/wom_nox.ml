@@ -8,17 +8,19 @@ let rec make_list x n =
   else
     x :: make_list x (n - 1)
 
-let show_tile tile_descr =
-  Printf.sprintf "[%s]" (Tileset.string_of_tile_descr tile_descr)
+let show_tile tile =
+  Printf.sprintf "[%s]" (Tileset.string_of_tile tile)
 
 let show_tileset ?(sorted = false) ?(concealed = false) tileset =
-  let tile_descrs = Tileset.tile_descr_of_tileset tileset in
-  if concealed && List.length tile_descrs = 4 then
-    let tile = Tileset.string_of_tile_descr (List.hd tile_descrs) in
+  let tiles = Tileset.tiles_of_tileset tileset in
+  if concealed && List.length tiles = 4 then
+    let tile = Tileset.string_of_tile (List.hd tiles) in
     Printf.sprintf "[XX][%s][%s][XX]" tile tile
   else
-    let tiles = List.map show_tile tile_descrs in
-    let tiles = if sorted then List.sort compare tiles else tiles in
+    let tiles =
+      if sorted then List.sort Tileset.compare_tiles tiles else tiles
+    in
+    let tiles = List.map show_tile tiles in
     String.concat "" tiles
 
 let show_declared declared =
@@ -46,9 +48,9 @@ let show_hand_nb nb =
 
 let show_discarded_tile player discard_player = function
   | None -> print_endline ""
-  | Some tile_descr ->
+  | Some tile ->
     if Some player = discard_player then
-      print_endline (show_tile tile_descr)
+      print_endline (show_tile tile)
     else
       print_endline ""
 
@@ -95,19 +97,44 @@ let string_of_tile_pos game pos =
 let compare_discard_events game e1 e2 =
   match e1, e2 with
   | Discard(_, pos1), Discard(_, pos2) ->
-    compare (string_of_tile_pos game pos1) (string_of_tile_pos game pos2)
+    compare (tile_of_tile_pos game pos1) (tile_of_tile_pos game pos2)
   | _ -> assert false
 
-let discard_events game events =
-    List.sort (compare_discard_events game)
-      (List.filter (function Discard _ -> true | _ -> false) events)
+let duplicate_events game events tiles =
+  let table = Hashtbl.create 4 in
+  List.iter
+    (fun event ->
+       match event with
+       | Discard (_, pos) ->
+         Hashtbl.add table (tile_of_tile_pos game pos) event
+       | _ -> assert false
+    )
+    events;
+  List.map
+    (fun tile ->
+       match Hashtbl.find table tile with
+       | event -> event
+       | exception Not_found -> assert false
+    )
+    tiles
+
+let discard_events game events hand =
+  let events =
+    List.filter (function Discard _ -> true | _ -> false) events
+  in
+  match events with
+  | [] -> []
+  | _ ->
+    let tiles = List.sort Tileset.compare_tiles (Tileset.tiles_of_tileset hand) in
+    duplicate_events game events tiles
 
 let read_event game events =
+  let hand = current_player_hand game in
   let rec loop () =
     print_string "> "; flush stdout;
     begin match Scanf.scanf "%i\n" (fun x -> x) with
     | i ->
-      let discard_events = discard_events game events in
+      let discard_events = discard_events game events hand in
       if 0 < i && i <= List.length discard_events then
         List.nth discard_events (i - 1)
       else
@@ -188,16 +215,6 @@ let human_player_event possible_actions game state =
   | _ -> read_event game possible_actions
 
 
-let evaluate_game player game =
-  match finished game with
-  | None -> assert false
-  | Some No_winner -> 0.
-  | Some (Mahjong _) ->
-    if current_player game = player then
-      1.
-    else
-      -1.
-
 let rec loop human_players action_handler game state =
   let nb_trajectory = 1_000 in
   match finished game with
@@ -229,12 +246,15 @@ let rec loop human_players action_handler game state =
         if List.mem current_player human_players then
           human_player_event possible_actions game state
         else
+          let evaluate_game player game = Rule_manager.evaluate_game player game in
           Mahjong_ai.mc_ai_with_bias ~evaluate_game ~nb_trajectory events 0.8
     in
     let game, state = Fsm.run ~with_history: true action_handler game (lazy state) [event] in
     loop human_players action_handler game state
 
 let () =
+  Simple.register ();
+  Rule_manager.set_default_rule ();
   Random.self_init ();
   let action_handler, game, state = build_engine [] in
   loop [0] action_handler game state

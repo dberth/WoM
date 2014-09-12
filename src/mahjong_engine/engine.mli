@@ -60,16 +60,18 @@ val current_player_hand: game -> Tileset.tileset
 
 val player_hand: player -> game -> Tileset.tileset
 
-val player_discarded_tiles: player -> game -> Tileset.tile_descr list
+val player_discarded_tiles: player -> game -> Tileset.tile list
 
 val player_declared_sets: player -> game -> declared
 
 val nb_tiles_in_hand: player -> game -> int
 
+val tile_of_tile_pos: game -> int -> Tileset.tile
+
 val descr_of_tile_pos: game -> int -> Tileset.tile_descr
 
 val is_in_current_player_hand: game -> int -> bool
 
-val discarded_tile: game -> Tileset.tile_descr option
+val discarded_tile: game -> Tileset.tile option
 
 val discard_player: game -> int option

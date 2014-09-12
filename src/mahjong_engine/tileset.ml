@@ -120,7 +120,6 @@ let mk_num_tile_descr kind nums =
        nums
     )
 
-
 let tile_descr_of_basic_tileset = function
   | Num (kind, positions) -> mk_num_tile_descr kind (ints_of_positions positions)
   | Honor (kind, nb) -> mk_honor_tile_descr kind nb
@@ -227,6 +226,8 @@ let tiles_rep = Array.make nb_tiles (Honor (Red_dragon, 0))
 
 let tiles_descr = Array.make nb_tiles Red_dragon
 
+let tile_of_tile_descr_table = Hashtbl.create 4
+
 let tiles_offset_pred_pred = Array.make nb_tiles None
 
 let tiles_offset_pred = Array.make nb_tiles None
@@ -241,10 +242,25 @@ let add_tile tile tileset = add_basic_tileset tiles_rep.(tile) tileset
 
 let remove_tile tile tileset = remove_basic_tileset tiles_rep.(tile) tileset
 
+let string_of_tile tile =
+  string_of_tile_descr (tile_descr_of_tile tile)
+
+let set_tile_descr tile tile_descr =
+  tiles_descr.(tile) <- tile_descr;
+  Hashtbl.add tile_of_tile_descr_table tile_descr tile
+
 let tileset_of_basic_tilesets l =
   List.fold_left (fun set tile -> add_basic_tileset tile set) [] l
 
 let tileset_of_tiles l = tileset_of_basic_tilesets (List.map (fun i -> tiles_rep.(i)) l)
+
+let tile_of_tile_descr tile =
+  match Hashtbl.find tile_of_tile_descr_table tile with
+  | exception Not_found -> assert false
+  | x -> x
+
+let tiles_of_tileset tileset =
+  List.map tile_of_tile_descr (tile_descr_of_tileset tileset)
 
 let new_tile =
   let i = ref (-1) in
@@ -260,7 +276,7 @@ let set_neibours tile =
 let new_char x =
   let tile = new_tile () in
   tiles_rep.(tile) <- Num (Char, new_num x);
-  tiles_descr.(tile) <- Char x;
+  set_tile_descr tile (Char x);
   set_neibours tile;
   tile
 
@@ -277,7 +293,7 @@ let c9 = new_char 9
 let new_dot x =
   let tile = new_tile () in
   tiles_rep.(tile) <- Num (Dot, new_num x);
-  tiles_descr.(tile) <- Dot x;
+  set_tile_descr tile (Dot x);
   set_neibours tile;
   tile
 
@@ -294,7 +310,7 @@ let d9 = new_dot 9
 let new_bam x =
   let tile = new_tile () in
   tiles_rep.(tile) <- Num(Bam, new_num x);
-  tiles_descr.(tile) <- Bam x;
+  set_tile_descr tile (Bam x);
   set_neibours tile;
   tile
 
@@ -311,7 +327,7 @@ let b9 = new_bam 9
 let new_honor kind descr =
   let tile = new_tile () in
   tiles_rep.(tile) <- Honor(kind, 1);
-  tiles_descr.(tile) <- descr;
+  set_tile_descr tile descr;
   tile
 
 let rd = new_honor Red_dragon Red_dragon

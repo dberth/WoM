@@ -44,7 +44,7 @@ Library rules
 Executable wom_nox
   Path:            src/nox
   BuildTools:	   ocamlbuild
-  BuildDepends:	   mahjong_engine, mahjong_ai
+  BuildDepends:	   mahjong_engine, mahjong_ai, rules
   Build:	   true
   MainIs:	   wom_nox.ml
   CompiledObject:  best

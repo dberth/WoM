@@ -49,6 +49,7 @@ let rule_builders = Hashtbl.create 4
 let default_rule_builder = ref None
 
 let register_rule_builder ~is_default ~flags ~default_flags ~build_rule name =
+  print_endline "REGISTER";
   let id = new_id () in
   let rule_builder =
     {
@@ -103,6 +104,7 @@ let set_rule rule_builder flags =
 
 
 let set_default_rule () =
+  print_endline "ACCESS";
   match !default_rule_builder with
   | None -> assert false
   | Some rule_builder -> set_rule rule_builder.id None 

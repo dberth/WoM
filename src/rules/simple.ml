@@ -82,7 +82,7 @@ let build_rule check =
   in
   {irregular_hands; evaluate_game}
 
-let () =
+let register () =
   register_rule_builder
     ~is_default: true
     ~flags

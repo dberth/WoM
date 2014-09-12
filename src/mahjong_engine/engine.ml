@@ -1257,7 +1257,7 @@ let player_discarded_tiles player game =
   let {discarded_tiles; _} = player_state player game in
   List.fold_right
     (fun i acc ->
-      tile_descr_of_tile game.tiles.(i) :: acc
+      game.tiles.(i) :: acc
     )
     discarded_tiles
     []
@@ -1270,8 +1270,9 @@ let nb_tiles_in_hand player game =
     (current_player_state game).tiles_pos
     0
 
-let descr_of_tile_pos {tiles; _} pos =
-  tile_descr_of_tile tiles.(pos)
+let tile_of_tile_pos {tiles; _} pos = tiles.(pos)
+
+let descr_of_tile_pos game pos = tile_descr_of_tile (tile_of_tile_pos game pos)
 
 let rec is_in_declared pos = function
   | [] -> false
@@ -1297,6 +1298,6 @@ let is_in_current_player_hand game pos =
 let discarded_tile game =
   match game.discarded_tile with
   | None -> None
-  | Some pos -> Some (tile_descr_of_tile (game.tiles.(pos)))
+  | Some pos -> Some (game.tiles.(pos))
 
 let discard_player {discard_player; _} = discard_player
