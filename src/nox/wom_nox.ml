@@ -27,7 +27,7 @@ let show_declared declared =
   let rec aux = function
     | [] -> []
     | (tileset, _, concealed) :: tl ->
-      show_tileset ~concealed: true tileset :: aux tl
+      show_tileset ~concealed tileset :: aux tl
   in
   print_endline (String.concat " " (aux declared))
 
