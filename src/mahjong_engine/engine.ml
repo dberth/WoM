@@ -1264,10 +1264,10 @@ let player_discarded_tiles player game =
 
 let nb_tiles_in_hand player game =
   TMap.fold
-    (fun _ positions acc ->
-      acc + List.length positions
+    (fun tile positions acc ->
+       acc + List.length positions
     )
-    (current_player_state game).tiles_pos
+    (player_state player game).tiles_pos
     0
 
 let tile_of_tile_pos {tiles; _} pos = tiles.(pos)
