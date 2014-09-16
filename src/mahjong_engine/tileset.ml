@@ -521,14 +521,18 @@ let (>>=) = bind
 
 let rec mahjong_aux ~seven_pairs sets result nb_3_sets hand =
   let pairs = get_pairs hand in
-  if sets = [] && nb_3_sets = 0 && seven_pairs && List.length pairs = 7 then
-    [pairs]
-  else if nb_3_sets = 0 then
-    pairs >>= fun pair _ ->
-    [pair :: result]
-  else
-    sets >>= fun set rest ->
-    mahjong_aux ~seven_pairs rest (set :: result) (nb_3_sets - 1) hand
+  let seven_pair =
+    if sets = [] && seven_pairs && List.length pairs = 7 then [pairs] else []
+  in
+  let result =
+    if nb_3_sets = 0 then
+      pairs >>= fun pair _ ->
+      [pair :: result]
+    else
+      sets >>= fun set rest ->
+      mahjong_aux ~seven_pairs rest (set :: result) (nb_3_sets - 1) hand
+  in
+  seven_pair @ result
 
 let no_irregular_hands = {with_isolated_tiles = Trie []; without_isolated_tiles = Trie []}
 

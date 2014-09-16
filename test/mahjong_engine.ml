@@ -30,8 +30,8 @@ let mahjong =
   let irregular_with_lonely = [d1; c1; b1; d9; c9; b9; wd; gd; rd; ww; ew; sw; nw; nw] in
   let irregular_hands =
     no_irregular_hand |>
-      add_irregular_hand irregular_without_lonely |>
-      add_irregular_hand irregular_with_lonely
+    add_irregular_hand irregular_without_lonely |>
+    add_irregular_hand irregular_with_lonely
   in
   ["Regular mahjong 4", 4,
    [b1; b2; b3; c1; c2; c3; rd; rd; rd; ww; ww; ww; d1; d1],
@@ -65,11 +65,19 @@ let mahjong =
    irregular_with_lonely,
    [[[Char 1; Char 9; Bam 1; Bam 9; Dot 1; Dot 9; Red_dragon; Green_dragon; White_dragon; East_wind; South_wind; North_wind; North_wind; West_wind]]];
 
+   "Seven pairs all differents", 4,
+   [d1; d1; c1; c1; b1; b1; rd; rd; gd; gd; ww; ww; nw; nw],
+   [[[Char 1; Char 1]; [Bam 1; Bam 1]; [Dot 1; Dot 1]; [Red_dragon; Red_dragon]; [Green_dragon; Green_dragon]; [North_wind; North_wind]; [West_wind; West_wind]]];
+
+   "Seven pairs with double pairs", 4,
+   [d1; d1; c1; c1; b1; b1; rd; rd; gd; gd; ww; ww; ww; ww],
+   [[[Char 1; Char 1]; [Bam 1; Bam 1]; [Dot 1; Dot 1]; [Red_dragon; Red_dragon]; [Green_dragon; Green_dragon]; [West_wind; West_wind]; [West_wind; West_wind]];
+   [[Char 1; Char 1]; [Bam 1; Bam 1]; [Dot 1; Dot 1]; [Red_dragon; Red_dragon]; [Green_dragon; Green_dragon]; [West_wind; West_wind]; [West_wind; West_wind]]]
   ] |>
     List.map
       (fun (title, nb_set, tiles, descr) ->
         title >:: fun _ctx ->
-          assert_equal ~printer: pp_mahjong_list descr (mahjong ~seven_pairs: false ~irregular_hands nb_set (tileset_of_tiles tiles) |> List.map tile_descr_of_mahjong)
+          assert_equal ~printer: pp_mahjong_list descr (mahjong ~seven_pairs: true ~irregular_hands nb_set (tileset_of_tiles tiles) |> List.map tile_descr_of_mahjong)
       )
 
 
