@@ -67,7 +67,7 @@ let build_rule check =
       | Some No_winner -> 0.
       | Some (Mahjong {declared; hand; _}) ->
         let nb_declared = List.length declared in
-        let mahjongs = Tileset.mahjong ~irregular_hands (4 - nb_declared) hand in
+        let mahjongs = Tileset.mahjong ~irregular_hands ~seven_pairs: false (4 - nb_declared) hand in
         List.fold_left
           (fun acc mahjong ->
             max acc (mahjong_pts check mahjong declared)
@@ -80,7 +80,7 @@ let build_rule check =
     else
       -. points
   in
-  {irregular_hands; evaluate_game}
+  {irregular_hands; seven_pairs = false; evaluate_game}
 
 let register () =
   register_rule_builder

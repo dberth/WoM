@@ -73,8 +73,8 @@ let mc_next_event_with_bias game state bias =
         with
         | Not_found -> assert false
 
-let mc_trajectory_with_bias ~event_history ~possible_actions bias =
-  let action_handler, game, state = build_engine event_history in
+let mc_trajectory_with_bias ?irregular_hands ~seven_pairs ~event_history ~possible_actions bias =
+  let action_handler, game, state = build_engine ?irregular_hands ~seven_pairs event_history in
   let chosen_event = List.nth possible_actions (Random.int (List.length possible_actions)) in
   let game, state = Fsm.run action_handler game (lazy state) [chosen_event] in
   let rec loop game state =
@@ -103,8 +103,8 @@ let apply_amaf possible_actions_tab possible_actions chosen_action game score =
     )
     possible_actions
 
-let mc_ai_with_bias ?(debug = false) ~evaluate_game ~nb_trajectory event_history bias =
-  let _, game, state = build_engine event_history in
+let mc_ai_with_bias ?(debug = false) ?irregular_hands ~seven_pairs ~evaluate_game ~nb_trajectory event_history bias =
+  let _, game, state = build_engine ?irregular_hands ~seven_pairs event_history in
   let possible_actions = Fsm.accepted_events game state in
   let possible_actions_tab = Hashtbl.create 14 in
   List.iter (fun x -> Hashtbl.add possible_actions_tab x (0., 0.)) possible_actions;
@@ -114,7 +114,7 @@ let mc_ai_with_bias ?(debug = false) ~evaluate_game ~nb_trajectory event_history
   | _ ->
     let player = current_player game in
     for _ = 1 to nb_trajectory do
-      let game, chosen_action = mc_trajectory_with_bias ~event_history ~possible_actions bias in
+      let game, chosen_action = mc_trajectory_with_bias ?irregular_hands ~seven_pairs ~event_history ~possible_actions bias in
       let score = evaluate_game player game in
       apply_amaf possible_actions_tab possible_actions chosen_action game score
     done;

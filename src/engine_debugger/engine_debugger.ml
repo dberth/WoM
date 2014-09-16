@@ -57,6 +57,6 @@ let rec loop action_handler game state =
     read_event_loop ()
 
 let () =
-  let action_handler, game, state = build_engine [] in
+  let action_handler, game, state = build_engine ~seven_pairs: false [] in
   loop action_handler game state
     

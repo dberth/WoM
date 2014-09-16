@@ -80,7 +80,7 @@ val no_irregular_hand: irregular_hands
 
 val add_irregular_hand: tile list -> irregular_hands -> irregular_hands
 
-val mahjong: ?irregular_hands: irregular_hands -> int -> tileset -> mahjong list
+val mahjong: ?irregular_hands: irregular_hands -> seven_pairs: bool -> int -> tileset -> mahjong list
 
 val is_pair: tileset -> bool
 

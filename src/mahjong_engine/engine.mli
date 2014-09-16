@@ -38,6 +38,7 @@ type event =
 exception Irrelevant_event of (event * string)
 
 val build_engine:
+  seven_pairs: bool ->
   ?irregular_hands: Tileset.irregular_hands ->
   event list ->
   (event, game) Fsm.action_handler * game * (event, game) Fsm.state

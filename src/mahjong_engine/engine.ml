@@ -579,9 +579,9 @@ let hand_with_kr_tile game =
     add_tile (game.tiles.(tile_pos)) (current_player_state game).hand
   | _ -> assert false
 
-let mahjong_event hand_with_other_tile ?irregular_hands game =
+let mahjong_event hand_with_other_tile ~seven_pairs ?irregular_hands game =
   let player_state = current_player_state game in
-  match Tileset.mahjong ?irregular_hands (4 - List.length player_state.declared) (hand_with_other_tile game) with
+  match Tileset.mahjong ~seven_pairs ?irregular_hands (4 - List.length player_state.declared) (hand_with_other_tile game) with
   | [] -> []
   | _ -> [Mahjong game.current_player]
 
@@ -860,7 +860,7 @@ let on_kr_3_exit (event: event) game =
   | _ -> assert false
 
 
-let build_engine ?irregular_hands events = 
+let build_engine ~seven_pairs ?irregular_hands events = 
   let rec game_start = lazy (new_state
     ~accepted_events: (fun _ -> [Init [||]])
       (function
@@ -896,7 +896,7 @@ let build_engine ?irregular_hands events =
       let player_state = current_player_state game in
       let discard_events = discard_events player_state game in
       let mahjong_event =
-        match Tileset.mahjong ?irregular_hands (4 - List.length player_state.declared) player_state.hand with
+        match Tileset.mahjong ~seven_pairs ?irregular_hands (4 - List.length player_state.declared) player_state.hand with
         | [] -> []
         | _ -> [Mahjong game.current_player]
       in
@@ -944,7 +944,7 @@ let build_engine ?irregular_hands events =
           )
           (TMap.find_default tile [] player_state.semi_chows)
       in
-      no_action_event game @ mahjong_event ?irregular_hands game @ chow_events @ pong_and_kong_events game
+      no_action_event game @ mahjong_event ~seven_pairs ?irregular_hands game @ chow_events @ pong_and_kong_events game
     in
     lazy (new_state
         ~accepted_events
@@ -961,7 +961,7 @@ let build_engine ?irregular_hands events =
       List.fold_left (fun acc f -> f game @ acc)
         []
         [no_action_event;
-         mahjong_event ?irregular_hands;
+         mahjong_event ~seven_pairs ?irregular_hands;
          pong_and_kong_events;
         ]
     in
@@ -979,7 +979,7 @@ let build_engine ?irregular_hands events =
       List.fold_left (fun acc f -> f game @ acc)
         []
         [no_action_event;
-         mahjong_event ?irregular_hands;
+         mahjong_event ~seven_pairs ?irregular_hands;
          pong_and_kong_events;
         ]
     in
@@ -997,7 +997,7 @@ let build_engine ?irregular_hands events =
       List.fold_left (fun acc f -> f game @ acc)
         []
         [no_action_event;
-         mahjong_event ?irregular_hands;
+         mahjong_event ~seven_pairs ?irregular_hands;
         ]
     in
     lazy (new_state
@@ -1012,7 +1012,7 @@ let build_engine ?irregular_hands events =
       List.fold_left (fun acc f -> f game @ acc)
         []
         [no_action_event;
-         mahjong_event ?irregular_hands;
+         mahjong_event ~seven_pairs ?irregular_hands;
         ]
     in
     lazy (new_state
@@ -1027,7 +1027,7 @@ let build_engine ?irregular_hands events =
       List.fold_left (fun acc f -> f game @ acc)
         []
         [no_action_event;
-         mahjong_event ?irregular_hands;
+         mahjong_event ~seven_pairs ?irregular_hands;
          pong_and_kong_events;
         ]
     in
@@ -1045,7 +1045,7 @@ let build_engine ?irregular_hands events =
       List.fold_left (fun acc f -> f game @ acc)
         []
         [no_action_event;
-         mahjong_event ?irregular_hands;
+         mahjong_event ~seven_pairs ?irregular_hands;
         ]
     in
     lazy (new_state
@@ -1060,7 +1060,7 @@ let build_engine ?irregular_hands events =
       List.fold_left (fun acc f -> f game @ acc)
         []
         [no_action_event;
-         mahjong_event ?irregular_hands;
+         mahjong_event ~seven_pairs ?irregular_hands;
         ]
     in
     lazy (new_state
@@ -1075,7 +1075,7 @@ let build_engine ?irregular_hands events =
       List.fold_left (fun acc f -> f game @ acc)
         []
         [no_action_event;
-         mahjong_event ?irregular_hands;
+         mahjong_event ~seven_pairs ?irregular_hands;
          pong_and_kong_events;
         ]
     in
@@ -1093,7 +1093,7 @@ let build_engine ?irregular_hands events =
       List.fold_left (fun acc f -> f game @ acc)
         []
         [no_action_event;
-         mahjong_event ?irregular_hands;
+         mahjong_event ~seven_pairs ?irregular_hands;
         ]
     in
     lazy (new_state
@@ -1108,7 +1108,7 @@ let build_engine ?irregular_hands events =
       List.fold_left (fun acc f -> f game @ acc)
         []
         [no_action_event;
-         mahjong_event ?irregular_hands;
+         mahjong_event ~seven_pairs ?irregular_hands;
         ]
     in
     lazy (new_state
@@ -1132,7 +1132,7 @@ let build_engine ?irregular_hands events =
       List.fold_left (fun acc f -> f game @ acc)
         []
         [no_action_event;
-         kr_mahjong_event ?irregular_hands;
+         kr_mahjong_event ~seven_pairs ?irregular_hands;
         ]
     in
     lazy (new_state
@@ -1147,7 +1147,7 @@ let build_engine ?irregular_hands events =
       List.fold_left (fun acc f -> f game @ acc)
         []
         [no_action_event;
-         kr_mahjong_event ?irregular_hands;
+         kr_mahjong_event ~seven_pairs ?irregular_hands;
         ]
     in
     lazy (new_state
@@ -1162,7 +1162,7 @@ let build_engine ?irregular_hands events =
       List.fold_left (fun acc f -> f game @ acc)
         []
         [no_action_event;
-         kr_mahjong_event ?irregular_hands;
+         kr_mahjong_event ~seven_pairs ?irregular_hands;
         ]
     in
     lazy (new_state

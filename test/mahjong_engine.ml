@@ -69,7 +69,7 @@ let mahjong =
     List.map
       (fun (title, nb_set, tiles, descr) ->
         title >:: fun _ctx ->
-          assert_equal ~printer: pp_mahjong_list descr (mahjong ~ irregular_hands nb_set (tileset_of_tiles tiles) |> List.map tile_descr_of_mahjong)
+          assert_equal ~printer: pp_mahjong_list descr (mahjong ~seven_pairs: false ~irregular_hands nb_set (tileset_of_tiles tiles) |> List.map tile_descr_of_mahjong)
       )
 
 

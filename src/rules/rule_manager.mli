@@ -3,7 +3,8 @@
 type rule =
   {
     irregular_hands: Tileset.irregular_hands;
-    evaluate_game: (Engine.player -> Engine.game -> float); 
+    seven_pairs: bool;
+    evaluate_game: (Engine.player -> Engine.game -> float);
   }
 
 type flag
@@ -32,5 +33,7 @@ val set_rule: rule_builder -> flag list option -> unit
 val set_default_rule: unit -> unit
 
 val irregular_hands: unit -> Tileset.irregular_hands
+
+val seven_pairs: unit -> bool
 
 val evaluate_game: Engine.player -> Engine.game -> float

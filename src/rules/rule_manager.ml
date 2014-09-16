@@ -3,6 +3,7 @@
 type rule =
   {
     irregular_hands: Tileset.irregular_hands;
+    seven_pairs: bool;
     evaluate_game: (Engine.player -> Engine.game -> float); 
   }
 
@@ -113,6 +114,11 @@ let irregular_hands () =
   match !current_rule with
   | None -> assert false
   | Some {irregular_hands; _} -> irregular_hands
+
+let seven_pairs () =
+  match !current_rule with
+  | None -> assert false
+  | Some {seven_pairs; _} -> seven_pairs
 
 let evaluate_game player game =
   match !current_rule with

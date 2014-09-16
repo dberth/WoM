@@ -247,7 +247,9 @@ let rec loop human_players action_handler game state =
           human_player_event possible_actions game state
         else
           let evaluate_game player game = Rule_manager.evaluate_game player game in
-          Mahjong_ai.mc_ai_with_bias ~evaluate_game ~nb_trajectory events 0.8
+          let irregular_hands = Rule_manager.irregular_hands () in
+          let seven_pairs = Rule_manager.seven_pairs () in
+          Mahjong_ai.mc_ai_with_bias ~irregular_hands ~seven_pairs ~evaluate_game ~nb_trajectory events 0.8
     in
     let game, state = Fsm.run ~with_history: true action_handler game (lazy state) [event] in
     loop human_players action_handler game state
@@ -256,5 +258,7 @@ let () =
   Simple.register ();
   Rule_manager.set_default_rule ();
   Random.self_init ();
-  let action_handler, game, state = build_engine [] in
+  let irregular_hands = Rule_manager.irregular_hands () in
+  let seven_pairs = Rule_manager.seven_pairs () in
+  let action_handler, game, state = build_engine ~irregular_hands ~seven_pairs [] in
   loop [0] action_handler game state

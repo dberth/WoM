@@ -519,34 +519,37 @@ let bind l f =
 
 let (>>=) = bind
 
-let rec mahjong_aux sets result nb_3_sets hand =
-  if nb_3_sets = 0 then
-    get_pairs hand >>= fun pair _ ->
+let rec mahjong_aux ~seven_pairs sets result nb_3_sets hand =
+  let pairs = get_pairs hand in
+  if sets = [] && nb_3_sets = 0 && seven_pairs && List.length pairs = 7 then
+    [pairs]
+  else if nb_3_sets = 0 then
+    pairs >>= fun pair _ ->
     [pair :: result]
   else
     sets >>= fun set rest ->
-    mahjong_aux rest (set :: result) (nb_3_sets - 1) hand
+    mahjong_aux ~seven_pairs rest (set :: result) (nb_3_sets - 1) hand
 
 let no_irregular_hands = {with_isolated_tiles = Trie []; without_isolated_tiles = Trie []}
 
-let real_regular_mahjong_check nb_3sets hand =
-  let candidates = mahjong_aux (get_3sets hand) [] nb_3sets hand in
+let real_regular_mahjong_check ~seven_pairs nb_3sets hand =
+  let candidates = mahjong_aux ~seven_pairs (get_3sets hand) [] nb_3sets hand in
   let results =
     List.filter (fun tiles -> try tileset_of_basic_tilesets tiles = hand with Invalid_argument _ -> false) candidates
   in
   List.map (fun x -> Regular x) results
 
-let real_mahjong_check irregular_hands nb_3sets hand =
+let real_mahjong_check ~seven_pairs irregular_hands nb_3sets hand =
   if nb_3sets = 4 then
     if tileset_in_trie hand irregular_hands then
       [Irregular hand]
     else
-      real_regular_mahjong_check nb_3sets hand
+      real_regular_mahjong_check ~seven_pairs nb_3sets hand
   else
-    real_regular_mahjong_check nb_3sets hand
+    real_regular_mahjong_check ~seven_pairs nb_3sets hand
 
 
-let mahjong ?(irregular_hands = no_irregular_hands) nb_3sets hand =
+let mahjong ?(irregular_hands = no_irregular_hands) ~seven_pairs nb_3sets hand =
   if has_isolated_tile hand then begin
     if nb_3sets = 4 then
       if tileset_in_trie hand irregular_hands.with_isolated_tiles then
@@ -556,7 +559,7 @@ let mahjong ?(irregular_hands = no_irregular_hands) nb_3sets hand =
     else
       []
   end else
-    real_mahjong_check irregular_hands.without_isolated_tiles nb_3sets hand
+    real_mahjong_check irregular_hands.without_isolated_tiles ~seven_pairs nb_3sets hand
 
 let is_kong_position b =
   let has_wrong_tile = ref false in

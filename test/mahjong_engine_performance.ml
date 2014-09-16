@@ -35,7 +35,7 @@ let random_hands nb =
 let test hands =
   List.fold_left
     (fun acc hand ->
-      match mahjong 4 hand with
+      match mahjong ~seven_pairs: false 4 hand with
       | [] -> acc
       | x -> x @ acc
     )
@@ -78,7 +78,7 @@ let () =
     ]
   in
   for _ = 1 to nb_simulations do
-    ignore (Mahjong_ai.mc_ai_with_bias ~evaluate_game ~nb_trajectory  events 0.8)
+    ignore (Mahjong_ai.mc_ai_with_bias ~seven_pairs: false ~evaluate_game ~nb_trajectory  events 0.8)
   done;
   let tf = Unix.gettimeofday () in
   print_endline (Printf.sprintf "%i simulation with %i trajectory in %.4f seconds." nb_simulations nb_trajectory (tf -. ti));
