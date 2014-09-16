@@ -6,7 +6,9 @@ let all_chows = flag "All chows"
 
 let all_pongs = flag "All pongs"
 
-let flags = [all_chows; all_pongs]
+let seven_pairs = flag "Seven pairs"
+
+let flags = [all_chows; all_pongs; seven_pairs]
 
 let default_flags = flags
 
@@ -36,12 +38,27 @@ let all_chows_pts check mahjong declared =
     0.
 
 let all_pongs_pts check mahjong declared =
-  if List.for_all is_declared_pong declared then
-    if check all_pongs then
+  if check all_pongs then
+    if List.for_all is_declared_pong declared then
       match mahjong with
       | Tileset.Regular tilesets ->
         if List.for_all (fun x -> is_pong (Tileset.tileset_of_basic_tileset x)) tilesets then
           3.
+        else
+          0.
+      | Tileset.Irregular _ -> 0.
+    else
+      0.
+  else
+    0.
+
+let seven_pairs_pts check mahjong declared =
+  if check seven_pairs then
+    if declared = [] then
+      match mahjong with
+      | Tileset.Regular tilesets ->
+        if List.length tilesets = 7 then
+          15.
         else
           0.
       | Tileset.Irregular _ -> 0.
