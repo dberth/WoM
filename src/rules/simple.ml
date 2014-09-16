@@ -70,7 +70,8 @@ let seven_pairs_pts check mahjong declared =
 let mahjong_pts check mahjong declared =
   let special_pts =
     all_chows_pts check mahjong declared +.
-      all_pongs_pts check mahjong declared
+    all_pongs_pts check mahjong declared +.
+    seven_pairs_pts check mahjong declared
   in
   max special_pts 1.
 
