@@ -51,7 +51,7 @@ let () =
   print_endline (Printf.sprintf "%i mahjong tests in %.4f seconds." nb_hands (tf -. ti))
 
 
-let () =
+let perf_test () =
   let nb_games = ref 0 in
   let nb_draw_games = ref 0 in
   let evaluate_game player game =
@@ -81,5 +81,11 @@ let () =
     ignore (Mahjong_ai.mc_ai_with_bias ~seven_pairs: false ~evaluate_game ~nb_trajectory  events 0.8)
   done;
   let tf = Unix.gettimeofday () in
-  print_endline (Printf.sprintf "%i simulation with %i trajectory in %.4f seconds." nb_simulations nb_trajectory (tf -. ti));
-  print_endline (Printf.sprintf "%i / %i draw games i.e. %.2f%%." !nb_draw_games !nb_games ((float !nb_draw_games) /. (float !nb_games) *. 100.))
+  (tf -. ti), nb_simulations, nb_trajectory, !nb_draw_games, !nb_games 
+
+let () =
+  let time, nb_simulations, nb_trajectory, nb_draw_games, nb_games =
+    perf_test ()
+  in
+  print_endline (Printf.sprintf "%i simulation with %i trajectory in %.4f seconds." nb_simulations nb_trajectory time);
+  print_endline (Printf.sprintf "%i / %i draw games i.e. %.2f%%." nb_draw_games nb_games ((float nb_draw_games) /. (float nb_games) *. 100.))
