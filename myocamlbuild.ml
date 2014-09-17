@@ -1372,7 +1372,7 @@ let dispatch_default = MyOCamlbuildBase.dispatch_default package_default;;
 
 let oasis_executables =
   [
-    "test/mahjong_engine_performance.byte";
+    "test/mahjong_engine_performance_js.byte";
   ]
 
 let () =

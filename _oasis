@@ -64,9 +64,9 @@ Executable mahjong_engine_test
 Executable mahjong_engine_perf_test_js
   Path:            test
   BuildTools:      ocamlbuild
-  BuildDepends:    unix, mahjong_engine, mahjong_ai
-  Build:           true
-  MainIs:          mahjong_engine_performance.ml
+  BuildDepends:    unix, mahjong_engine, mahjong_ai, js_of_ocaml, js_of_ocaml.syntax
+  Build:           false
+  MainIs:          mahjong_engine_performance_js.ml
   CompiledObject:  byte
   NativeOpt:	   -w +32..39 -warn-error +32..39 -annot -bin-annot
   ByteOpt:	   -w +32..39 -warn-error +32..39 -annot -bin-annot

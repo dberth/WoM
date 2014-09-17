@@ -66,7 +66,7 @@ let perf_test () =
         -1.
   in
   let nb_simulations = 1 in
-  let nb_trajectory = 1_000 in
+  let nb_trajectory = 200 in
   let ti = Unix.gettimeofday () in
   let events =
     [
