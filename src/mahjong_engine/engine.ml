@@ -151,12 +151,16 @@ let string_of_semi_chows semi_chows =
     []
   |> String.concat " | "
 
-let string_of_player_state tiles {tiles_pos; semi_chows; declared; discarded_tiles} =
-  Printf.sprintf "{\nhand: %s;\ndeclared: %s;\ndiscarded_tiles: %s; semi_chows: %s\n}"
+let string_of_possible_small_kongs tiles =
+  String.concat "; " (List.map string_of_tile tiles)
+
+let string_of_player_state tiles {tiles_pos; semi_chows; declared; discarded_tiles; possible_small_kongs; hand = _} =
+  Printf.sprintf "{\nhand: %s;\ndeclared: %s;\ndiscarded_tiles: %s; semi_chows: %s; possible small kongs: %s\n}"
     (string_of_tile_indexes tiles (List.concat (TMap.fold (fun _ positions acc -> positions :: acc) tiles_pos [])))
     (string_of_declared declared)
     (string_of_tile_indexes tiles discarded_tiles)
     (string_of_semi_chows semi_chows)
+    (string_of_possible_small_kongs possible_small_kongs)
 
 let string_of_end_game = function
   | No_winner -> "No_winner"

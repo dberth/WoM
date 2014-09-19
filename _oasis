@@ -16,8 +16,8 @@ Library mahjong_engine
   Build:           true
   Modules:         Tileset, Fsm, Engine
   Findlibname:     mahjong_engine
-  NativeOpt:	   -w +32..39 -warn-error +32..39 -annot -bin-annot
-  ByteOpt:	   -w +32..39 -warn-error +32..39 -annot -bin-annot
+  NativeOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
+  ByteOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
 
 Library mahjong_ai
   Path:		   src/mahjong_ai
@@ -27,8 +27,8 @@ Library mahjong_ai
   BuildDepends:	   mahjong_engine
   Modules:	   Mahjong_ai
   Findlibname:	   mahjong_ai
-  NativeOpt:	   -w +32..39 -warn-error +32..39 -annot -bin-annot
-  ByteOpt:	   -w +32..39 -warn-error +32..39 -annot -bin-annot
+  NativeOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
+  ByteOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
 
 Library rules
   Path:		   src/rules
@@ -38,8 +38,8 @@ Library rules
   BuildDepends:	   mahjong_engine
   Modules:	   Rule_manager, Simple, Zung_jung
   Findlibname:	   rules
-  NativeOpt:	   -w +32..39 -warn-error +32..39 -annot -bin-annot
-  ByteOpt:	   -w +32..39 -warn-error +32..39 -annot -bin-annot
+  NativeOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
+  ByteOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
 
 Executable wom_nox
   Path:            src/nox
@@ -48,8 +48,8 @@ Executable wom_nox
   Build:	   true
   MainIs:	   wom_nox.ml
   CompiledObject:  best
-  NativeOpt:	   -w +32..39 -warn-error +32..39 -annot -bin-annot
-  ByteOpt:	   -w +32..39 -warn-error +32..39 -annot -bin-annot
+  NativeOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
+  ByteOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
   
 Executable mahjong_engine_test
   Path:		   test
@@ -58,8 +58,8 @@ Executable mahjong_engine_test
   Build:           true
   MainIs:          mahjong_engine.ml
   CompiledObject:  best
-  NativeOpt:	   -w +32..39 -warn-error +32..39 -annot -bin-annot
-  ByteOpt:	   -w +32..39 -warn-error +32..39 -annot -bin-annot
+  NativeOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
+  ByteOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
 
 Executable mahjong_engine_perf_test_js
   Path:            test
@@ -68,8 +68,8 @@ Executable mahjong_engine_perf_test_js
   Build:           false
   MainIs:          mahjong_engine_performance_js.ml
   CompiledObject:  byte
-  NativeOpt:	   -w +32..39 -warn-error +32..39 -annot -bin-annot
-  ByteOpt:	   -w +32..39 -warn-error +32..39 -annot -bin-annot
+  NativeOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
+  ByteOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
 
 Executable mahjong_engine_perf_test
   Path:            test
@@ -78,8 +78,8 @@ Executable mahjong_engine_perf_test
   Build:           true
   MainIs:          mahjong_engine_performance.ml
   CompiledObject:  best
-  NativeOpt:	   -w +32..39 -warn-error +32..39 -annot -bin-annot
-  ByteOpt:	   -w +32..39 -warn-error +32..39 -annot -bin-annot
+  NativeOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
+  ByteOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
 
 Executable engine_debugger
   Path:            src/engine_debugger
@@ -90,8 +90,8 @@ Executable engine_debugger
   NativeOpt:	   -g
   MainIs:          engine_debugger.ml
   CompiledObject:  best
-  NativeOpt:	   -w +32..39 -warn-error +32..39 -annot -bin-annot
-  ByteOpt:	   -w +32..39 -warn-error +32..39 -annot -bin-annot
+  NativeOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
+  ByteOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
 
 Test mahjong_engine
   WorkingDirectory: _build/test

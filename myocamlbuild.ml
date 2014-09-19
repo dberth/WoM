@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: e5ba2901e7e098b7a501496dd8f30641) *)
+(* DO NOT EDIT (digest: 88ef789cb4da834567f72f2f9288c8ad) *)
 module OASISGettext = struct
 (* # 22 "src/oasis/OASISGettext.ml" *)
 
@@ -610,9 +610,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -623,9 +623,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -636,9 +636,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -654,9 +654,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -667,9 +667,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -685,9 +685,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -698,9 +698,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -711,9 +711,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -724,9 +724,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -737,9 +737,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -750,9 +750,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -763,9 +763,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -776,9 +776,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -789,9 +789,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -802,9 +802,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -815,9 +815,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -828,9 +828,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -841,9 +841,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -854,9 +854,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -867,9 +867,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -880,9 +880,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -893,9 +893,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -906,9 +906,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -919,9 +919,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -937,9 +937,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -955,9 +955,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -973,9 +973,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -991,9 +991,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -1009,9 +1009,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -1027,9 +1027,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -1045,9 +1045,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -1063,9 +1063,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -1081,9 +1081,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -1099,9 +1099,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -1117,9 +1117,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -1135,9 +1135,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -1153,9 +1153,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -1171,9 +1171,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -1189,9 +1189,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -1207,9 +1207,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -1225,9 +1225,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -1243,9 +1243,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -1256,9 +1256,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -1274,9 +1274,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -1292,9 +1292,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -1310,9 +1310,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -1328,9 +1328,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
@@ -1346,9 +1346,9 @@ let package_default =
                  S
                    [
                       A "-w";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-warn-error";
-                      A "+32..39";
+                      A "+9+32..39";
                       A "-annot";
                       A "-bin-annot"
                    ])
