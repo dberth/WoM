@@ -256,6 +256,7 @@ let rec loop human_players action_handler game state =
 
 let () =
   Simple.register ();
+  Zung_jung.register ();
   Rule_manager.set_default_rule ();
   Random.self_init ();
   let irregular_hands = Rule_manager.irregular_hands () in

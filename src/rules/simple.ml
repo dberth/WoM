@@ -78,6 +78,7 @@ let mahjong_pts check mahjong declared =
 let build_rule check =
   let open Engine in
   let irregular_hands = Tileset.no_irregular_hand in
+  let seven_pairs = check seven_pairs in
   let evaluate_game player game =
     let points =
       match finished game with
@@ -85,7 +86,7 @@ let build_rule check =
       | Some No_winner -> 0.
       | Some (Mahjong {declared; hand; _}) ->
         let nb_declared = List.length declared in
-        let mahjongs = Tileset.mahjong ~irregular_hands ~seven_pairs: false (4 - nb_declared) hand in
+        let mahjongs = Tileset.mahjong ~irregular_hands ~seven_pairs (4 - nb_declared) hand in
         List.fold_left
           (fun acc mahjong ->
             max acc (mahjong_pts check mahjong declared)
@@ -98,11 +99,11 @@ let build_rule check =
     else
       -. points
   in
-  {irregular_hands; seven_pairs = false; evaluate_game}
+  {irregular_hands; seven_pairs; evaluate_game}
 
 let register () =
   register_rule_builder
-    ~is_default: true
+    ~is_default: false
     ~flags
     ~default_flags
     ~build_rule
