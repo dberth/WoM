@@ -215,7 +215,7 @@ let build_rule check =
 
 let register () =
   register_rule_builder
-    ~is_default: false
+    ~is_default: true
     ~flags
     ~default_flags
     ~build_rule
