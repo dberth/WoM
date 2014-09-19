@@ -170,9 +170,30 @@ let trivial_patterns_pts check mahjong declared =
   else
     0.
 
+let one_suit_patterns = flag "One-Suit Patterns"
+
+let mixed_one_suit_pts _mahjong _declared = 0. (*TODO*)
+
+let pure_one_suit_pts _mahjong _declrared = 0. (*TODO*)
+
+let nine_gates_pts _mahjong _declared = 0. (*TODO*)
+
+let one_suit_pts mahjong declared =
+  match pure_one_suit_pts mahjong declared with
+  | 0. -> mixed_one_suit_pts mahjong declared
+  | x -> x
+
+let one_suit_patterns_pts check mahjong declared =
+  if check one_suit_patterns then
+    one_suit_pts mahjong declared +.
+    nine_gates_pts mahjong declared
+  else
+    0.
+
 let mahjong_pts check mahjong declared =
   let pts =
-    trivial_patterns_pts check mahjong declared
+    trivial_patterns_pts check mahjong declared +.
+    one_suit_patterns_pts check mahjong declared
   in
   max pts 1.
 
