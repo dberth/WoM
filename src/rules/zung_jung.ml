@@ -172,16 +172,54 @@ let trivial_patterns_pts check mahjong declared =
 
 let one_suit_patterns = flag "One-Suit Patterns"
 
-let mixed_one_suit_pts _mahjong _declared = 0. (*TODO*)
+let suit_of_tileset tileset =
+  let open Tileset in
+  match List.hd (Tileset.tile_descr_of_tileset tileset) with
+  | Bam _ -> `Bam
+  | Dot _ -> `Dot
+  | Char _ -> `Char
+  | _ -> `Honor
 
-let pure_one_suit_pts _mahjong _declrared = 0. (*TODO*)
+let check_mixed s1 s2 =
+  if s2 = `Honor || s1 = s2 then
+    s1
+  else
+    `Fail
+
+let check_pure s1 s2 =
+  if s1 = s2 then s1 else `Fail
+
+let one_suit_ check mahjong declared =
+  let result =
+    fold_tilesets
+      (fun acc tileset _ ->
+        match acc with
+        | `Init -> suit_of_tileset tileset
+        | `Fail -> `Fail
+        | suit -> check suit (suit_of_tileset tileset)
+      )
+      `Init
+      mahjong
+      declared
+  in
+  match result with
+  | `Init | `Fail | `Honor -> false
+  | `Bam | `Dot | `Char -> true
+
+
+let mixed_one_suit mahjong declared = one_suit_ check_mixed mahjong declared
+
+let pure_one_suit mahjong declared = one_suit_ check_pure mahjong declared
+
 
 let nine_gates_pts _mahjong _declared = 0. (*TODO*)
 
 let one_suit_pts mahjong declared =
-  match pure_one_suit_pts mahjong declared with
-  | 0. -> mixed_one_suit_pts mahjong declared
-  | x -> x
+  if pure_one_suit mahjong declared then
+    80.
+  else if mixed_one_suit mahjong declared then
+    40.
+  else 0.
 
 let one_suit_patterns_pts check mahjong declared =
   if check one_suit_patterns then
