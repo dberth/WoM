@@ -131,7 +131,7 @@ let zj_reg_hand_test hand declared expected =
   let declared = List.map (fun (x, y) -> tileset_of_tiles x, [], y) declared in
   assert_equal ~printer: string_of_float expected (Zung_jung.mahjong_pts (fun _ -> true) mahjong declared)
 
-let chiken_hand _ctx =
+let chicken_hand _ctx =
   zj_reg_hand_test
     [[d1; d2; d3]; [c1; c1; c1]; [gd; gd]]
     [[d5; d5; d5], false; [b2; b2; b2], false]
@@ -143,17 +143,72 @@ let concealed_hand _ctx =
     []
     5.
 
+let concealed_hand_with_kong _ctx =
+  zj_reg_hand_test
+    [[d1; d2; d3]; [b2; b3; b4]; [c2; c3; c4]; [b8; b8]]
+    [[d9; d9; d9; d9], true]
+    5.
+
+let all_chows _ctx =
+  zj_reg_hand_test
+    [[d1; d2; d3]; [b2; b3; b4]; [c2; c3; c4]; [b8; b8]]
+    [[c7; c8; c9], false]
+    5.
+
+let no_terminals _ctx =
+  zj_reg_hand_test
+    [[d2; d3; d4]; [c7; c7; c7]; [gd; gd]]
+    [[d5; d5; d5], false; [b2; b2; b2], false]
+    5.
+
+let all_chows_no_terminals _ctx =
+  zj_reg_hand_test
+    [[d2; d3; d4]; [b2; b3; b4]; [c2; c3; c4]; [b8; b8]]
+    [[c6; c7; c8], false]
+    10.
+
+let all_rules_1 _ctx =
+  zj_reg_hand_test
+    [[d2; d3; d4]; [b2; b3; b4]; [c2; c3; c4]; [b8; b8]; [c6; c7; c8]]
+    []
+    15.
+
 let rules_1 =
   "Rules 1" >:::
   [
     "Conceald hand" >:: concealed_hand;
+    "Concealed hand with kong" >:: concealed_hand_with_kong;
+    "All chows" >:: all_chows;
+    "No terminals" >:: no_terminals;
+    "All chows + No terminals" >:: all_chows_no_terminals;
+    "All chows + Concealed hand + No terminals" >:: all_rules_1
+  ]
+
+let mixed_one_suit _ctx =
+  zj_reg_hand_test
+    [[c1; c2; c3]; [c2; c3; c4]; [gd; gd]; [c9; c9; c9]]
+    [[c7; c7; c7], false]
+    40.
+
+let pure_one_suit _ctx =
+  zj_reg_hand_test
+    [[c1; c2; c3]; [c2; c3; c4]; [c5; c5]; [c9; c9; c9]]
+    [[c7; c7; c7], false]
+    80.
+
+let rules_2 =
+  "Rules 2" >:::
+  [
+    "Mixed One-Suit" >:: mixed_one_suit;
+    "Pure One-Suit" >:: pure_one_suit;
   ]
 
 let zung_jung_suite =
   "Zung Jung rules test suite" >:::
   [
-    "Chicken hand" >:: chiken_hand;
-    rules_1
+    "Chicken hand" >:: chicken_hand;
+    rules_1;
+    rules_2;
   ]
 
 let engine_suite =
