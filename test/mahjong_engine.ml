@@ -126,11 +126,26 @@ let fsm_test_suite =
       "Red light" >:: Red_light.test;
     ]
 
+let zj_reg_hand_test hand declared expected =
+  let mahjong = Regular (List.map basic_tileset_of_tiles hand) in
+  let declared = List.map (fun (x, y) -> tileset_of_tiles x, [], y) declared in
+  assert_equal (Zung_jung.mahjong_pts (fun _ -> true) mahjong declared) expected
+
+let chiken_hand _ctx =
+  zj_reg_hand_test [[d1; d2; d3]; [c1; c1; c1]; [gd; gd]] [[d5; d5; d5], false; [b2; b2; b2], false] 0.
+
+let zung_jung_suite =
+  "Zung Jung rules test suite" >:::
+  [
+    "Chicken hand" >:: chiken_hand
+  ]
+
 let engine_suite =
   "Mahjong engine test suite" >:::
     [
       tileset_test_suite;
       fsm_test_suite
     ]
+
 
 let () = run_test_tt_main engine_suite

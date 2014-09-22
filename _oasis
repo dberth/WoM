@@ -54,7 +54,7 @@ Executable wom_nox
 Executable mahjong_engine_test
   Path:		   test
   BuildTools:      ocamlbuild
-  BuildDepends:    oUnit, mahjong_engine
+  BuildDepends:    oUnit, mahjong_engine, rules
   Build:           true
   MainIs:          mahjong_engine.ml
   CompiledObject:  best

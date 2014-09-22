@@ -76,6 +76,8 @@ val tile_succ_succ: tile -> tile option
 
 val tileset_of_tiles: tile list -> tileset
 
+val basic_tileset_of_tiles: tile list -> basic_tileset
+
 val no_irregular_hand: irregular_hands
 
 val add_irregular_hand: tile list -> irregular_hands -> irregular_hands

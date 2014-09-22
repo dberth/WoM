@@ -254,6 +254,11 @@ let tileset_of_basic_tilesets l =
 
 let tileset_of_tiles l = tileset_of_basic_tilesets (List.map (fun i -> tiles_rep.(i)) l)
 
+let basic_tileset_of_tiles l =
+  match tileset_of_tiles l with
+  | [x] -> x
+  | _ -> raise (Invalid_argument "basic_tileset_of_tiles")
+
 let tile_of_tile_descr tile =
   match Hashtbl.find tile_of_tile_descr_table tile with
   | exception Not_found -> assert false
