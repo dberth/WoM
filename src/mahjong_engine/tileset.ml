@@ -474,9 +474,9 @@ let rec get_pairs = function
     | _ -> get_pairs tl
 
 let is_pair tileset =
-  match get_pairs tileset with
-  | [] -> false
-  | _ -> true
+  match tiles_of_tileset tileset with
+  | [t1; t2] -> t1 = t2
+  | _ -> false
 
 let get_3sets tileset =
   get_chows tileset @ get_pong_and_kongs tileset
