@@ -211,8 +211,25 @@ let mixed_one_suit mahjong declared = one_suit_ check_mixed mahjong declared
 
 let pure_one_suit mahjong declared = one_suit_ check_pure mahjong declared
 
+let char_9_gates = Tileset.(tileset_of_tiles [c1; c1; c1; c2; c3; c4; c5; c6; c7; c8; c9; c9; c9])
 
-let nine_gates_pts _mahjong _declared = 0. (*TODO*)
+let bam_9_gates = Tileset.(tileset_of_tiles [b1; b1; b1; b2; b3; b4; b5; b6; b7; b8; b9; b9; b9])
+
+let dot_9_gates = Tileset.(tileset_of_tiles [d1; d1; d1; d2; d3; d4; d5; d6; d7; d8; d9; d9; d9])
+
+
+let nine_gates_pts check last_tile hand =
+  if check one_suit_patterns then
+    let hand_before_win = Tileset.remove_tile last_tile hand in
+    if hand_before_win = char_9_gates ||
+       hand_before_win = dot_9_gates ||
+       hand_before_win = bam_9_gates
+    then
+      480.
+    else
+      0.
+  else
+    0.
 
 let one_suit_pts mahjong declared =
   if pure_one_suit mahjong declared then
@@ -223,17 +240,23 @@ let one_suit_pts mahjong declared =
 
 let one_suit_patterns_pts check mahjong declared =
   if check one_suit_patterns then
-    one_suit_pts mahjong declared +.
-    nine_gates_pts mahjong declared
+    one_suit_pts mahjong declared
   else
     0.
 
-let mahjong_pts check mahjong declared =
-  let pts =
-    trivial_patterns_pts check mahjong declared +.
-    one_suit_patterns_pts check mahjong declared
-  in
-  max pts 1.
+let limit_hand_pts check last_tile hand =
+  nine_gates_pts check last_tile hand
+
+let mahjong_pts check last_tile hand mahjong declared =
+  let limit_pts = limit_hand_pts check last_tile hand in
+  if limit_pts = 0. then
+    let pts =
+      trivial_patterns_pts check mahjong declared +.
+      one_suit_patterns_pts check mahjong declared
+    in
+    min (max pts 1.) 320.
+  else
+    limit_pts
 
 let payoff ~irregular_hands ~seven_pairs check player game =
   let open Engine in
@@ -248,7 +271,7 @@ let payoff ~irregular_hands ~seven_pairs check player game =
       in
       List.fold_left
         (fun acc mahjong ->
-           max acc (mahjong_pts check mahjong declared)
+           max acc (mahjong_pts check (last_tile game) hand mahjong declared)
         )
         0.
         mahjongs

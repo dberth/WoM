@@ -1305,3 +1305,8 @@ let discarded_tile game =
   | Some pos -> Some (game.tiles.(pos))
 
 let discard_player {discard_player; _} = discard_player
+
+let last_tile {tiles; discarded_tile; current_tile; _} =
+  match discarded_tile with
+  | Some pos -> tiles.(pos)
+  | None -> tiles.(current_tile)
