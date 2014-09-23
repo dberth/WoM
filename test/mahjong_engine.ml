@@ -126,10 +126,10 @@ let fsm_test_suite =
       "Red light" >:: Red_light.test;
     ]
 
-let zj_reg_hand_test hand declared expected =
+let zj_reg_hand_test ?(seat_wind = ww) hand declared expected =
   let mahjong = Regular (List.map basic_tileset_of_tiles hand) in
   let declared = List.map (fun (x, y) -> tileset_of_tiles x, [], y) declared in
-  assert_equal ~printer: string_of_float expected (Zung_jung.mahjong_pts (fun _ -> true) ww c1 (Tileset.tileset_of_tiles [c1]) mahjong declared)
+  assert_equal ~printer: string_of_float expected (Zung_jung.mahjong_pts (fun _ -> true) seat_wind c1 (Tileset.tileset_of_tiles [c1]) mahjong declared)
 
 let chicken_hand _ctx =
   zj_reg_hand_test
@@ -207,12 +207,26 @@ let rules_2 =
     "Nine gates" >:: nine_gates
   ]
 
+let value_honor _ctx =
+  zj_reg_hand_test
+    ~seat_wind: ew
+    [[d1; d1]; [c1; c2; c3] ; [ew; ew; ew; ew]; [ww; ww; ww]]
+    [[gd; gd; gd], false]
+    20.
+
+let rules_3 =
+  "Rules 3" >:::
+  [
+    "Value Honor" >:: value_honor
+  ]
+
 let zung_jung_suite =
   "Zung Jung rules test suite" >:::
   [
     "Chicken hand" >:: chicken_hand;
     rules_1;
     rules_2;
+    rules_3
   ]
 
 let engine_suite =

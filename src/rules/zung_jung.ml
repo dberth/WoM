@@ -245,7 +245,22 @@ let one_suit_patterns_pts check mahjong declared =
   else
     0.
 
-let value_honor_pts _ _ _ = 0.
+let value_honor_pts seat_wind mahjong declared =
+  fold_tilesets
+    (fun acc tileset _ ->
+       let open Tileset in
+       if is_pong tileset || is_kong tileset then
+         let tile = List.hd (tiles_of_tileset tileset) in
+         if tile = rd || tile = gd || tile = wd || tile = seat_wind then
+           acc +. 10.
+         else
+           acc
+       else
+         acc
+    )
+    0.
+    mahjong
+    declared
 
 let big_three_dragons _ _ = false
 
