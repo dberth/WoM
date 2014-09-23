@@ -81,8 +81,11 @@
 open Rule_manager
 
 let trivial_patterns = flag "Trivial patterns"
+let one_suit_patterns = flag "One-Suit Patterns"
+let honor_tiles = flag "Honor tiles"
 
-let flags = [trivial_patterns]
+
+let flags = [trivial_patterns; one_suit_patterns; honor_tiles]
 
 let default_flags = flags
 
@@ -170,8 +173,6 @@ let trivial_patterns_pts check mahjong declared =
   else
     0.
 
-let one_suit_patterns = flag "One-Suit Patterns"
-
 let suit_of_tileset tileset =
   let open Tileset in
   match List.hd (Tileset.tile_descr_of_tileset tileset) with
@@ -244,15 +245,75 @@ let one_suit_patterns_pts check mahjong declared =
   else
     0.
 
-let limit_hand_pts check last_tile hand =
-  nine_gates_pts check last_tile hand
+let value_honor_pts _ _ _ = 0.
 
-let mahjong_pts check last_tile hand mahjong declared =
-  let limit_pts = limit_hand_pts check last_tile hand in
+let big_three_dragons _ _ = false
+
+let small_three_dragons _ _ = false
+
+let small_three_winds _ _ = false
+
+let big_three_winds _ _ = false
+
+let small_four_winds _ _ = false
+
+let big_four_winds _ _ = false
+
+let all_honor_pts _ _ = 0.
+
+let three_winds_pts mahjong declared =
+  if big_three_winds mahjong declared then
+    120.
+  else if small_three_winds mahjong declared then
+    30.
+  else
+    0.
+
+let four_winds_pts mahjong declared =
+  if big_four_winds mahjong declared then
+    400.
+  else if small_four_winds mahjong declared then
+    320.
+  else
+    0.
+
+let three_dragons_pts mahjong declared =
+  if big_three_dragons mahjong declared then
+    130.
+  else if small_three_dragons mahjong declared then
+    40.
+  else
+    0.
+
+let honor_tiles_pts check seat_wind mahjong declared =
+  if check honor_tiles then
+    value_honor_pts seat_wind mahjong declared +.
+    three_dragons_pts mahjong declared +.
+    three_winds_pts mahjong declared
+  else
+    0.
+
+let honor_tiles_limits_pts check mahjong declared =
+  if check honor_tiles then
+    let four_winds_pts = four_winds_pts mahjong declared in
+    if four_winds_pts = 0. then
+      all_honor_pts mahjong declared
+    else
+      four_winds_pts
+  else
+    0.
+
+let limit_hand_pts check last_tile hand mahjong declared =
+  nine_gates_pts check last_tile hand +.
+  honor_tiles_limits_pts check mahjong declared
+
+let mahjong_pts check seat_wind last_tile hand mahjong declared =
+  let limit_pts = limit_hand_pts check last_tile hand mahjong declared in
   if limit_pts = 0. then
     let pts =
       trivial_patterns_pts check mahjong declared +.
-      one_suit_patterns_pts check mahjong declared
+      one_suit_patterns_pts check mahjong declared +.
+      honor_tiles_pts check seat_wind mahjong declared
     in
     min (max pts 1.) 320.
   else
@@ -271,7 +332,7 @@ let payoff ~irregular_hands ~seven_pairs check player game =
       in
       List.fold_left
         (fun acc mahjong ->
-           max acc (mahjong_pts check (last_tile game) hand mahjong declared)
+           max acc (mahjong_pts check (current_player_wind game) (last_tile game) hand mahjong declared)
         )
         0.
         mahjongs

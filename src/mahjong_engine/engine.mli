@@ -78,3 +78,5 @@ val discarded_tile: game -> Tileset.tile option
 val discard_player: game -> int option
 
 val last_tile: game -> Tileset.tile
+
+val current_player_wind: game -> Tileset.tile

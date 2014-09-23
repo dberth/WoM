@@ -1310,3 +1310,11 @@ let last_tile {tiles; discarded_tile; current_tile; _} =
   match discarded_tile with
   | Some pos -> tiles.(pos)
   | None -> tiles.(current_tile)
+
+let current_player_wind {current_player; _} =
+  match current_player with
+  | 0 -> ew
+  | 1 -> sw
+  | 2 -> ww
+  | 3 -> nw
+  | _ -> assert false
