@@ -214,10 +214,61 @@ let value_honor _ctx =
     [[gd; gd; gd], false]
     20.
 
+let small_three_dragons _ctx =
+  zj_reg_hand_test
+    [[rd; rd]; [c1; c2; c3]; [gd; gd; gd]; [d2; d3; d4]]
+    [[wd; wd; wd], false]
+    60.
+
+let big_three_dragons _ctx =
+  zj_reg_hand_test
+    [[rd; rd; rd]; [b1; b1]; [c2; c3; c4]]
+    [[wd; wd; wd], false; [gd; gd; gd], false]
+    160.
+
+let small_three_winds _ctx =
+  zj_reg_hand_test
+    ~seat_wind: sw
+    [[ww; ww; ww]; [nw; nw]; [c1; c2; c3]]
+    [[d2; d3; d4], false; [ew; ew; ew], false]
+    30.
+
+let big_three_winds _ctx =
+  zj_reg_hand_test
+    ~seat_wind: ew
+    [[ww; ww; ww]; [b1; b1]; [c2; c3; c4]]
+    [[sw; sw; sw], false; [nw; nw; nw; nw], false]
+    120.
+
+let small_four_winds _ctx =
+  zj_reg_hand_test
+    [[ww; ww; ww]; [ew; ew; ew]; [nw; nw; nw]; [sw; sw]]
+    [[c1; c2; c3], false]
+    320.
+
+let big_four_winds _ctx =
+  zj_reg_hand_test
+    [[ww; ww; ww]; [ew; ew; ew]; [nw; nw; nw]; [sw; sw; sw; sw]; [b2; b2]]
+    []
+    400.
+
+let all_honors _ctx =
+  zj_reg_hand_test
+    [[rd; rd; rd]; [gd; gd; gd]; [ew; ew; ew]; [sw; sw; sw]; [ww; ww]]
+    []
+    320.
+
 let rules_3 =
   "Rules 3" >:::
   [
-    "Value Honor" >:: value_honor
+    "Value Honor" >:: value_honor;
+    "Small Three Dragons" >:: small_three_dragons;
+    "Big Three Dragons" >:: big_three_dragons;
+    "Small Three Winds" >:: small_three_winds;
+    "Big Three Winds" >:: big_three_winds;
+    "Small Four Winds" >:: small_four_winds;
+    "Big Four Winds" >:: big_four_winds;
+    "All honors" >:: all_honors
   ]
 
 let zung_jung_suite =

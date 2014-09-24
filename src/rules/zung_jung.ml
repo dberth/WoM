@@ -245,6 +245,7 @@ let one_suit_patterns_pts check mahjong declared =
   else
     0.
 
+
 let value_honor_pts seat_wind mahjong declared =
   fold_tilesets
     (fun acc tileset _ ->
@@ -262,43 +263,80 @@ let value_honor_pts seat_wind mahjong declared =
     mahjong
     declared
 
-let big_three_dragons _ _ = false
+let honor_sets check_tileset mahjong declared =
+  fold_tilesets
+    (fun (nb_sets, nb_pairs) tileset _ ->
+       let open Tileset in
+       if is_pong tileset || is_kong tileset then
+         if check_tileset tileset then
+           nb_sets + 1, nb_pairs
+         else
+           nb_sets, nb_pairs
+       else if is_pair tileset then
+         if check_tileset tileset then
+           nb_sets, nb_pairs + 1
+         else
+           nb_sets, nb_pairs
+       else
+         nb_sets, nb_pairs
+    )
+    (0, 0)
+    mahjong
+    declared
 
-let small_three_dragons _ _ = false
 
-let small_three_winds _ _ = false
+let check_dragon tileset =
+  let open Tileset in
+  let tile = List.hd (tiles_of_tileset tileset) in
+  tile = rd || tile = gd || tile = wd
 
-let big_three_winds _ _ = false
+let check_wind tileset =
+  let open Tileset in
+  let tile = List.hd (tiles_of_tileset tileset) in
+  tile = ew || tile = sw || tile = ww || tile = nw
 
-let small_four_winds _ _ = false
+let all_honor mahjong declared =
+  fold_tilesets
+    (fun acc tileset _ ->
+       let open Tileset in
+       if acc then
+         if is_chow tileset then
+           false
+         else
+           let tile = List.hd (tiles_of_tileset tileset) in
+           tile = rd || tile = gd || tile = wd ||
+           tile = ew || tile = sw || tile = ww || tile = nw
+       else
+         acc
+    )
+    true
+    mahjong
+    declared
 
-let big_four_winds _ _ = false
-
-let all_honor_pts _ _ = 0.
+let all_honor_pts mahjong declared =
+  if all_honor mahjong declared then begin
+    320.
+  end else
+    0.
+    
 
 let three_winds_pts mahjong declared =
-  if big_three_winds mahjong declared then
-    120.
-  else if small_three_winds mahjong declared then
-    30.
-  else
-    0.
+  match honor_sets check_wind mahjong declared with
+  | 3, 0 -> 120.
+  | 2, 1 -> 30.
+  | _ -> 0.
 
 let four_winds_pts mahjong declared =
-  if big_four_winds mahjong declared then
-    400.
-  else if small_four_winds mahjong declared then
-    320.
-  else
-    0.
+  match honor_sets check_wind mahjong declared with
+  | 4, 0 -> 400.
+  | 3, 1 -> 320.
+  | _ -> 0.
 
 let three_dragons_pts mahjong declared =
-  if big_three_dragons mahjong declared then
-    130.
-  else if small_three_dragons mahjong declared then
-    40.
-  else
-    0.
+  match honor_sets check_dragon mahjong declared with
+  | 3, 0 -> 130.
+  | 2, 1 -> 40.
+  | _ -> 0.
 
 let honor_tiles_pts check seat_wind mahjong declared =
   if check honor_tiles then
