@@ -95,7 +95,9 @@ let show_end_game game =
   match finished game with
   | None -> assert false
   | Some No_winner -> print_endline "==== DRAW GAME ==="
-  | _ -> print_endline (Printf.sprintf "==== PLAYER %i WINS ===" (current_player game))
+  | _ ->
+    let player = current_player game in
+    print_endline (Printf.sprintf "==== PLAYER %i WINS %.0f PTS===" player (Rule_manager.evaluate_game player game))
 
 let string_of_tile_pos game pos =
   Tileset.string_of_tile_descr (descr_of_tile_pos game pos)

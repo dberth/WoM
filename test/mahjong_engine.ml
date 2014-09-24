@@ -271,13 +271,28 @@ let rules_3 =
     "All honors" >:: all_honors
   ]
 
+
+let misc_1 _ctx =
+  zj_reg_hand_test
+    [[d3; d4; d5]; [d7; d7]]
+    [[c6; c7; c8], false; [wd; wd; wd], false; [b5; b5; b5], false]
+    15.
+
+let misc =
+  "Misc" >:::
+  [
+    "Misc 1" >:: misc_1
+  ]
+
+
 let zung_jung_suite =
   "Zung Jung rules test suite" >:::
   [
     "Chicken hand" >:: chicken_hand;
     rules_1;
     rules_2;
-    rules_3
+    rules_3;
+    misc
   ]
 
 let engine_suite =
