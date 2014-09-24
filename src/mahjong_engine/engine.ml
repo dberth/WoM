@@ -15,7 +15,8 @@ type mahjong =
     declared: declared;
     hand: tileset;
     discard_player: player option;
-    kong_robbing: bool
+    kong_robbing: bool;
+    last_drawn_tile: Tileset.tile;
   }
 
 type end_game =
@@ -49,6 +50,7 @@ type player_state =
     possible_small_kongs: Tileset.tile list;
     declared: declared;
     discarded_tiles: int list;
+    last_drawn_tile: int option;
   }
 
 
@@ -78,6 +80,7 @@ let init_player =
     declared = [];
     discarded_tiles = [];
     possible_small_kongs = [];
+    last_drawn_tile = None;
   }
 
 let init_game =
@@ -111,12 +114,13 @@ let string_of_declared declared =
        declared
     )
 
-let string_of_mahjong {declared; hand; discard_player; kong_robbing} =
-  Printf.sprintf "{\ndeclared: %s;\nhand: %s;\ndiscard_player: %s;\nkong_robbing: %b\n}"
+let string_of_mahjong {declared; hand; discard_player; kong_robbing; last_drawn_tile} =
+  Printf.sprintf "{\ndeclared: %s;\nhand: %s;\ndiscard_player: %s;\nkong_robbing: %b\n; last_drawn_tile: %s\n}"
     (string_of_declared declared)
     (string_of_tileset hand)
     (match discard_player with Some i -> string_of_int i | None -> "None")
     kong_robbing
+    (string_of_tile last_drawn_tile)
     
 let string_of_tile_index tiles idx = Printf.sprintf "%s(%i)" (string_of_tile_descr (tile_descr_of_tile (tiles.(idx)))) idx
 
@@ -154,13 +158,18 @@ let string_of_semi_chows semi_chows =
 let string_of_possible_small_kongs tiles =
   String.concat "; " (List.map string_of_tile tiles)
 
-let string_of_player_state tiles {tiles_pos; semi_chows; declared; discarded_tiles; possible_small_kongs; hand = _} =
-  Printf.sprintf "{\nhand: %s;\ndeclared: %s;\ndiscarded_tiles: %s; semi_chows: %s; possible small kongs: %s\n}"
+let string_of_last_drawn_tile = function
+  | None -> "None"
+  | Some i -> string_of_int i
+
+let string_of_player_state tiles {tiles_pos; semi_chows; declared; discarded_tiles; possible_small_kongs; hand = _; last_drawn_tile} =
+  Printf.sprintf "{\nhand: %s;\ndeclared: %s;\ndiscarded_tiles: %s; semi_chows: %s; possible small kongs: %s; last_drawn_tile = %s\n}"
     (string_of_tile_indexes tiles (List.concat (TMap.fold (fun _ positions acc -> positions :: acc) tiles_pos [])))
     (string_of_declared declared)
     (string_of_tile_indexes tiles discarded_tiles)
     (string_of_semi_chows semi_chows)
     (string_of_possible_small_kongs possible_small_kongs)
+    (string_of_last_drawn_tile last_drawn_tile)
 
 let string_of_end_game = function
   | No_winner -> "No_winner"
@@ -367,7 +376,8 @@ let set_tile player pos game =
       let hand = add_tile tile player_state.hand in
       let tiles_pos = add_tile_in_tiles_pos tile pos player_state.tiles_pos in 
       let semi_chows = populate_semi_chows tile pos tiles_pos player_state.semi_chows in
-      {player_state with hand; tiles_pos; semi_chows}
+      let last_drawn_tile = Some pos in
+      {player_state with hand; tiles_pos; semi_chows; last_drawn_tile}
     )
     game
 
@@ -456,13 +466,13 @@ let discard player tile_idx event game =
 
 let mahjong ~discard_player ?(kong_robbing = false) player game =
   update_game_from_player player
-    (fun {hand; declared; _} ->
-      let hand =
+    (fun {hand; declared; last_drawn_tile; _} ->
+      let hand, last_drawn_tile =
         match game.discarded_tile with
-        | None -> hand
-        | Some discarded_tile -> Tileset.add_tile (game.tiles.(discarded_tile)) hand
+        | None -> hand, (match last_drawn_tile with None -> assert false | Some pos -> game.tiles.(pos))
+        | Some discarded_tile -> Tileset.add_tile (game.tiles.(discarded_tile)) hand, game.tiles.(discarded_tile)
       in
-      {game with end_game = Some (Mahjong {declared; hand; discard_player; kong_robbing})}
+      {game with end_game = Some (Mahjong {declared; hand; discard_player; kong_robbing; last_drawn_tile})}
     )
     game
 
@@ -1306,10 +1316,11 @@ let discarded_tile game =
 
 let discard_player {discard_player; _} = discard_player
 
-let last_tile {tiles; discarded_tile; current_tile; _} =
-  match discarded_tile with
-  | Some pos -> tiles.(pos)
-  | None -> tiles.(current_tile)
+let last_drawn_tile player game =
+  let {last_drawn_tile; _} = player_state player game in
+  match last_drawn_tile with
+  | None -> None
+  | Some pos -> Some game.tiles.(pos)
 
 let current_player_wind {current_player; _} =
   match current_player with

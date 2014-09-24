@@ -8,10 +8,15 @@ let rec make_list x n =
   else
     x :: make_list x (n - 1)
 
-let show_tile tile =
-  Printf.sprintf "[%s]" (Tileset.string_of_tile tile)
+let show_tile ?current tile =
+  let sep1, sep2 =
+    match current with
+    | Some t when t = tile -> "<", ">"
+    | _ -> "[", "]"
+  in
+  Printf.sprintf "%s%s%s" sep1 (Tileset.string_of_tile tile) sep2
 
-let show_tileset ?(sorted = false) ?(concealed = false) tileset =
+let show_tileset ?current ?(sorted = false) ?(concealed = false) tileset =
   let tiles = Tileset.tiles_of_tileset tileset in
   if concealed && List.length tiles = 4 then
     let tile = Tileset.string_of_tile (List.hd tiles) in
@@ -20,7 +25,7 @@ let show_tileset ?(sorted = false) ?(concealed = false) tileset =
     let tiles =
       if sorted then List.sort Tileset.compare_tiles tiles else tiles
     in
-    let tiles = List.map show_tile tiles in
+    let tiles = List.map (show_tile ?current) tiles in
     String.concat "" tiles
 
 let show_declared declared =
@@ -33,7 +38,7 @@ let show_declared declared =
 
 let show_discarded_tiles discarded = print_endline (String.concat "" (List.map show_tile discarded))
 
-let show_hand tileset = print_endline (show_tileset ~sorted: true tileset)
+let show_hand ?current tileset = print_endline (show_tileset ?current ~sorted: true tileset)
 
 let show_hand_nb nb =
   let rec aux n =
@@ -68,7 +73,8 @@ let show_player visibles player game =
   show_declared (player_declared_sets player game);
   begin
     if List.mem player visibles then begin
-      show_hand (player_hand player game);
+      let current = last_drawn_tile player game in
+      show_hand ?current (player_hand player game);
       show_hand_nb (nb_tiles_in_hand player game)
     end else
       let n = nb_tiles_in_hand player game in

@@ -13,7 +13,8 @@ type mahjong =
     declared: declared;
     hand: Tileset.tileset;
     discard_player: player option;
-    kong_robbing: bool
+    kong_robbing: bool;
+    last_drawn_tile: Tileset.tile;
   }
 
 type end_game =
@@ -77,6 +78,6 @@ val discarded_tile: game -> Tileset.tile option
 
 val discard_player: game -> int option
 
-val last_tile: game -> Tileset.tile
-
 val current_player_wind: game -> Tileset.tile
+
+val last_drawn_tile: player -> game -> Tileset.tile option

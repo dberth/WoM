@@ -116,7 +116,7 @@ let mc_ai_with_bias ?(debug = false) ?irregular_hands ~seven_pairs ~evaluate_gam
     for _ = 1 to nb_trajectory do
       let game, chosen_action = mc_trajectory_with_bias ?irregular_hands ~seven_pairs ~event_history ~possible_actions bias in
       let score = evaluate_game player game in
-      apply_amaf possible_actions_tab possible_actions chosen_action game score
+      apply_amaf possible_actions_tab possible_actions chosen_action game score;
     done;
     let result =
       Hashtbl.fold
