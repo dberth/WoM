@@ -89,6 +89,13 @@ let flags = [trivial_patterns; one_suit_patterns; honor_tiles]
 
 let default_flags = flags
 
+let (@+) (explanations1, score1) (explanations2, score2) =
+  explanations1 @ explanations2, score1 +. score2
+
+let no_pts = [], 0.
+
+let pts expl pt = [expl, pt], pt
+
 let fold_declared_tilesets f init declared =
   List.fold_left
     (fun acc (tileset, _, concealed) ->
@@ -127,7 +134,10 @@ let all_chows mahjong declared =
     declared
 
 let all_chows_pts mahjong declared =
-  if all_chows mahjong declared then 5. else 0.
+  if all_chows mahjong declared then
+    pts "All Chows"  5.
+  else
+    no_pts
 
 let concealed_hand mahjong declared =
   fold_tilesets
@@ -137,7 +147,10 @@ let concealed_hand mahjong declared =
     declared
 
 let concealed_hand_pts mahjong declared = 
-  if concealed_hand mahjong declared then 5. else 0.
+  if concealed_hand mahjong declared then
+    pts "Concealed Hand" 5.
+  else
+    no_pts
 
 let no_terminal_tile tile_descr =
   let open Tileset in
@@ -163,15 +176,18 @@ let no_terminals mahjong declared =
     declared
 
 let no_terminals_pts mahjong declared =
-  if no_terminals mahjong declared then 5. else 0.
+  if no_terminals mahjong declared then
+    pts "No Terminals" 5.
+  else
+    no_pts
 
 let trivial_patterns_pts check mahjong declared =
   if check trivial_patterns then
-    all_chows_pts mahjong declared +.
-    concealed_hand_pts mahjong declared +.
+    all_chows_pts mahjong declared @+
+    concealed_hand_pts mahjong declared @+
     no_terminals_pts mahjong declared
   else
-    0.
+    no_pts
 
 let suit_of_tileset tileset =
   let open Tileset in
@@ -227,29 +243,29 @@ let nine_gates_pts check last_tile hand =
          hand_before_win = dot_9_gates ||
          hand_before_win = bam_9_gates
       then
-        480.
+        pts "Nine Gates" 480.
       else
-        0.
+        no_pts
     with
     | Not_found ->
       print_endline (String.concat "; " (List.map Tileset.string_of_tile (Tileset.tiles_of_tileset hand)));
       print_endline (Tileset.string_of_tile last_tile);
       assert false
   end else
-    0.
+    no_pts
 
 let one_suit_pts mahjong declared =
   if pure_one_suit mahjong declared then
-    80.
+    pts "Pure One-Suit" 80.
   else if mixed_one_suit mahjong declared then
-    40.
-  else 0.
+    pts "Mixed One-Suit" 40.
+  else no_pts
 
 let one_suit_patterns_pts check mahjong declared =
   if check one_suit_patterns then
     one_suit_pts mahjong declared
   else
-    0.
+    no_pts
 
 
 let value_honor_pts seat_wind mahjong declared =
@@ -259,13 +275,13 @@ let value_honor_pts seat_wind mahjong declared =
        if is_pong tileset || is_kong tileset then
          let tile = List.hd (tiles_of_tileset tileset) in
          if tile = rd || tile = gd || tile = wd || tile = seat_wind then
-           acc +. 10.
+           pts "Value Honor" 10. @+ acc
          else
            acc
        else
          acc
     )
-    0.
+    no_pts
     mahjong
     declared
 
@@ -321,97 +337,140 @@ let all_honor mahjong declared =
 
 let all_honor_pts mahjong declared =
   if all_honor mahjong declared then begin
-    320.
+    pts "All Honors" 320.
   end else
-    0.
+    no_pts
     
 
 let three_winds_pts mahjong declared =
   match honor_sets check_wind mahjong declared with
-  | 3, 0 -> 120.
-  | 2, 1 -> 30.
-  | _ -> 0.
+  | 3, 0 -> pts "Big Three Winds" 120.
+  | 2, 1 -> pts "Small Three Winds" 30.
+  | _ -> no_pts
 
 let four_winds_pts mahjong declared =
   match honor_sets check_wind mahjong declared with
-  | 4, 0 -> 400.
-  | 3, 1 -> 320.
-  | _ -> 0.
+  | 4, 0 -> pts "Big Four Winds" 400.
+  | 3, 1 -> pts "Small Four Winds" 320.
+  | _ -> no_pts
 
 let three_dragons_pts mahjong declared =
   match honor_sets check_dragon mahjong declared with
-  | 3, 0 -> 130.
-  | 2, 1 -> 40.
-  | _ -> 0.
+  | 3, 0 -> pts "Big Three Dragons" 130.
+  | 2, 1 -> pts "Small Three Dragons" 40.
+  | _ -> no_pts
 
 let honor_tiles_pts check seat_wind mahjong declared =
   if check honor_tiles then
-    value_honor_pts seat_wind mahjong declared +.
-    three_dragons_pts mahjong declared +.
+    value_honor_pts seat_wind mahjong declared @+
+    three_dragons_pts mahjong declared @+
     three_winds_pts mahjong declared
   else
-    0.
+    no_pts
 
 let honor_tiles_limits_pts check mahjong declared =
   if check honor_tiles then
     let four_winds_pts = four_winds_pts mahjong declared in
-    if four_winds_pts = 0. then
+    if snd four_winds_pts = 0. then
       all_honor_pts mahjong declared
     else
       four_winds_pts
   else
-    0.
+    no_pts
 
 let limit_hand_pts check last_tile hand mahjong declared =
-  nine_gates_pts check last_tile hand +.
+  nine_gates_pts check last_tile hand @+
   honor_tiles_limits_pts check mahjong declared
 
 let mahjong_pts check seat_wind last_tile hand mahjong declared =
   let limit_pts = limit_hand_pts check last_tile hand mahjong declared in
-  if limit_pts = 0. then
-    let pts =
-      trivial_patterns_pts check mahjong declared +.
-      one_suit_patterns_pts check mahjong declared +.
-      honor_tiles_pts check seat_wind mahjong declared
+  if snd limit_pts = 0. then
+    let points =
+      trivial_patterns_pts check mahjong declared @+
+      one_suit_patterns_pts check mahjong declared @+
+      honor_tiles_pts check seat_wind mahjong declared @+
+      no_pts
     in
-    min (max pts 1.) 320.
+    if snd points = 0. then
+      pts "Chicken Hand" 1.
+    else if 320. < snd points then
+      fst points, 320.
+    else
+      points
   else
     limit_pts
 
-let payoff ~irregular_hands ~seven_pairs check player game =
+let player_pts status hand_pts =
+  match status with    
+    | `Winner -> "Winner receives 3 x hand points", 3. *. hand_pts
+    | `Draw -> "Draw", 0.
+    | (`Looser | `Discarder | `Big_looser as t) ->
+      if hand_pts <= 25. then
+        "Looser to a small hand pays hand points", -. hand_pts
+      else
+        match t with
+        | `Looser -> "Looser to a big hand pays 25 points", -. 25.
+        | `Big_looser -> "Looser to a self drawn hand pays hand points", -. hand_pts
+        | `Discarder -> "Discarder to a big hand pays hand points x 3 - 50", -. (hand_pts *. 3. -. 50.)
+        
+
+let explain_hand_score ~irregular_hands ~seven_pairs check game =
   let open Engine in
-  let points =
-    match finished game with
-    | None -> assert false
-    | Some No_winner -> 0.
-    | Some (Mahjong {declared; hand; last_drawn_tile; _}) ->
+  match finished game with
+  | None -> assert false
+  | Some No_winner -> [], 0.
+  | Some (Mahjong {declared; hand; last_drawn_tile; _}) ->
       let nb_declared = List.length declared in
       let mahjongs =
         Tileset.mahjong ~irregular_hands ~seven_pairs (4 - nb_declared) hand
       in
       List.fold_left
-        (fun acc mahjong ->
-           max acc (mahjong_pts check (current_player_wind game) last_drawn_tile hand mahjong declared)
+        (fun (explanations, score) mahjong ->
+           let new_explanations, new_score =
+             mahjong_pts check (current_player_wind game) last_drawn_tile hand mahjong declared
+           in
+           if new_score < score then
+             explanations, score
+           else
+             new_explanations, new_score
         )
-        0.
+        ([], 0.)
         mahjongs
+
+let explain_player_score player game ~hand_score =
+  let open Engine in
+  let status =
+    if hand_score = 0. then
+      `Draw
+    else if current_player game = player then
+      `Winner
+    else
+      match finished game with
+      | Some (Mahjong {discard_player; _}) -> begin
+        match discard_player with
+        | None -> `Big_looser
+        | Some discard_player ->
+        if discard_player = player then
+          `Discarder
+        else
+          `Looser
+        end
+      | _ -> assert false
   in
-  if current_player game = player then
-    points *. 3.
-  else if points <= 25. then
-    -. points
-  else if discard_player game = Some player then
-    -. (points *. 3. -. 50.)
-  else
-    -. 25.
+  player_pts status hand_score
+
 
 let build_rule check =
   let irregular_hands = Tileset.no_irregular_hand in
   let seven_pairs = false (*TODO*) in
-  let evaluate_game player game =
-    payoff ~irregular_hands ~seven_pairs check player game
+  let explain_hand_score game =
+    explain_hand_score ~irregular_hands ~seven_pairs check game
   in
-  {irregular_hands; seven_pairs; evaluate_game}
+  let evaluate_game player game =
+    let hand_score = snd (explain_hand_score game) in
+    snd (explain_player_score player game ~hand_score)
+  in
+  {irregular_hands; seven_pairs; evaluate_game; explain_hand_score; explain_player_score}
       
 
 

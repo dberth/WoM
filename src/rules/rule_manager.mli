@@ -5,6 +5,8 @@ type rule =
     irregular_hands: Tileset.irregular_hands;
     seven_pairs: bool;
     evaluate_game: (Engine.player -> Engine.game -> float);
+    explain_hand_score: (Engine.game -> (string * float) list * float);
+    explain_player_score: (Engine.player -> Engine.game -> hand_score: float -> string * float);
   }
 
 type flag

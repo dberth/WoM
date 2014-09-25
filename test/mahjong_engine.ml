@@ -129,7 +129,7 @@ let fsm_test_suite =
 let zj_reg_hand_test ?(seat_wind = ww) hand declared expected =
   let mahjong = Regular (List.map basic_tileset_of_tiles hand) in
   let declared = List.map (fun (x, y) -> tileset_of_tiles x, [], y) declared in
-  assert_equal ~printer: string_of_float expected (Zung_jung.mahjong_pts (fun _ -> true) seat_wind c1 (Tileset.tileset_of_tiles [c1]) mahjong declared)
+  assert_equal ~printer: string_of_float expected (snd (Zung_jung.mahjong_pts (fun _ -> true) seat_wind c1 (Tileset.tileset_of_tiles [c1]) mahjong declared))
 
 let chicken_hand _ctx =
   zj_reg_hand_test
@@ -197,7 +197,7 @@ let pure_one_suit _ctx =
     80.
 
 let nine_gates _ctx =
-    assert_equal ~printer: string_of_float 480. (Zung_jung.mahjong_pts (fun _ -> true) ww c1 (Tileset.tileset_of_tiles [c1; c1; c1; c1; c2; c3; c4; c5; c6; c7; c8; c9; c9; c9]) (Regular (List.map basic_tileset_of_tiles [[c1; c1; c1]; [c1; c2; c3]; [c4; c5; c6]; [c7; c8; c9]; [c9; c9]])) [])
+    assert_equal ~printer: string_of_float 480. (snd (Zung_jung.mahjong_pts (fun _ -> true) ww c1 (Tileset.tileset_of_tiles [c1; c1; c1; c1; c2; c3; c4; c5; c6; c7; c8; c9; c9; c9]) (Regular (List.map basic_tileset_of_tiles [[c1; c1; c1]; [c1; c2; c3]; [c4; c5; c6]; [c7; c8; c9]; [c9; c9]])) []))
 
 let rules_2 =
   "Rules 2" >:::
