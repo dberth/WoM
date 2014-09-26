@@ -126,3 +126,13 @@ let evaluate_game player game =
   match !current_rule with
   | None -> assert false
   | Some {evaluate_game; _} -> evaluate_game player game
+
+let explain_hand_score game =
+  match !current_rule with
+  | None -> assert false
+  | Some {explain_hand_score; _} -> explain_hand_score game
+
+let explain_player_score player game ~hand_score =
+  match !current_rule with
+  | None -> assert false
+  | Some {explain_player_score; _} -> explain_player_score player game ~hand_score

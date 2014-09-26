@@ -39,3 +39,7 @@ val irregular_hands: unit -> Tileset.irregular_hands
 val seven_pairs: unit -> bool
 
 val evaluate_game: Engine.player -> Engine.game -> float
+
+val explain_hand_score: Engine.game -> (string * float) list * float
+
+val explain_player_score: Engine.player -> Engine.game -> hand_score: float -> string * float

@@ -97,7 +97,35 @@ let show_end_game game =
   | Some No_winner -> print_endline "==== DRAW GAME ==="
   | _ ->
     let player = current_player game in
-    print_endline (Printf.sprintf "==== PLAYER %i WINS %.0f PTS===" player (Rule_manager.evaluate_game player game))
+    let hand_explanation, score = Rule_manager.explain_hand_score game in
+    let hand_explanation = List.sort (fun (_, x) (_, y) -> compare x y) hand_explanation in
+    let hand_explanations =
+      String.concat "\n"
+        (List.map
+           (fun (s, v) ->
+              Printf.sprintf "%s: %.0f" s v
+           )
+           hand_explanation
+        )
+    in
+    let player_explanations =
+      String.concat "\n"
+        (List.map
+           (fun player ->
+              let s, v = Rule_manager.explain_player_score player game ~hand_score: score in
+              Printf.sprintf "%s: %.0f" s v
+           )
+           [0; 1; 2; 3]
+        )
+    in
+    print_endline
+      (Printf.sprintf "==== PLAYER %i WINS WITH %.0f PTS===\n%s\n====\n%s\n"
+         (current_player game)
+         score
+         hand_explanations
+         player_explanations
+      )
+         
 
 let string_of_tile_pos game pos =
   Tileset.string_of_tile_descr (descr_of_tile_pos game pos)
