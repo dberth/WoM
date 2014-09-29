@@ -382,9 +382,51 @@ let honor_tiles_limits_pts check mahjong declared =
   else
     no_pts
 
-let all_pong_pts _ _ = no_pts (*TODO*)
-let nb_concealed_pong _ _ = 0 (*TODO*)
-let nb_kong _ _ = 0 (*TODO*)
+let is_pong tileset =
+  Tileset.is_pong tileset || Tileset.is_kong tileset || Tileset.is_pair tileset
+
+let all_pong mahjong declared =
+  fold_tilesets
+    (fun acc tileset _ ->
+       if acc then
+         is_pong tileset
+       else
+         false
+    )
+    true
+    mahjong
+    declared
+
+let all_pong_pts mahjong declared =
+  if all_pong mahjong declared then
+    pts "All Pong and Kong" 30.
+  else
+    no_pts
+
+let nb_concealed_pong mahjong declared =
+  fold_tilesets
+    (fun acc tileset concealed ->
+       if concealed && (Tileset.is_pong tileset || Tileset.is_kong tileset) then
+         acc + 1
+       else
+         acc
+    )
+    0
+    mahjong
+    declared
+
+
+let nb_kong mahjong declared =
+  fold_tilesets
+    (fun acc tileset _ ->
+       if Tileset.is_kong tileset then
+         acc + 1
+       else
+         acc
+    )
+    0
+    mahjong
+    declared
 
 let concealed_pong_pts mahjong declared =
   match nb_concealed_pong mahjong declared with
