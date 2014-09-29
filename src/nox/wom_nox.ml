@@ -96,7 +96,6 @@ let show_end_game game =
   | None -> assert false
   | Some No_winner -> print_endline "==== DRAW GAME ==="
   | _ ->
-    let player = current_player game in
     let hand_explanation, score = Rule_manager.explain_hand_score game in
     let hand_explanation = List.sort (fun (_, x) (_, y) -> compare x y) hand_explanation in
     let hand_explanations =

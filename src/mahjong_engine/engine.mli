@@ -14,7 +14,7 @@ type mahjong =
     hand: Tileset.tileset;
     discard_player: player option;
     kong_robbing: bool;
-    last_drawn_tile: Tileset.tile;
+    last_drawn_tile: Tileset.tile option;
   }
 
 type end_game =

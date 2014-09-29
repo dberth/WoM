@@ -237,20 +237,23 @@ let dot_9_gates = Tileset.(tileset_of_tiles [d1; d1; d1; d2; d3; d4; d5; d6; d7;
 
 let nine_gates_pts check last_tile hand =
   if check one_suit_patterns then begin
-    try
-      let hand_before_win = Tileset.remove_tile last_tile hand in
-      if hand_before_win = char_9_gates ||
-         hand_before_win = dot_9_gates ||
-         hand_before_win = bam_9_gates
-      then
-        pts "Nine Gates" 480.
-      else
-        no_pts
-    with
-    | Not_found ->
-      print_endline (String.concat "; " (List.map Tileset.string_of_tile (Tileset.tiles_of_tileset hand)));
-      print_endline (Tileset.string_of_tile last_tile);
-      assert false
+    match last_tile with
+    | None -> no_pts
+    | Some last_tile ->
+      try
+        let hand_before_win = Tileset.remove_tile last_tile hand in
+        if hand_before_win = char_9_gates ||
+           hand_before_win = dot_9_gates ||
+           hand_before_win = bam_9_gates
+        then
+          pts "Nine Gates" 480.
+        else
+          no_pts
+      with
+      | Not_found ->
+        print_endline (String.concat "; " (List.map Tileset.string_of_tile (Tileset.tiles_of_tileset hand)));
+        print_endline (Tileset.string_of_tile last_tile);
+        assert false
   end else
     no_pts
 

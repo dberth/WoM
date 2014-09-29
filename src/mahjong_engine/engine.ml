@@ -16,7 +16,7 @@ type mahjong =
     hand: tileset;
     discard_player: player option;
     kong_robbing: bool;
-    last_drawn_tile: Tileset.tile;
+    last_drawn_tile: Tileset.tile option;
   }
 
 type end_game =
@@ -120,7 +120,7 @@ let string_of_mahjong {declared; hand; discard_player; kong_robbing; last_drawn_
     (string_of_tileset hand)
     (match discard_player with Some i -> string_of_int i | None -> "None")
     kong_robbing
-    (string_of_tile last_drawn_tile)
+    (match last_drawn_tile with Some t -> string_of_tile t | None -> "None")
     
 let string_of_tile_index tiles idx = Printf.sprintf "%s(%i)" (string_of_tile_descr (tile_descr_of_tile (tiles.(idx)))) idx
 
@@ -369,25 +369,30 @@ let populate_semi_chows tile pos tiles_pos semi_chows =
     set_semi_chows false succ_pos succ_succ pos |>
     set_semi_chows false succ_succ_pos succ pos
     
-let set_tile player pos game =
+let set_tile ~set_last_drawn_tile player pos game =
   update_player player
     (fun player_state ->
       let  tile = game.tiles.(pos) in
       let hand = add_tile tile player_state.hand in
       let tiles_pos = add_tile_in_tiles_pos tile pos player_state.tiles_pos in 
       let semi_chows = populate_semi_chows tile pos tiles_pos player_state.semi_chows in
-      let last_drawn_tile = Some pos in
+      let last_drawn_tile =
+        if set_last_drawn_tile then
+          Some pos
+        else
+          None
+      in
       {player_state with hand; tiles_pos; semi_chows; last_drawn_tile}
     )
     game
 
 let draw_tile player game =
   let game = incr_current_tile game in
-  set_tile player game.current_tile game
+  set_tile ~set_last_drawn_tile: true player game.current_tile game
 
 let draw_last_tile player game =
   let game = decr_last_tile game in
-  set_tile player game.last_tile game
+  set_tile ~set_last_drawn_tile: true player game.last_tile game
 
 let draw_4_tiles player game =
   draw_tile player game |>
@@ -469,8 +474,8 @@ let mahjong ~discard_player ?(kong_robbing = false) player game =
     (fun {hand; declared; last_drawn_tile; _} ->
       let hand, last_drawn_tile =
         match game.discarded_tile with
-        | None -> hand, (match last_drawn_tile with None -> assert false | Some pos -> game.tiles.(pos))
-        | Some discarded_tile -> Tileset.add_tile (game.tiles.(discarded_tile)) hand, game.tiles.(discarded_tile)
+        | None -> hand, (match last_drawn_tile with None -> None | Some pos -> Some game.tiles.(pos))
+        | Some discarded_tile -> Tileset.add_tile (game.tiles.(discarded_tile)) hand, Some game.tiles.(discarded_tile)
       in
       {game with end_game = Some (Mahjong {declared; hand; discard_player; kong_robbing; last_drawn_tile})}
     )
@@ -541,7 +546,7 @@ let set_discarded_tile player tiles_pos event game =
   | Some discarded_tile ->
     if List.mem discarded_tile tiles_pos then begin
       {game with discarded_tile = None; discard_player = None; current_player = player} |>
-        set_tile player discarded_tile
+        set_tile ~set_last_drawn_tile: false player discarded_tile
     end else
       raise (Irrelevant_event(event, "Event doesn't concern discarded tile."))
 
