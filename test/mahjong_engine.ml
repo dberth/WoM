@@ -147,7 +147,7 @@ let concealed_hand_with_kong _ctx =
   zj_reg_hand_test
     [[d1; d2; d3]; [b2; b3; b4]; [c2; c3; c4]; [b8; b8]]
     [[d9; d9; d9; d9], true]
-    5.
+    10.
 
 let all_chows _ctx =
   zj_reg_hand_test
@@ -210,8 +210,8 @@ let rules_2 =
 let value_honor _ctx =
   zj_reg_hand_test
     ~seat_wind: ew
-    [[d1; d1]; [c1; c2; c3] ; [ew; ew; ew; ew]; [ww; ww; ww]]
-    [[gd; gd; gd], false]
+    [[d1; d1]; [c1; c2; c3] ; [ww; ww; ww]]
+    [[gd; gd; gd], false; [ew; ew; ew], false]
     20.
 
 let small_three_dragons _ctx =
@@ -237,7 +237,7 @@ let big_three_winds _ctx =
   zj_reg_hand_test
     ~seat_wind: ew
     [[ww; ww; ww]; [b1; b1]; [c2; c3; c4]]
-    [[sw; sw; sw], false; [nw; nw; nw; nw], false]
+    [[sw; sw; sw], false; [nw; nw; nw], false]
     120.
 
 let small_four_winds _ctx =
@@ -271,6 +271,67 @@ let rules_3 =
     "All honors" >:: all_honors
   ]
 
+let all_pong _ctx =
+  zj_reg_hand_test
+    [[nw; nw]]
+    [[b5; b5; b5], false; [d1; d1; d1], false; [c2; c2; c2], false; [d3; d3; d3], false]
+    30.
+
+let two_concealed_pong _ctx =
+  zj_reg_hand_test
+    [[d1; d1; d1]; [c3; c3; c3]; [b5; b5]; [b1; b2; b3]]
+    [[d3; d4; d5], false]
+    5.
+
+let three_concealed_pong _ctx =
+  zj_reg_hand_test
+    [[d1; d1; d1]; [c3; c3; c3]; [b5; b5]; [b2; b2; b2]]
+    [[d3; d4; d5], false]
+    30.
+
+let four_concealed_pong _ctx =
+  zj_reg_hand_test
+    [[d1; d1; d1]; [c3; c3; c3]; [b5; b5]; [b2; b2; b2]; [nw; nw; nw]]
+    []
+    160.
+
+let one_kong _ctx =
+  zj_reg_hand_test
+    [[d1; d1; d1]; [b5; b5]; [c1; c2; c3]]
+    [[d6; d6; d6; d6], false; [d6; d7; d8], false]
+    5.
+
+let two_kong _ctx =
+  zj_reg_hand_test
+    [[d1; d1; d1]; [b5; b5]; [c1; c2; c3]]
+    [[d6; d6; d6; d6], false; [c9; c9; c9; c9], false]
+    20.
+
+let three_kong _ctx =
+  zj_reg_hand_test
+    [[b5; b5]; [c1; c2; c3]]
+    [[d6; d6; d6; d6], false; [c9; c9; c9; c9], false; [d1; d1; d1; d1], false]
+    120.
+
+let four_kong _ctx =
+  zj_reg_hand_test
+    [[b5; b5]]
+    [[d6; d6; d6; d6], false; [c9; c9; c9; c9], false; [d1; d1; d1; d1], false; [c1; c1; c1; c1], true]
+    480.
+
+
+let rules_4 =
+  "Rules 4" >:::
+  [
+    "All Pong and Kong" >:: all_pong;
+    "Two concealed Pong" >:: two_concealed_pong;
+    "Three concealed Pong" >:: three_concealed_pong;
+    "Four concealed Pong" >:: four_concealed_pong;
+    "One Kong" >:: one_kong;
+    "Two Kong" >:: two_kong;
+    "Three Kong" >:: three_kong;
+    "Four Kong" >:: four_kong;
+  ]
 
 let misc_1 _ctx =
   zj_reg_hand_test
@@ -292,6 +353,7 @@ let zung_jung_suite =
     rules_1;
     rules_2;
     rules_3;
+    rules_4;
     misc
   ]
 
