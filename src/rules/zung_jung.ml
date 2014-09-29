@@ -83,9 +83,10 @@ open Rule_manager
 let trivial_patterns = flag "Trivial patterns"
 let one_suit_patterns = flag "One-Suit Patterns"
 let honor_tiles = flag "Honor tiles"
+let pong_and_kong = flag "Pong and Kong"
 
 
-let flags = [trivial_patterns; one_suit_patterns; honor_tiles]
+let flags = [trivial_patterns; one_suit_patterns; honor_tiles; pong_and_kong]
 
 let default_flags = flags
 
@@ -381,9 +382,49 @@ let honor_tiles_limits_pts check mahjong declared =
   else
     no_pts
 
+let all_pong_pts _ _ = no_pts (*TODO*)
+let nb_concealed_pong _ _ = 0 (*TODO*)
+let nb_kong _ _ = 0 (*TODO*)
+
+let concealed_pong_pts mahjong declared =
+  match nb_concealed_pong mahjong declared with
+  | 0 | 1 -> no_pts
+  | 2 -> pts "Two Concealed Pong or Kong" 5.
+  | 3 -> pts "Three Concealed Pong or Kong" 30.
+  | 4 -> pts "Four Concealed Pong or Kong" 125.
+  | _ -> assert false
+
+let several_kong_pts mahjong declared =
+  match nb_kong mahjong declared with
+  | 0 -> no_pts
+  | 1 -> pts "One Kong" 5.
+  | 2 -> pts "Two Kong" 20.
+  | 3 -> pts "Three Kong" 120.
+  | 4 -> no_pts
+  | _ -> assert false
+
+
+let four_kong check mahjong declared =
+  if check pong_and_kong then
+    if nb_kong mahjong declared = 4 then
+      pts "Four Kong" 480.
+    else
+      no_pts
+  else
+    no_pts
+
+let pong_and_kong_pts check mahjong declared =
+  if check pong_and_kong then
+    all_pong_pts mahjong declared @+
+    concealed_pong_pts mahjong declared @+
+    several_kong_pts mahjong declared
+  else
+    no_pts
+
 let limit_hand_pts check last_tile hand mahjong declared =
   nine_gates_pts check last_tile hand @+
-  honor_tiles_limits_pts check mahjong declared
+  honor_tiles_limits_pts check mahjong declared @+
+  four_kong check mahjong declared
 
 let mahjong_pts check seat_wind last_tile hand mahjong declared =
   let limit_pts = limit_hand_pts check last_tile hand mahjong declared in
@@ -392,7 +433,7 @@ let mahjong_pts check seat_wind last_tile hand mahjong declared =
       trivial_patterns_pts check mahjong declared @+
       one_suit_patterns_pts check mahjong declared @+
       honor_tiles_pts check seat_wind mahjong declared @+
-      no_pts
+      pong_and_kong_pts check mahjong declared
     in
     if snd points = 0. then
       pts "Chicken Hand" 1.
