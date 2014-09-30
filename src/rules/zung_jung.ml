@@ -44,7 +44,7 @@
 
 6.0 Similar sets
 
-   6.1   Tree simila sequences         35
+   6.1   Three similar sequences       35
    6.2.1 Small three similar Triplets  30
    6.2.2 Three similar Triplets        120
 
@@ -84,6 +84,7 @@ let trivial_patterns = flag "Trivial patterns"
 let one_suit_patterns = flag "One-Suit Patterns"
 let honor_tiles = flag "Honor tiles"
 let pong_and_kong = flag "Pong and Kong"
+let identical_chow = flag "Identical Chow"
 
 
 let flags = [trivial_patterns; one_suit_patterns; honor_tiles; pong_and_kong]
@@ -463,10 +464,46 @@ let pong_and_kong_pts check mahjong declared =
   else
     no_pts
 
+let chow_partition mahjong declared =
+  let partition = Hashtbl.create 4 in
+  begin
+    fold_tilesets
+      (fun () tileset _ ->
+         if Tileset.is_chow tileset then
+           match Hashtbl.find partition tileset with
+           | nb -> Hashtbl.replace partition tileset (nb + 1)
+           | exception Not_found ->
+             Hashtbl.add partition tileset 1
+      )
+      ()
+      mahjong
+      declared
+  end;
+  Hashtbl.fold (fun _ nb acc -> if 1 < nb then nb :: acc else acc) partition []
+
+let identical_chow_pts check mahjong declared =
+  if check identical_chow then
+    match chow_partition mahjong declared with
+    | [2] -> pts "Two Identical Chow" 10.
+    | [2; 2] -> pts "Two Identical Chow Twice" 60.
+    | [3] -> pts "Three Identical Chow" 120.
+    | _ -> no_pts
+  else
+    no_pts
+
+let four_identical_chow check mahjong declared =
+  if check identical_chow then
+    match chow_partition mahjong declared with
+    | [4] -> pts "Four Identical Chow" 480.
+    | _ -> no_pts
+  else
+    no_pts
+
 let limit_hand_pts check last_tile hand mahjong declared =
   nine_gates_pts check last_tile hand @+
   honor_tiles_limits_pts check mahjong declared @+
-  four_kong check mahjong declared
+  four_kong check mahjong declared @+
+  four_identical_chow check mahjong declared
 
 let mahjong_pts check seat_wind last_tile hand mahjong declared =
   let limit_pts = limit_hand_pts check last_tile hand mahjong declared in
@@ -475,7 +512,8 @@ let mahjong_pts check seat_wind last_tile hand mahjong declared =
       trivial_patterns_pts check mahjong declared @+
       one_suit_patterns_pts check mahjong declared @+
       honor_tiles_pts check seat_wind mahjong declared @+
-      pong_and_kong_pts check mahjong declared
+      pong_and_kong_pts check mahjong declared @+
+      identical_chow_pts check mahjong declared
     in
     if snd points = 0. then
       pts "Chicken Hand" 1.
