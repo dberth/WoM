@@ -333,6 +333,39 @@ let rules_4 =
     "Four Kong" >:: four_kong;
   ]
 
+let two_identical_chow _ctx =
+  zj_reg_hand_test
+    [[c1; c2; c3]; [c1; c2; c3]; [b3; b3; b3]; [b5; b5]]
+    [[d2; d3; d4], false]
+    10.
+
+let two_identical_chow_twice _ctx =
+  zj_reg_hand_test
+    [[c1; c2; c3]; [c1; c2; c3]; [d2; d3; d4]; [b5; b5]]
+    [[d2; d3; d4], false]
+    65.
+
+let three_identical_chow _ctx =
+  zj_reg_hand_test
+    [[c1; c2; c3]; [c1; c2; c3]; [c1; c2; c3]; [b5; b5]]
+    [[d3; d3; d3], false]
+    120.
+
+let four_identical_chow _ctx =
+  zj_reg_hand_test
+    [[c1; c2; c3]; [c1; c2; c3]; [c1; c2; c3]; [b5; b5]]
+    [[c1; c2; c3], false]
+    480.
+
+let rules_5 =
+  "Rules 5" >:::
+  [
+    "Two identical chow" >:: two_identical_chow;
+    "Two identical chow twice" >:: two_identical_chow_twice;
+    "Three identical chow" >:: three_identical_chow;
+    "Four identical chow" >:: four_identical_chow;
+  ]
+
 let misc_1 _ctx =
   zj_reg_hand_test
     [[d3; d4; d5]; [d7; d7]]
@@ -354,6 +387,7 @@ let zung_jung_suite =
     rules_2;
     rules_3;
     rules_4;
+    rules_5;
     misc
   ]
 
