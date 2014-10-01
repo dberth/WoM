@@ -85,9 +85,10 @@ let one_suit_patterns = flag "One-Suit Patterns"
 let honor_tiles = flag "Honor tiles"
 let pong_and_kong = flag "Pong and Kong"
 let identical_chow = flag "Identical Chow"
+let similar_sets = flag "Similar Sets"
 
 
-let flags = [trivial_patterns; one_suit_patterns; honor_tiles; pong_and_kong]
+let flags = [trivial_patterns; one_suit_patterns; honor_tiles; pong_and_kong; identical_chow; similar_sets]
 
 let default_flags = flags
 
@@ -499,6 +500,115 @@ let four_identical_chow check mahjong declared =
   else
     no_pts
 
+let classify_set tileset =
+  let open Tileset in
+  let tile_descrs = List.sort compare (tile_descr_of_tileset tileset) in
+  let kind =
+    if is_kong tileset || is_pong tileset then
+      `Pong
+    else if is_chow tileset then
+      `Chow
+    else
+      `Pair
+  in
+  match List.hd tile_descrs with
+  | Bam i -> Some (i, `Bam, kind)
+  | Dot i -> Some (i, `Dot, kind)
+  | Char i -> Some (i, `Char, kind)
+  | _ -> None
+
+let classify_sets mahjong declared =
+  fold_tilesets
+    (fun acc tileset _ ->
+       match classify_set tileset with
+       | Some x -> x :: acc
+       | None -> acc
+    )
+    []
+    mahjong
+    declared
+
+let similar_series = List.sort compare [`Bam; `Char; `Dot]
+
+let three_similar_chow mahjong declared =
+  let table = Hashtbl.create 4 in
+  List.iter
+    (fun (i, serie, kind) ->
+       match kind with
+       | `Chow ->
+         begin match Hashtbl.find table i with
+         | series -> Hashtbl.replace table i (serie :: series)
+         | exception Not_found -> Hashtbl.add table i [serie]
+         end
+       | _ -> ()
+    )
+    (classify_sets mahjong declared);
+  Hashtbl.fold
+    (fun _ series acc ->
+       if acc then
+         true
+       else
+         List.sort compare series = similar_series
+    )
+    table
+    false
+  
+
+let three_similar_chow_pts mahjong declared =
+  if three_similar_chow mahjong declared then
+    pts "Three Similar Chow" 35.
+  else
+    no_pts
+
+let similar_pong_or_kong mahjong declared =
+  let table = Hashtbl.create 4 in
+  let pair = ref None in
+  List.iter
+    (fun (i, serie, kind) ->
+       match kind with
+       | `Pair -> pair := Some (i, serie)
+       | `Pong ->
+         begin match Hashtbl.find table i with
+         | series -> Hashtbl.replace table i (serie :: series)
+         | exception Not_found -> Hashtbl.add table i [serie]
+         end
+       | `Chow -> ()
+    )
+    (classify_sets mahjong declared);
+  Hashtbl.fold
+    (fun i series result ->
+       match result with
+       | `Big | `Small -> result
+       | `None ->
+         let series = List.sort compare series in
+         if series = similar_series then
+           `Big
+         else
+           match !pair with
+           | Some (i_pair, pair_serie) when i_pair = i ->
+             if List.sort compare (pair_serie :: series) = similar_series then
+               `Small
+             else
+               `None
+           | _ -> `None
+    )
+    table
+    `None
+
+let similar_pong_or_kong_pts mahjong declared =
+  match similar_pong_or_kong mahjong declared with
+  | `Small -> pts "Small Similar Pong or Kong" 30.
+  | `Big -> pts "Similar Pong or Kong" 120.
+  | `None -> no_pts
+
+
+let similar_sets_pts check mahjong declared =
+  if check similar_sets then
+    three_similar_chow_pts mahjong declared @+
+    similar_pong_or_kong_pts mahjong declared
+  else
+    no_pts
+
 let limit_hand_pts check last_tile hand mahjong declared =
   nine_gates_pts check last_tile hand @+
   honor_tiles_limits_pts check mahjong declared @+
@@ -513,7 +623,8 @@ let mahjong_pts check seat_wind last_tile hand mahjong declared =
       one_suit_patterns_pts check mahjong declared @+
       honor_tiles_pts check seat_wind mahjong declared @+
       pong_and_kong_pts check mahjong declared @+
-      identical_chow_pts check mahjong declared
+      identical_chow_pts check mahjong declared @+
+      similar_sets_pts check mahjong declared
     in
     if snd points = 0. then
       pts "Chicken Hand" 1.
