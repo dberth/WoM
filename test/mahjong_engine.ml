@@ -163,13 +163,13 @@ let no_terminals _ctx =
 
 let all_chows_no_terminals _ctx =
   zj_reg_hand_test
-    [[d2; d3; d4]; [b2; b3; b4]; [c2; c3; c4]; [b8; b8]]
+    [[d3; d4; d5]; [b2; b3; b4]; [c2; c3; c4]; [b8; b8]]
     [[c6; c7; c8], false]
     10.
 
 let all_rules_1 _ctx =
   zj_reg_hand_test
-    [[d2; d3; d4]; [b2; b3; b4]; [c2; c3; c4]; [b8; b8]; [c6; c7; c8]]
+    [[d3; d4; d5]; [b2; b3; b4]; [c2; c3; c4]; [b8; b8]; [c6; c7; c8]]
     []
     15.
 
@@ -366,6 +366,32 @@ let rules_5 =
     "Four identical chow" >:: four_identical_chow;
   ]
 
+let three_similar_chow _ctx =
+  zj_reg_hand_test
+    [[c1; c2; c3]; [b1; b2; b3]; [d1; d2; d3]; [ww; ww]]
+    [[b5; b5; b5], false]
+    35.
+
+let small_three_similar_pong_or_kong _ctx =
+  zj_reg_hand_test
+    [[c5; c5; c5]; [c1; c2; c3]; [b5; b5]]
+    [[d5; d5; d5], false; [b6; b7; b8], false]
+    30.
+
+let three_similar_pong_or_kong _ctx =
+  zj_reg_hand_test
+    [[c5; c5; c5]; [c1; c2; c3]; [ww; ww]]
+    [[d5; d5; d5], false; [b5; b5; b5], false]
+    120.
+
+let rules_6 =
+  "Rules 6" >:::
+  [
+    "Three similar chow" >:: three_similar_chow;
+    "Small Three Similar Pong or Kong" >:: small_three_similar_pong_or_kong;
+    "Three Similar Pong or Kong" >:: three_similar_pong_or_kong;
+  ]
+
 let misc_1 _ctx =
   zj_reg_hand_test
     [[d3; d4; d5]; [d7; d7]]
@@ -388,6 +414,7 @@ let zung_jung_suite =
     rules_3;
     rules_4;
     rules_5;
+    rules_6;
     misc
   ]
 
