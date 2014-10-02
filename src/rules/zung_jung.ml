@@ -86,9 +86,10 @@ let honor_tiles = flag "Honor tiles"
 let pong_and_kong = flag "Pong and Kong"
 let identical_chow = flag "Identical Chow"
 let similar_sets = flag "Similar Sets"
+let consecutive_sets = flag "Consecutive Sets"
 
 
-let flags = [trivial_patterns; one_suit_patterns; honor_tiles; pong_and_kong; identical_chow; similar_sets]
+let flags = [trivial_patterns; one_suit_patterns; honor_tiles; pong_and_kong; identical_chow; similar_sets; consecutive_sets]
 
 let default_flags = flags
 
@@ -606,6 +607,50 @@ let similar_sets_pts check mahjong declared =
   if check similar_sets then
     three_similar_chow_pts mahjong declared @+
     similar_pong_or_kong_pts mahjong declared
+  else
+    no_pts
+
+let is_straight l =
+  List.mem 1 l && List.mem 4 l && List.mem 7 l
+
+let nine_tile_straight mahjong declared =
+  let chars, bams, dots =
+    fold_tilesets
+      (fun (chars, bams, dots) tileset _ ->
+         let open Tileset in
+         if is_chow tileset then
+           let tile = List.hd (List.sort compare (tile_descr_of_tileset tileset)) in
+           match tile with
+           | Bam i -> chars, i :: bams, dots
+           | Dot i -> chars, bams, i :: dots
+           | Char i -> i :: chars, bams, dots
+           | _ -> chars, bams, dots
+         else
+           (chars, bams, dots)
+      )
+      ([], [], [])
+      mahjong
+      declared
+  in
+  List.fold_left
+    (fun result l -> if result then true else is_straight l)
+    false
+    [chars; bams; dots]
+
+
+let nine_tile_straight_pts mahjong declared =
+  if nine_tile_straight mahjong declared then
+    pts "Nine-Tile Straight" 40.
+  else
+    no_pts
+
+
+let consecutive_pong_or_kong_pts mahjong declared = no_pts (*TODO*)
+
+let consecutive_sets_pts check mahjong declared =
+  if check consecutive_sets then
+    nine_tile_straight_pts mahjong declared @+
+    consecutive_pong_or_kong_pts mahjong declared
   else
     no_pts
 
