@@ -644,8 +644,48 @@ let nine_tile_straight_pts mahjong declared =
   else
     no_pts
 
+let nb_consecutive l =
+  let result, _, _ =
+    List.fold_left
+      (fun (result, cur_max, prec) i ->
+         let cur_max =
+           if i = prec + 1 then
+             cur_max + 1
+           else
+             1
+         in
+         (max result cur_max, cur_max, i)
+      )
+      (0, 0, -1)
+      l
+  in
+  result
 
-let consecutive_pong_or_kong_pts mahjong declared = no_pts (*TODO*)
+
+let consecutive_pong_or_kong mahjong declared =
+  let sets = classify_sets mahjong declared in
+  let table = Hashtbl.create 4 in
+  List.iter
+    (fun (i, serie, kind) ->
+       match kind with
+       | `Pong | `Kong -> begin
+           match Hashtbl.find table serie with
+           | l -> Hashtbl.replace table serie (i :: l)
+           | exception Not_found -> Hashtbl.add table serie [i]
+         end
+       | _ -> ()
+    )
+    sets;
+  Hashtbl.fold
+    (fun _ l result -> max result (nb_consecutive (List.sort compare l)))
+    table
+    0
+
+let consecutive_pong_or_kong_pts mahjong declared =
+  match consecutive_pong_or_kong mahjong declared with
+  | 3 -> pts "Three Consecutive Pong or Kong" 100.
+  | 4 -> pts "Four Consecutive Pong or Kong" 200.
+  | _ -> no_pts
 
 let consecutive_sets_pts check mahjong declared =
   if check consecutive_sets then
