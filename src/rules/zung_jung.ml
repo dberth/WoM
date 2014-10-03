@@ -51,7 +51,7 @@
 7.0 Consecutive sets
 
    7.1   Nine-tile Straight            40
-   7.2.1 Tree consecutive triplets     100
+   7.2.1 Three consecutive triplets     100
    7.2.2 Four consecutive triplets     200
 
 8.0 Terminals
@@ -709,7 +709,8 @@ let mahjong_pts check seat_wind last_tile hand mahjong declared =
       honor_tiles_pts check seat_wind mahjong declared @+
       pong_and_kong_pts check mahjong declared @+
       identical_chow_pts check mahjong declared @+
-      similar_sets_pts check mahjong declared
+      similar_sets_pts check mahjong declared @+
+      consecutive_sets_pts check mahjong declared
     in
     if snd points = 0. then
       pts "Chicken Hand" 1.

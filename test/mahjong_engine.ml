@@ -392,6 +392,33 @@ let rules_6 =
     "Three Similar Pong or Kong" >:: three_similar_pong_or_kong;
   ]
 
+let nine_tile_straight _ctx =
+  zj_reg_hand_test
+    [[c1; c2; c3]; [c4; c5; c6]; [b2; b2]; [b5; b5; b5]]
+    [[c7; c8; c9], false]
+    40.
+
+let three_consecutive_pong_or_kong _ctx =
+  zj_reg_hand_test
+    [[c1; c1; c1]; [d2; d3; d4]; [ww; ww]]
+    [[c2; c2; c2], false; [c3; c3; c3], false]
+    100.
+
+let four_consecutive_pong_or_kong _ctx =
+  zj_reg_hand_test
+    [[c1; c1; c1]; [b1; b1]]
+    [[c2; c2; c2], false; [c3; c3; c3], false; [c4; c4; c4], false]
+    230.
+
+
+let rules_7 =
+  "Rules 7" >:::
+  [
+    "Nine-Tile Straight" >:: nine_tile_straight;
+    "Three consecutive pong or kong" >:: three_consecutive_pong_or_kong;
+    "Four consecutive pong or kong" >:: four_consecutive_pong_or_kong;
+  ]
+
 let misc_1 _ctx =
   zj_reg_hand_test
     [[d3; d4; d5]; [d7; d7]]
@@ -415,6 +442,7 @@ let zung_jung_suite =
     rules_4;
     rules_5;
     rules_6;
+    rules_7;
     misc
   ]
 
