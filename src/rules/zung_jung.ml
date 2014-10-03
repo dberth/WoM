@@ -325,6 +325,12 @@ let check_wind tileset =
   let tile = List.hd (tiles_of_tileset tileset) in
   tile = ew || tile = sw || tile = ww || tile = nw
 
+let contains_honor tileset =
+  let open Tileset in
+  let tile = List.hd (tiles_of_tileset tileset) in
+  tile = rd || tile = gd || tile = wd ||
+  tile = ew || tile = sw || tile = ww || tile = nw
+
 let all_honor mahjong declared =
   fold_tilesets
     (fun acc tileset _ ->
@@ -333,9 +339,7 @@ let all_honor mahjong declared =
          if is_chow tileset then
            false
          else
-           let tile = List.hd (tiles_of_tileset tileset) in
-           tile = rd || tile = gd || tile = wd ||
-           tile = ew || tile = sw || tile = ww || tile = nw
+           contains_honor tileset
        else
          acc
     )
@@ -695,9 +699,56 @@ let consecutive_sets_pts check mahjong declared =
   else
     no_pts
 
-let mixed_lesser_terminals_pts mahjong decalred = no_pts
+let contains_terminal tileset =
+  let open Tileset in
+  let tile = List.hd (tiles_of_tileset tileset) in
+  let res =
+    tile = d1 || tile = c1 || tile = b1 ||
+    tile = d9 || tile = c9 || tile = b9
+  in
+  if res then
+    res
+  else
+    if tile = d7 || tile = c7 || tile = b7 then
+      Tileset.is_chow tileset
+    else
+      false
 
-let pure_lesser_terminals_pts mahjong declared = no_pts
+let mixed_lesser_terminals mahjong declared =
+  fold_tilesets
+    (fun result tileset _ ->
+       if result then
+         contains_honor tileset || contains_terminal tileset
+       else
+         false
+    )
+    true
+    mahjong
+    declared
+
+let mixed_lesser_terminals_pts mahjong declared =
+  if mixed_lesser_terminals mahjong declared then
+    pts "Mixed Lesser Terminals" 40.
+  else
+    no_pts
+
+let pure_lesser_terminals mahjong declared =
+  fold_tilesets
+    (fun result tileset _ ->
+       if result then
+         contains_terminal tileset
+       else
+         false
+    )
+    true
+    mahjong
+    declared
+
+let pure_lesser_terminals_pts mahjong declared =
+  if pure_lesser_terminals mahjong declared then
+    pts "Pure Lesser Terminals" 50.
+  else
+    no_pts
 
 let mixed_greater_terminals_pts mahjong declared = no_pts
 
