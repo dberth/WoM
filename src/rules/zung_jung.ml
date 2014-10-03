@@ -87,9 +87,10 @@ let pong_and_kong = flag "Pong and Kong"
 let identical_chow = flag "Identical Chow"
 let similar_sets = flag "Similar Sets"
 let consecutive_sets = flag "Consecutive Sets"
+let terminals = flag "Terminals"
 
 
-let flags = [trivial_patterns; one_suit_patterns; honor_tiles; pong_and_kong; identical_chow; similar_sets; consecutive_sets]
+let flags = [trivial_patterns; one_suit_patterns; honor_tiles; pong_and_kong; identical_chow; similar_sets; consecutive_sets; terminals]
 
 let default_flags = flags
 
@@ -694,11 +695,31 @@ let consecutive_sets_pts check mahjong declared =
   else
     no_pts
 
+let mixed_lesser_terminals_pts mahjong decalred = no_pts
+
+let pure_lesser_terminals_pts mahjong declared = no_pts
+
+let mixed_greater_terminals_pts mahjong declared = no_pts
+
+let terminals_pts mahjong declared =
+  mixed_lesser_terminals_pts mahjong declared @+
+  pure_lesser_terminals_pts mahjong declared @+
+  mixed_greater_terminals_pts mahjong declared
+
+let terminals_pts check mahjong declared =
+  if check terminals then
+    terminals_pts mahjong declared
+  else
+    no_pts
+
+let pure_greater_terminals check mahjong decalred = no_pts (*TODO*)
+
 let limit_hand_pts check last_tile hand mahjong declared =
   nine_gates_pts check last_tile hand @+
   honor_tiles_limits_pts check mahjong declared @+
   four_kong check mahjong declared @+
-  four_identical_chow check mahjong declared
+  four_identical_chow check mahjong declared @+
+  pure_greater_terminals check mahjong declared
 
 let mahjong_pts check seat_wind last_tile hand mahjong declared =
   let limit_pts = limit_hand_pts check last_tile hand mahjong declared in
@@ -710,7 +731,8 @@ let mahjong_pts check seat_wind last_tile hand mahjong declared =
       pong_and_kong_pts check mahjong declared @+
       identical_chow_pts check mahjong declared @+
       similar_sets_pts check mahjong declared @+
-      consecutive_sets_pts check mahjong declared
+      consecutive_sets_pts check mahjong declared @+
+      terminals_pts check mahjong declared
     in
     if snd points = 0. then
       pts "Chicken Hand" 1.
