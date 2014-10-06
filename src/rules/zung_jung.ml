@@ -735,12 +735,6 @@ let mixed_lesser_terminals mahjong declared =
     mahjong
     declared
 
-let mixed_lesser_terminals_pts mahjong declared =
-  if mixed_lesser_terminals mahjong declared then
-    pts "Mixed Lesser Terminals" 40.
-  else
-    no_pts
-
 let pure_lesser_terminals mahjong declared =
   fold_tilesets
     (fun result tileset _ ->
@@ -753,12 +747,6 @@ let pure_lesser_terminals mahjong declared =
     mahjong
     declared
 
-let pure_lesser_terminals_pts mahjong declared =
-  if pure_lesser_terminals mahjong declared then
-    pts "Pure Lesser Terminals" 50.
-  else
-    no_pts
-
 let mixed_greater_terminals mahjong declared =
   fold_tilesets
     (fun result tileset _ ->
@@ -770,12 +758,6 @@ let mixed_greater_terminals mahjong declared =
     true
     mahjong
     declared
-
-let mixed_greater_terminals_pts mahjong declared =
-  if mixed_greater_terminals mahjong declared then
-    pts "Mixed Greater Terminals" 100.
-  else
-    no_pts
 
 let pure_greater_terminals mahjong declared =
   fold_tilesets
@@ -791,9 +773,14 @@ let pure_greater_terminals mahjong declared =
 
 
 let terminals_pts mahjong declared =
-  mixed_lesser_terminals_pts mahjong declared @+
-  pure_lesser_terminals_pts mahjong declared @+
-  mixed_greater_terminals_pts mahjong declared
+  if mixed_greater_terminals mahjong declared then
+    pts "Mixed Greater Terminals" 100.
+  else if pure_lesser_terminals mahjong declared then
+    pts "Pure Lesser Terminals" 50.
+  else if mixed_lesser_terminals mahjong declared then
+    pts "Mixed Lesser Terminals" 40.
+  else
+    no_pts
 
 let terminals_pts check mahjong declared =
   if check terminals then

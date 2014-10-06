@@ -129,7 +129,15 @@ let fsm_test_suite =
 let zj_reg_hand_test ?(seat_wind = ww) hand declared expected =
   let mahjong = Regular (List.map basic_tileset_of_tiles hand) in
   let declared = List.map (fun (x, y) -> tileset_of_tiles x, [], y) declared in
-  assert_equal ~printer: string_of_float expected (snd (Zung_jung.mahjong_pts (fun _ -> true) seat_wind (Some c1) (Tileset.tileset_of_tiles [c1]) mahjong declared))
+  let explanations, score = Zung_jung.mahjong_pts (fun _ -> true) seat_wind (Some c1) (Tileset.tileset_of_tiles [c1]) mahjong declared in
+  if false (*DEBUG*) then begin
+    List.iter
+      (fun (s, x) ->
+         print_endline (Printf.sprintf "%s: %.0f" s x)
+      )
+      explanations
+  end;
+  assert_equal ~printer: string_of_float expected score
 
 let chicken_hand _ctx =
   zj_reg_hand_test
@@ -210,7 +218,7 @@ let rules_2 =
 let value_honor _ctx =
   zj_reg_hand_test
     ~seat_wind: ew
-    [[d1; d1]; [c1; c2; c3] ; [ww; ww; ww]]
+    [[d1; d1]; [c2; c3; c4] ; [ww; ww; ww]]
     [[gd; gd; gd], false; [ew; ew; ew], false]
     20.
 
@@ -419,6 +427,39 @@ let rules_7 =
     "Four consecutive pong or kong" >:: four_consecutive_pong_or_kong;
   ]
 
+let mixed_lesser_terminals _ctx =
+  zj_reg_hand_test
+    [[c1; c2; c3]; [d7; d8; d9]; [ww; ww]]
+    [[b1; b1; b1], false; [c9; c9; c9], false]
+    40.
+
+let pure_lesser_terminals _ctx =
+  zj_reg_hand_test
+    [[c1; c2; c3]; [d7; d8; d9]; [c1; c1]]
+    [[b1; b1; b1], false; [c9; c9; c9], false]
+    50.
+
+let mixed_greater_terminals _ctx =
+  zj_reg_hand_test
+    [[b1; b1; b1]; [ww; ww]]
+    [[c1; c1; c1], false; [b9; b9; b9], false; [nw; nw; nw], false]
+    130.
+
+let pure_greater_terminals _ctx =
+  zj_reg_hand_test
+    [[b1; b1; b1]; [d1; d1]]
+    [[c1; c1; c1], false; [b9; b9; b9], false;[c9; c9; c9], false]
+    400.
+
+let rules_8 =
+  "Rules 8" >:::
+  [
+    "Mixed Lesser terminals" >:: mixed_lesser_terminals;
+    "Pure Lesser terminals" >:: pure_lesser_terminals;
+    "Mixed Greater terminals" >:: mixed_greater_terminals;
+    "PUre Greater terminals" >:: pure_greater_terminals
+  ]
+
 let misc_1 _ctx =
   zj_reg_hand_test
     [[d3; d4; d5]; [d7; d7]]
@@ -443,6 +484,7 @@ let zung_jung_suite =
     rules_5;
     rules_6;
     rules_7;
+    rules_8;
     misc
   ]
 
