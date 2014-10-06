@@ -714,6 +714,15 @@ let contains_terminal tileset =
     else
       false
 
+let all_terminals tileset =
+  let open Tileset in
+  if not (Tileset.is_chow tileset) then
+    let tile = List.hd (tiles_of_tileset tileset) in
+    tile = d1 || tile = d9 || tile = b1 || tile = b9 ||
+    tile = c1 || tile = c9
+  else
+    false
+
 let mixed_lesser_terminals mahjong declared =
   fold_tilesets
     (fun result tileset _ ->
@@ -750,7 +759,36 @@ let pure_lesser_terminals_pts mahjong declared =
   else
     no_pts
 
-let mixed_greater_terminals_pts mahjong declared = no_pts
+let mixed_greater_terminals mahjong declared =
+  fold_tilesets
+    (fun result tileset _ ->
+       if result then
+         contains_honor tileset || all_terminals tileset
+       else
+         false
+    )
+    true
+    mahjong
+    declared
+
+let mixed_greater_terminals_pts mahjong declared =
+  if mixed_greater_terminals mahjong declared then
+    pts "Mixed Greater Terminals" 100.
+  else
+    no_pts
+
+let pure_greater_terminals mahjong declared =
+  fold_tilesets
+    (fun result tileset _ ->
+       if result then
+         all_terminals tileset
+       else
+         false
+    )
+    true
+    mahjong
+    declared
+
 
 let terminals_pts mahjong declared =
   mixed_lesser_terminals_pts mahjong declared @+
@@ -763,7 +801,14 @@ let terminals_pts check mahjong declared =
   else
     no_pts
 
-let pure_greater_terminals check mahjong decalred = no_pts (*TODO*)
+let pure_greater_terminals check mahjong declared =
+  if check terminals then
+    if pure_greater_terminals mahjong declared then
+      pts "Pure Greater Terminals" 400.
+    else
+      no_pts
+  else
+    no_pts
 
 let limit_hand_pts check last_tile hand mahjong declared =
   nine_gates_pts check last_tile hand @+
