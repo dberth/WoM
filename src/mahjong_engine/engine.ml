@@ -10,6 +10,14 @@ type tile_pos = int (*A position in the initial array*)
 
 type declared = (tileset * tile_pos list * bool (*is_concealed*)) list
 
+type extraordinary_event =
+  | Final_draw
+  | Final_discard
+  | Win_on_kong
+  | Kong_robbing
+  | Blessing_of_heaven
+  | Blessing_of_earth
+
 type mahjong =
   {
     declared: declared;
@@ -17,6 +25,7 @@ type mahjong =
     discard_player: player option;
     kong_robbing: bool;
     last_drawn_tile: Tileset.tile option;
+    extraordinary_events: extraordinary_event list;
   }
 
 type end_game =
@@ -50,7 +59,7 @@ type player_state =
     possible_small_kongs: Tileset.tile list;
     declared: declared;
     discarded_tiles: int list;
-    last_drawn_tile: int option;
+    last_drawn_tile: (int * bool) option;
   }
 
 
@@ -114,7 +123,7 @@ let string_of_declared declared =
        declared
     )
 
-let string_of_mahjong {declared; hand; discard_player; kong_robbing; last_drawn_tile} =
+let string_of_mahjong {declared; hand; discard_player; kong_robbing; last_drawn_tile; extraordinary_events = _} =
   Printf.sprintf "{\ndeclared: %s;\nhand: %s;\ndiscard_player: %s;\nkong_robbing: %b\n; last_drawn_tile: %s\n}"
     (string_of_declared declared)
     (string_of_tileset hand)
@@ -160,7 +169,7 @@ let string_of_possible_small_kongs tiles =
 
 let string_of_last_drawn_tile = function
   | None -> "None"
-  | Some i -> string_of_int i
+  | Some (i, in_kong_box) -> Printf.sprintf "%i, %b" i in_kong_box
 
 let string_of_player_state tiles {tiles_pos; semi_chows; declared; discarded_tiles; possible_small_kongs; hand = _; last_drawn_tile} =
   Printf.sprintf "{\nhand: %s;\ndeclared: %s;\ndiscarded_tiles: %s; semi_chows: %s; possible small kongs: %s; last_drawn_tile = %s\n}"
@@ -369,7 +378,7 @@ let populate_semi_chows tile pos tiles_pos semi_chows =
     set_semi_chows false succ_pos succ_succ pos |>
     set_semi_chows false succ_succ_pos succ pos
     
-let set_tile ~set_last_drawn_tile player pos game =
+let set_tile ~set_last_drawn_tile ~in_kong_box player pos game =
   update_player player
     (fun player_state ->
       let  tile = game.tiles.(pos) in
@@ -378,7 +387,7 @@ let set_tile ~set_last_drawn_tile player pos game =
       let semi_chows = populate_semi_chows tile pos tiles_pos player_state.semi_chows in
       let last_drawn_tile =
         if set_last_drawn_tile then
-          Some pos
+          Some (pos, in_kong_box)
         else
           None
       in
@@ -388,11 +397,11 @@ let set_tile ~set_last_drawn_tile player pos game =
 
 let draw_tile player game =
   let game = incr_current_tile game in
-  set_tile ~set_last_drawn_tile: true player game.current_tile game
+  set_tile ~set_last_drawn_tile: true ~in_kong_box: false player game.current_tile game
 
 let draw_last_tile player game =
   let game = decr_last_tile game in
-  set_tile ~set_last_drawn_tile: true player game.last_tile game
+  set_tile ~set_last_drawn_tile: true ~in_kong_box: true player game.last_tile game
 
 let draw_4_tiles player game =
   draw_tile player game |>
@@ -469,15 +478,42 @@ let discard player tile_idx event game =
   } |>
     update_player player (remove_tile_from_hand tile_idx game.tiles event)
 
-let mahjong ~discard_player ?(kong_robbing = false) player game =
+let remaining_tiles {current_tile; last_tile; _} =
+  if last_tile < current_tile then
+    current_tile + nb_tiles - last_tile + 1
+  else
+    last_tile - current_tile + 1
+
+let mahjong ~discard_player ?(extraordinary_events = []) ?(kong_robbing = false) player game =
   update_game_from_player player
     (fun {hand; declared; last_drawn_tile; _} ->
-      let hand, last_drawn_tile =
+      let hand, last_drawn_tile, win_on_kong_event =
         match game.discarded_tile with
-        | None -> hand, (match last_drawn_tile with None -> None | Some pos -> Some game.tiles.(pos))
-        | Some discarded_tile -> Tileset.add_tile (game.tiles.(discarded_tile)) hand, Some game.tiles.(discarded_tile)
+        | None ->
+          let last_drawn_tile, win_on_kong_event =
+            match last_drawn_tile with
+            | None -> None, []
+            | Some (pos, win_on_kong) ->
+              Some game.tiles.(pos),
+              (if win_on_kong then [Win_on_kong] else [])
+          in
+          hand, last_drawn_tile, win_on_kong_event
+        | Some discarded_tile -> Tileset.add_tile (game.tiles.(discarded_tile)) hand, Some game.tiles.(discarded_tile), []
       in
-      {game with end_game = Some (Mahjong {declared; hand; discard_player; kong_robbing; last_drawn_tile})}
+      let last_tile_event =
+        if remaining_tiles game < 14 then
+          match discard_player with
+          | Some _ -> [Final_discard]
+          | None -> [Final_draw]
+        else
+          []
+      in 
+      let extraordinary_events =
+        last_tile_event @
+        win_on_kong_event @
+        extraordinary_events
+      in
+      {game with end_game = Some (Mahjong {declared; hand; discard_player; kong_robbing; last_drawn_tile; extraordinary_events})}
     )
     game
 
@@ -546,7 +582,7 @@ let set_discarded_tile player tiles_pos event game =
   | Some discarded_tile ->
     if List.mem discarded_tile tiles_pos then begin
       {game with discarded_tile = None; discard_player = None; current_player = player} |>
-        set_tile ~set_last_drawn_tile: false player discarded_tile
+        set_tile ~set_last_drawn_tile: false ~in_kong_box: false player discarded_tile
     end else
       raise (Irrelevant_event(event, "Event doesn't concern discarded tile."))
 
@@ -694,14 +730,8 @@ let on_wait_for_deal_exit event game =
       deal_turn draw_tile
   | _ -> assert false
 
-let on_wait_for_draw_in_wall_entry _ ({current_tile; last_tile; _} as game) =
-  let remaining_tiles =
-    if last_tile < current_tile then
-      current_tile + nb_tiles - last_tile + 1
-    else
-      last_tile - current_tile + 1
-  in
-  if remaining_tiles < 14 then
+let on_wait_for_draw_in_wall_entry _ game =
+  if remaining_tiles game < 14 then
     {game with end_game = Some No_winner}
   else
     game
@@ -1325,7 +1355,7 @@ let last_drawn_tile player game =
   let {last_drawn_tile; _} = player_state player game in
   match last_drawn_tile with
   | None -> None
-  | Some pos -> Some game.tiles.(pos)
+  | Some (pos, _) -> Some game.tiles.(pos)
 
 let current_player_wind {current_player; _} =
   match current_player with

@@ -8,6 +8,14 @@ type game
 
 type declared = (Tileset.tileset * tile_pos list * bool (*is_concealed*)) list
 
+type extraordinary_event =
+  | Final_draw
+  | Final_discard
+  | Win_on_kong
+  | Kong_robbing
+  | Blessing_of_heaven
+  | Blessing_of_earth
+
 type mahjong =
   {
     declared: declared;
@@ -15,6 +23,7 @@ type mahjong =
     discard_player: player option;
     kong_robbing: bool;
     last_drawn_tile: Tileset.tile option;
+    extraordinary_events: extraordinary_event list;
   }
 
 type end_game =
