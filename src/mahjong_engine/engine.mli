@@ -21,7 +21,6 @@ type mahjong =
     declared: declared;
     hand: Tileset.tileset;
     discard_player: player option;
-    kong_robbing: bool;
     last_drawn_tile: Tileset.tile option;
     extraordinary_events: extraordinary_event list;
   }

@@ -23,7 +23,6 @@ type mahjong =
     declared: declared;
     hand: tileset;
     discard_player: player option;
-    kong_robbing: bool;
     last_drawn_tile: Tileset.tile option;
     extraordinary_events: extraordinary_event list;
   }
@@ -123,12 +122,11 @@ let string_of_declared declared =
        declared
     )
 
-let string_of_mahjong {declared; hand; discard_player; kong_robbing; last_drawn_tile; extraordinary_events = _} =
-  Printf.sprintf "{\ndeclared: %s;\nhand: %s;\ndiscard_player: %s;\nkong_robbing: %b\n; last_drawn_tile: %s\n}"
+let string_of_mahjong {declared; hand; discard_player; last_drawn_tile; extraordinary_events = _} =
+  Printf.sprintf "{\ndeclared: %s;\nhand: %s;\ndiscard_player: %s;\n last_drawn_tile: %s\n}"
     (string_of_declared declared)
     (string_of_tileset hand)
     (match discard_player with Some i -> string_of_int i | None -> "None")
-    kong_robbing
     (match last_drawn_tile with Some t -> string_of_tile t | None -> "None")
     
 let string_of_tile_index tiles idx = Printf.sprintf "%s(%i)" (string_of_tile_descr (tile_descr_of_tile (tiles.(idx)))) idx
@@ -484,7 +482,7 @@ let remaining_tiles {current_tile; last_tile; _} =
   else
     last_tile - current_tile + 1
 
-let mahjong ~discard_player ?(extraordinary_events = []) ?(kong_robbing = false) player game =
+let mahjong ~discard_player ?(extraordinary_events = []) player game =
   update_game_from_player player
     (fun {hand; declared; last_drawn_tile; _} ->
       let hand, last_drawn_tile, win_on_kong_event =
@@ -513,7 +511,7 @@ let mahjong ~discard_player ?(extraordinary_events = []) ?(kong_robbing = false)
         win_on_kong_event @
         extraordinary_events
       in
-      {game with end_game = Some (Mahjong {declared; hand; discard_player; kong_robbing; last_drawn_tile; extraordinary_events})}
+      {game with end_game = Some (Mahjong {declared; hand; discard_player; last_drawn_tile; extraordinary_events})}
     )
     game
 
@@ -886,7 +884,7 @@ let on_wait_for_kong_robbing_exit (event: event) game =
   match event with
   | Mahjong player ->
     check_player player event game |>
-      mahjong ~discard_player: (Some (prev_player player)) ~kong_robbing: true player
+      mahjong ~discard_player: (Some (prev_player player)) ~extraordinary_events: [Kong_robbing] player
   | No_action player ->
     {game with current_player = next_player player}
   | _ -> assert false
@@ -895,7 +893,7 @@ let on_kr_2_exit (event: event) game =
   match event with
   | Mahjong player ->
     check_player player event game |>
-      mahjong ~discard_player: (Some (prev_prev_player player)) ~kong_robbing: true player
+      mahjong ~discard_player: (Some (prev_prev_player player)) ~extraordinary_events: [Kong_robbing] player
   | No_action player ->
     {game with current_player = next_player player}
   | _ -> assert false
@@ -904,7 +902,7 @@ let on_kr_3_exit (event: event) game =
   match event with
   | Mahjong player ->
     check_player player event game |>
-      mahjong ~discard_player: (Some (next_player player)) ~kong_robbing: true player
+      mahjong ~discard_player: (Some (next_player player)) ~extraordinary_events: [Kong_robbing] player
   | No_action _-> declare_small_kong game
   | _ -> assert false
 
