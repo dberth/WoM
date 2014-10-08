@@ -88,9 +88,10 @@ let identical_chow = flag "Identical Chow"
 let similar_sets = flag "Similar Sets"
 let consecutive_sets = flag "Consecutive Sets"
 let terminals = flag "Terminals"
+let incidental_bonuses = flag "Incidental Bonuses"
 
 
-let flags = [trivial_patterns; one_suit_patterns; honor_tiles; pong_and_kong; identical_chow; similar_sets; consecutive_sets; terminals]
+let flags = [trivial_patterns; one_suit_patterns; honor_tiles; pong_and_kong; identical_chow; similar_sets; consecutive_sets; terminals; incidental_bonuses]
 
 let default_flags = flags
 
@@ -797,6 +798,27 @@ let pure_greater_terminals check mahjong declared =
   else
     no_pts
 
+let bonuses_pts check extraordinary_events =
+  let open Engine in
+  if check incidental_bonuses then
+    List.fold_left
+      (fun acc bonus ->
+         let bonus_pts =
+           match bonus with
+           | Final_draw -> pts "Final Draw" 10.
+           | Final_discard -> pts "Final Discard" 10.
+           | Win_on_kong -> pts "Win on Kong" 10.
+           | Kong_robbing -> pts "Kong Robbing" 10.
+           | Blessing_of_heaven -> pts "Blessing of Heaven" 155.
+           | Blessing_of_earth -> pts "Blessing of Earth" 155. 
+         in
+         bonus_pts @+ acc
+      )
+      no_pts
+      extraordinary_events
+  else
+    no_pts
+
 let limit_hand_pts check last_tile hand mahjong declared =
   nine_gates_pts check last_tile hand @+
   honor_tiles_limits_pts check mahjong declared @+
@@ -804,7 +826,7 @@ let limit_hand_pts check last_tile hand mahjong declared =
   four_identical_chow check mahjong declared @+
   pure_greater_terminals check mahjong declared
 
-let mahjong_pts check seat_wind last_tile hand mahjong declared =
+let mahjong_pts check extraordinary_events seat_wind last_tile hand mahjong declared =
   let limit_pts = limit_hand_pts check last_tile hand mahjong declared in
   if snd limit_pts = 0. then
     let points =
@@ -815,7 +837,8 @@ let mahjong_pts check seat_wind last_tile hand mahjong declared =
       identical_chow_pts check mahjong declared @+
       similar_sets_pts check mahjong declared @+
       consecutive_sets_pts check mahjong declared @+
-      terminals_pts check mahjong declared
+      terminals_pts check mahjong declared @+
+      bonuses_pts check extraordinary_events
     in
     if snd points = 0. then
       pts "Chicken Hand" 1.
@@ -845,7 +868,7 @@ let explain_hand_score ~irregular_hands ~seven_pairs check game =
   match finished game with
   | None -> assert false
   | Some No_winner -> [], 0.
-  | Some (Mahjong {declared; hand; last_drawn_tile; _}) ->
+  | Some (Mahjong {declared; hand; last_drawn_tile; extraordinary_events; discard_player = _}) ->
       let nb_declared = List.length declared in
       let mahjongs =
         Tileset.mahjong ~irregular_hands ~seven_pairs (4 - nb_declared) hand
@@ -853,7 +876,7 @@ let explain_hand_score ~irregular_hands ~seven_pairs check game =
       List.fold_left
         (fun (explanations, score) mahjong ->
            let new_explanations, new_score =
-             mahjong_pts check (current_player_wind game) last_drawn_tile hand mahjong declared
+             mahjong_pts check extraordinary_events (current_player_wind game) last_drawn_tile hand mahjong declared
            in
            if new_score < score then
              explanations, score

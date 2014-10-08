@@ -126,10 +126,10 @@ let fsm_test_suite =
       "Red light" >:: Red_light.test;
     ]
 
-let zj_reg_hand_test ?(seat_wind = ww) hand declared expected =
+let zj_reg_hand_test ?(seat_wind = ww) ?(extraordinary_events = []) hand declared expected =
   let mahjong = Regular (List.map basic_tileset_of_tiles hand) in
   let declared = List.map (fun (x, y) -> tileset_of_tiles x, [], y) declared in
-  let explanations, score = Zung_jung.mahjong_pts (fun _ -> true) seat_wind (Some c1) (Tileset.tileset_of_tiles [c1]) mahjong declared in
+  let explanations, score = Zung_jung.mahjong_pts (fun _ -> true) extraordinary_events seat_wind (Some c1) (Tileset.tileset_of_tiles [c1]) mahjong declared in
   if false (*DEBUG*) then begin
     List.iter
       (fun (s, x) ->
@@ -205,7 +205,7 @@ let pure_one_suit _ctx =
     80.
 
 let nine_gates _ctx =
-    assert_equal ~printer: string_of_float 480. (snd (Zung_jung.mahjong_pts (fun _ -> true) ww (Some c1) (Tileset.tileset_of_tiles [c1; c1; c1; c1; c2; c3; c4; c5; c6; c7; c8; c9; c9; c9]) (Regular (List.map basic_tileset_of_tiles [[c1; c1; c1]; [c1; c2; c3]; [c4; c5; c6]; [c7; c8; c9]; [c9; c9]])) []))
+    assert_equal ~printer: string_of_float 480. (snd (Zung_jung.mahjong_pts (fun _ -> true) [] ww (Some c1) (Tileset.tileset_of_tiles [c1; c1; c1; c1; c2; c3; c4; c5; c6; c7; c8; c9; c9; c9]) (Regular (List.map basic_tileset_of_tiles [[c1; c1; c1]; [c1; c2; c3]; [c4; c5; c6]; [c7; c8; c9]; [c9; c9]])) []))
 
 let rules_2 =
   "Rules 2" >:::
@@ -460,6 +460,26 @@ let rules_8 =
     "PUre Greater terminals" >:: pure_greater_terminals
   ]
 
+let bonus event pts _ctx =
+  zj_reg_hand_test
+    ~extraordinary_events: [event]
+    [[d1; d2; d3]; [c1; c1; c1]; [gd; gd]]
+    [[d5; d5; d5], false; [b2; b2; b2], false]
+    pts
+    
+
+let rules_9 =
+  let open Engine in
+  "Rules 9" >:::
+  [
+    "Final Draw" >:: bonus Final_draw 10.;
+    "Final Discard" >:: bonus Final_discard 10.;
+    "Win on Kong" >:: bonus Win_on_kong 10.;
+    "Kong robbing" >:: bonus Kong_robbing 10.;
+    "Blessing of Heaven" >:: bonus Blessing_of_heaven 155.;
+    "Blessing of earth" >:: bonus Blessing_of_earth 155.;
+  ]
+
 let misc_1 _ctx =
   zj_reg_hand_test
     [[d3; d4; d5]; [d7; d7]]
@@ -485,6 +505,7 @@ let zung_jung_suite =
     rules_6;
     rules_7;
     rules_8;
+    rules_9;
     misc
   ]
 
