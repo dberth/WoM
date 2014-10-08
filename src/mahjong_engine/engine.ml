@@ -498,17 +498,27 @@ let mahjong ~discard_player ?(extraordinary_events = []) player game =
           hand, last_drawn_tile, win_on_kong_event
         | Some discarded_tile -> Tileset.add_tile (game.tiles.(discarded_tile)) hand, Some game.tiles.(discarded_tile), []
       in
+      let remaining_tiles = remaining_tiles game in
       let last_tile_event =
-        if remaining_tiles game < 14 then
+        if remaining_tiles < 14 then
           match discard_player with
           | Some _ -> [Final_discard]
           | None -> [Final_draw]
         else
           []
-      in 
+      in
+      let blessing_events =
+        if remaining_tiles = nb_tiles - 80 then
+          match discard_player with
+          | Some _ -> [Blessing_of_earth]
+          | None -> [Blessing_of_heaven]
+        else
+          []
+      in
       let extraordinary_events =
         last_tile_event @
         win_on_kong_event @
+        blessing_events @
         extraordinary_events
       in
       {game with end_game = Some (Mahjong {declared; hand; discard_player; last_drawn_tile; extraordinary_events})}
