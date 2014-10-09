@@ -833,8 +833,96 @@ let bonuses_pts check extraordinary_events =
   else
     no_pts
 
+type thirteen_terminal_acc =
+  {
+    pair: bool;
+    b1: bool;
+    b9: bool;
+    c1: bool;
+    c9: bool;
+    d1: bool;
+    d9: bool;
+    wd: bool;
+    rd: bool;
+    gd: bool;
+    ew: bool;
+    sw: bool;
+    ww: bool;
+    nw: bool;
+  }
 
-let thirteen_terminals mahjong = false (*TODO*)
+let default_tt =
+  {
+    pair = false;
+    b1 = false;
+    b9 = false;
+    c1 = false;
+    c9 = false;
+    d1 = false;
+    d9 = false;
+    wd = false;
+    rd = false;
+    gd = false;
+    ew = false;
+    sw = false;
+    ww = false;
+    nw = false;
+  }
+
+let check_tt acc tile_flag update =
+  if tile_flag then
+    if acc.pair then
+      false, acc
+    else
+      true, {acc with pair = true}
+  else
+    true, update acc
+
+let thirteen_terminals mahjong =
+  match mahjong with
+  | Tileset.Regular _ -> false
+  | Tileset.Irregular tileset ->
+    let open Tileset in
+    let tiles = tiles_of_tileset tileset in
+    let result, _ =
+      List.fold_left
+        (fun (result, acc) tile ->
+           if result then
+             if tile = b1 then
+               check_tt acc acc.b1 (fun acc -> {acc with b1 = true})
+             else if tile = b9 then
+               check_tt acc acc.b9 (fun acc -> {acc with b9 = true})
+             else if tile = c1 then
+               check_tt acc acc.c1 (fun acc -> {acc with c1 = true})
+             else if tile = c9 then
+               check_tt acc acc.c9 (fun acc -> {acc with c9 = true})
+             else if tile = d1 then
+               check_tt acc acc.d1 (fun acc -> {acc with d1 = true})
+             else if tile = d9 then
+               check_tt acc acc.d9 (fun acc -> {acc with d9 = true})
+             else if tile = wd then
+               check_tt acc acc.wd (fun acc -> {acc with wd = true})
+             else if tile = rd then
+               check_tt acc acc.rd (fun acc -> {acc with rd = true})
+             else if tile = gd then
+               check_tt acc acc.gd (fun acc -> {acc with gd = true})
+             else if tile = ew then
+               check_tt acc acc.ew (fun acc -> {acc with ew = true})
+             else if tile = sw then
+               check_tt acc acc.sw (fun acc -> {acc with sw = true})
+             else if tile = ww then
+               check_tt acc acc.ww (fun acc -> {acc with ww = true})
+             else if tile = nw then
+               check_tt acc acc.nw (fun acc -> {acc with nw = true})
+             else
+               false, acc
+           else
+             false, acc
+        )
+        (true, default_tt)
+        tiles
+    in
+    result
 
 let irregular_hand_pts check mahjong declared =
   if check irregular_hands then
@@ -937,7 +1025,13 @@ let explain_player_score player game ~hand_score =
   in
   player_pts status hand_score
 
-let thirteen_terminals = Tileset.no_irregular_hand (*TODO*)
+let thirteen_terminals =
+  let open Tileset in
+  let tiles = [c1; c9; b1; b9; d1; d9; wd; gd; rd; ew; sw; ww; nw] in
+  List.fold_left
+    (fun acc tile -> Tileset.add_irregular_hand (tile :: tiles) acc)
+    Tileset.no_irregular_hand
+    tiles
 
 let build_rule check =
   let seven_pairs = check irregular_hands in
