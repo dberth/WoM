@@ -89,9 +89,10 @@ let similar_sets = flag "Similar Sets"
 let consecutive_sets = flag "Consecutive Sets"
 let terminals = flag "Terminals"
 let incidental_bonuses = flag "Incidental Bonuses"
+let irregular_hands = flag "Irregular Hands"
 
 
-let flags = [trivial_patterns; one_suit_patterns; honor_tiles; pong_and_kong; identical_chow; similar_sets; consecutive_sets; terminals; incidental_bonuses]
+let flags = [trivial_patterns; one_suit_patterns; honor_tiles; pong_and_kong; identical_chow; similar_sets; consecutive_sets; terminals; incidental_bonuses; irregular_hands]
 
 let default_flags = flags
 
@@ -124,8 +125,21 @@ let fold_tilesets f init mahjong declared =
   let acc = fold_declared_tilesets f init declared in
   fold_mahjong_tilesets f acc mahjong
 
+let seven_pairs mahjong declared =
+  fold_tilesets
+    (fun result tileset _ ->
+       if result then
+         Tileset.is_pair tileset
+       else
+         false
+    )
+    true
+    mahjong
+    declared
+
 let is_chow tileset =
   Tileset.is_chow tileset || Tileset.is_pair tileset
+
 
 let all_chows mahjong declared =
   fold_tilesets
@@ -135,7 +149,7 @@ let all_chows mahjong declared =
        else
          false
     )
-    true
+    (not (seven_pairs mahjong declared))
     mahjong
     declared
 
@@ -402,7 +416,7 @@ let all_pong mahjong declared =
        else
          false
     )
-    true
+    (not (seven_pairs mahjong declared))
     mahjong
     declared
 
@@ -819,6 +833,20 @@ let bonuses_pts check extraordinary_events =
   else
     no_pts
 
+
+let thirteen_terminals mahjong = false (*TODO*)
+
+let irregular_hand_pts check mahjong declared =
+  if check irregular_hands then
+    if seven_pairs mahjong declared then
+      pts "Seven Pairs" 30.
+    else if thirteen_terminals mahjong then
+      pts "Thirteen Terminals" 160.
+    else
+      no_pts
+  else
+    no_pts
+      
 let limit_hand_pts check last_tile hand mahjong declared =
   nine_gates_pts check last_tile hand @+
   honor_tiles_limits_pts check mahjong declared @+
@@ -838,7 +866,8 @@ let mahjong_pts check extraordinary_events seat_wind last_tile hand mahjong decl
       similar_sets_pts check mahjong declared @+
       consecutive_sets_pts check mahjong declared @+
       terminals_pts check mahjong declared @+
-      bonuses_pts check extraordinary_events
+      bonuses_pts check extraordinary_events @+
+      irregular_hand_pts check mahjong declared
     in
     if snd points = 0. then
       pts "Chicken Hand" 1.
@@ -908,10 +937,16 @@ let explain_player_score player game ~hand_score =
   in
   player_pts status hand_score
 
+let thirteen_terminals = Tileset.no_irregular_hand (*TODO*)
 
 let build_rule check =
-  let irregular_hands = Tileset.no_irregular_hand in
-  let seven_pairs = false (*TODO*) in
+  let seven_pairs = check irregular_hands in
+  let irregular_hands =
+    if check irregular_hands then
+      thirteen_terminals
+    else
+      Tileset.no_irregular_hand
+  in
   let explain_hand_score game =
     explain_hand_score ~irregular_hands ~seven_pairs check game
   in

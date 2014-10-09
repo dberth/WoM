@@ -131,6 +131,7 @@ let zj_reg_hand_test ?(seat_wind = ww) ?(extraordinary_events = []) hand declare
   let declared = List.map (fun (x, y) -> tileset_of_tiles x, [], y) declared in
   let explanations, score = Zung_jung.mahjong_pts (fun _ -> true) extraordinary_events seat_wind (Some c1) (Tileset.tileset_of_tiles [c1]) mahjong declared in
   if false (*DEBUG*) then begin
+    print_endline "======";
     List.iter
       (fun (s, x) ->
          print_endline (Printf.sprintf "%s: %.0f" s x)
@@ -480,6 +481,18 @@ let rules_9 =
     "Blessing of earth" >:: bonus Blessing_of_earth 155.;
   ]
 
+let seven_pairs _ctx =
+  zj_reg_hand_test
+    [[d1; d1]; [d5; d5]; [ww; ww]; [c2; c2]; [b7; b7]; [b3; b3]; [gd; gd]]
+    []
+    35.
+
+let rules_10 =
+  "Rules 10" >:::
+  [
+    "Seven Pairs" >:: seven_pairs;
+  ]
+
 let misc_1 _ctx =
   zj_reg_hand_test
     [[d3; d4; d5]; [d7; d7]]
@@ -506,6 +519,7 @@ let zung_jung_suite =
     rules_7;
     rules_8;
     rules_9;
+    rules_10;
     misc
   ]
 
