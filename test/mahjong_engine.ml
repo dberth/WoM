@@ -126,6 +126,19 @@ let fsm_test_suite =
       "Red light" >:: Red_light.test;
     ]
 
+let zj_irreg_hand_test hand expected =
+  let mahjong = Irregular (Tileset.tileset_of_tiles hand) in
+  let explanations, score = Zung_jung.mahjong_pts (fun _ -> true) [] ww (Some c1) (Tileset.tileset_of_tiles [c1]) mahjong [] in
+  if false (*DEBUG*) then begin
+    print_endline "======";
+    List.iter
+      (fun (s, x) ->
+         print_endline (Printf.sprintf "%s: %.0f" s x)
+      )
+      explanations
+  end;
+  assert_equal ~printer: string_of_float expected score
+
 let zj_reg_hand_test ?(seat_wind = ww) ?(extraordinary_events = []) hand declared expected =
   let mahjong = Regular (List.map basic_tileset_of_tiles hand) in
   let declared = List.map (fun (x, y) -> tileset_of_tiles x, [], y) declared in
@@ -485,12 +498,18 @@ let seven_pairs _ctx =
   zj_reg_hand_test
     [[d1; d1]; [d5; d5]; [ww; ww]; [c2; c2]; [b7; b7]; [b3; b3]; [gd; gd]]
     []
-    35.
+    30.
+
+let thirteen_terminals _ctx =
+  zj_irreg_hand_test
+    [b1; b9; c1; c9; d1; d9; wd; rd; gd; ew; sw; ww; nw; nw]
+    160.
 
 let rules_10 =
   "Rules 10" >:::
   [
     "Seven Pairs" >:: seven_pairs;
+    "Thirteen terminals" >:: thirteen_terminals
   ]
 
 let misc_1 _ctx =

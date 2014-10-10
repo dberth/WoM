@@ -126,20 +126,27 @@ let fold_tilesets f init mahjong declared =
   fold_mahjong_tilesets f acc mahjong
 
 let seven_pairs mahjong declared =
-  fold_tilesets
-    (fun result tileset _ ->
-       if result then
-         Tileset.is_pair tileset
-       else
-         false
-    )
-    true
-    mahjong
-    declared
+  match mahjong with
+  | Tileset.Irregular _ -> false
+  | Tileset.Regular _ ->
+    fold_tilesets
+      (fun result tileset _ ->
+         if result then
+           Tileset.is_pair tileset
+         else
+           false
+      )
+      true
+      mahjong
+      declared
 
 let is_chow tileset =
   Tileset.is_chow tileset || Tileset.is_pair tileset
 
+let is_regular mahjong declared =
+  match mahjong with
+  | Tileset.Irregular _ -> false
+  | Tileset.Regular _ -> not (seven_pairs mahjong declared)
 
 let all_chows mahjong declared =
   fold_tilesets
@@ -149,7 +156,7 @@ let all_chows mahjong declared =
        else
          false
     )
-    (not (seven_pairs mahjong declared))
+    (is_regular mahjong declared)
     mahjong
     declared
 
@@ -162,7 +169,7 @@ let all_chows_pts mahjong declared =
 let concealed_hand mahjong declared =
   fold_tilesets
     (fun acc _ concealed -> acc && concealed)
-    true
+    (is_regular mahjong declared)
     mahjong
     declared
 
@@ -191,7 +198,7 @@ let no_terminals mahjong declared =
        else
          false
     )
-    true
+    (is_regular mahjong declared)
     mahjong
     declared
 
@@ -358,7 +365,7 @@ let all_honor mahjong declared =
        else
          acc
     )
-    true
+    (is_regular mahjong declared)
     mahjong
     declared
 
@@ -416,7 +423,7 @@ let all_pong mahjong declared =
        else
          false
     )
-    (not (seven_pairs mahjong declared))
+    (is_regular mahjong declared)
     mahjong
     declared
 
@@ -746,7 +753,7 @@ let mixed_lesser_terminals mahjong declared =
        else
          false
     )
-    true
+    (is_regular mahjong declared)
     mahjong
     declared
 
@@ -758,7 +765,7 @@ let pure_lesser_terminals mahjong declared =
        else
          false
     )
-    true
+    (is_regular mahjong declared)
     mahjong
     declared
 
@@ -770,7 +777,7 @@ let mixed_greater_terminals mahjong declared =
        else
          false
     )
-    true
+    (is_regular mahjong declared)
     mahjong
     declared
 
@@ -782,7 +789,7 @@ let pure_greater_terminals mahjong declared =
        else
          false
     )
-    true
+    (is_regular mahjong declared)
     mahjong
     declared
 
@@ -943,7 +950,13 @@ let limit_hand_pts check last_tile hand mahjong declared =
   pure_greater_terminals check mahjong declared
 
 let mahjong_pts check extraordinary_events seat_wind last_tile hand mahjong declared =
-  let limit_pts = limit_hand_pts check last_tile hand mahjong declared in
+  let limit_pts =
+    match mahjong with
+    | Tileset.Regular _ ->
+      limit_hand_pts check last_tile hand mahjong declared
+    | Tileset.Irregular _ ->
+      no_pts
+  in
   if snd limit_pts = 0. then
     let points =
       trivial_patterns_pts check mahjong declared @+
