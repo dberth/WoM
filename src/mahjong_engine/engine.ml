@@ -59,6 +59,7 @@ type player_state =
     declared: declared;
     discarded_tiles: int list;
     last_drawn_tile: (int * bool) option;
+    immunity: (Tileset.tile * player) list
   }
 
 
@@ -89,6 +90,7 @@ let init_player =
     discarded_tiles = [];
     possible_small_kongs = [];
     last_drawn_tile = None;
+    immunity = [];
   }
 
 let init_game =
@@ -169,7 +171,7 @@ let string_of_last_drawn_tile = function
   | None -> "None"
   | Some (i, in_kong_box) -> Printf.sprintf "%i, %b" i in_kong_box
 
-let string_of_player_state tiles {tiles_pos; semi_chows; declared; discarded_tiles; possible_small_kongs; hand = _; last_drawn_tile} =
+let string_of_player_state tiles {tiles_pos; semi_chows; declared; discarded_tiles; possible_small_kongs; hand = _; last_drawn_tile; immunity = _} =
   Printf.sprintf "{\nhand: %s;\ndeclared: %s;\ndiscarded_tiles: %s; semi_chows: %s; possible small kongs: %s; last_drawn_tile = %s\n}"
     (string_of_tile_indexes tiles (List.concat (TMap.fold (fun _ positions acc -> positions :: acc) tiles_pos [])))
     (string_of_declared declared)
@@ -468,13 +470,29 @@ let prev_player player = (player + 3) mod 4
 
 let prev_prev_player player = (player + 2) mod 4
 
+let update_immunity_other_player player discard_player tile game =
+  update_player player
+    (fun player_state ->
+       {player_state with immunity = (tile, discard_player) :: player_state.immunity}
+    )
+    game
+
+let update_immunity player tile game =
+  update_player player (fun player_state -> {player_state with immunity = [tile, player]}) game |>
+  update_immunity_other_player (next_player player) player tile |>
+  update_immunity_other_player (prev_prev_player player) player tile |>
+  update_immunity_other_player (prev_player player) player tile
+    
+
 let discard player tile_idx event game =
+  let tile = game.tiles.(tile_idx) in
   {game with
     discarded_tile = Some tile_idx;
     discard_player = Some player;
     current_player = next_player player
   } |>
-    update_player player (remove_tile_from_hand tile_idx game.tiles event)
+  update_player player (remove_tile_from_hand tile_idx game.tiles event) |>
+  update_immunity player tile
 
 let remaining_tiles {current_tile; last_tile; _} =
   if last_tile < current_tile then
@@ -484,7 +502,7 @@ let remaining_tiles {current_tile; last_tile; _} =
 
 let mahjong ~discard_player ?(extraordinary_events = []) player game =
   update_game_from_player player
-    (fun {hand; declared; last_drawn_tile; _} ->
+    (fun {hand; declared; last_drawn_tile; immunity; _} ->
       let hand, last_drawn_tile, win_on_kong_event =
         match game.discarded_tile with
         | None ->
@@ -514,6 +532,19 @@ let mahjong ~discard_player ?(extraordinary_events = []) player game =
           | None -> [Blessing_of_heaven]
         else
           []
+      in
+      let discard_player =
+        match game.discarded_tile with
+        | None -> discard_player
+        | Some tile_pos ->
+          let tile = game.tiles.(tile_pos) in
+          match List.assoc tile immunity with
+          | exception Not_found -> discard_player
+          | new_discard_player ->
+            if new_discard_player = player then
+              None
+            else
+              Some new_discard_player
       in
       let extraordinary_events =
         last_tile_event @
@@ -609,7 +640,7 @@ let set_discarded_tile player game =
     } |> update_player player
         (fun player_state ->
           {player_state with
-            discarded_tiles = discarded_tile :: player_state.discarded_tiles
+            discarded_tiles = discarded_tile :: player_state.discarded_tiles;
           }
         )
 
@@ -766,7 +797,6 @@ let on_player_turn_exit event game =
     let game = check_player player event game in
     {game with small_kong_event = Some event; current_player = next_player player}
   | _ -> assert false
-
 
 let on_tile_discarded_exit (event: event) game =
   match event with
