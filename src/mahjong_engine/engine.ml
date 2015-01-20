@@ -79,6 +79,7 @@ type game =
     end_game: end_game option;
     discard_event: event option;
     small_kong_event: event option;
+    nb_player_turn_entry: int;
   }
 
 let init_player =
@@ -109,6 +110,7 @@ let init_game =
     end_game = None;
     discard_event = None;
     small_kong_event = None;
+    nb_player_turn_entry = 0;
   }
 
 let string_of_tileset tileset =
@@ -186,9 +188,9 @@ let string_of_end_game = function
 
 let string_of_game
     {
-     tiles;
+      tiles;
       wall_breaker_roll = _;
-     current_tile;
+      current_tile;
       last_tile;
       player_0;
       player_1;
@@ -200,8 +202,9 @@ let string_of_game
       end_game;
       discard_event;
       small_kong_event;
+      nb_player_turn_entry;
     } =
-  Printf.sprintf "{\ncurrent_tile: %i;\n last_tile: %i;\n player_0:\n%s;\nplayer_1:\n%s;\nplayer_2:\n%s;\nplayer_3:\n%s;\ncurrent_player: %i;\n;\n discarded_tile: %s;\n discard_player: %s; end_game: %s;\n discard_event: %s;\n small_kong_event: %s;\n}"
+  Printf.sprintf "{\ncurrent_tile: %i;\n last_tile: %i;\n player_0:\n%s;\nplayer_1:\n%s;\nplayer_2:\n%s;\nplayer_3:\n%s;\ncurrent_player: %i;\n;\n discarded_tile: %s;\n discard_player: %s; end_game: %s;\n discard_event: %s;\n small_kong_event: %s;\nnb_player_turn_entry: %i;\n}"
     current_tile
     last_tile
     (string_of_player_state tiles player_0)
@@ -214,6 +217,7 @@ let string_of_game
     (match end_game with Some end_game -> string_of_end_game end_game | None -> "None")
     (match discard_event with Some event -> string_of_event tiles event | None -> "None")
     (match small_kong_event with Some event -> string_of_event tiles event | None -> "None")
+    nb_player_turn_entry
 
 let string_of_event {tiles; _} event = string_of_event tiles event
 
@@ -526,7 +530,7 @@ let mahjong ~discard_player ?(extraordinary_events = []) player game =
           []
       in
       let blessing_events =
-        if remaining_tiles = nb_tiles - 80 then
+        if game.nb_player_turn_entry = 1 then
           match discard_player with
           | Some _ -> [Blessing_of_earth]
           | None -> [Blessing_of_heaven]
@@ -775,7 +779,11 @@ let on_wait_for_draw_in_wall_entry _ game =
   else
     game
 
-let on_player_turn_entry _ game = {game with discard_event = None}
+let on_player_turn_entry _ game =
+  {game with
+   discard_event = None;
+   nb_player_turn_entry = game.nb_player_turn_entry + 1;
+  }
 
 let on_wait_for_draw_in_wall_exit event game =
   match event with
