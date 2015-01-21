@@ -518,10 +518,17 @@ let misc_1 _ctx =
     [[c6; c7; c8], false; [wd; wd; wd], false; [b5; b5; b5], false]
     15.
 
+let misc_2 _ctx =
+  zj_reg_hand_test
+    [[c3; c4; c5]; [c8; c8]; [c9; c9; c9]]
+    [[gd; gd; gd], false; [c2; c2; c2], false]
+    50.
+
 let misc =
   "Misc" >:::
   [
-    "Misc 1" >:: misc_1
+    "Misc 1" >:: misc_1;
+    "Misc 2" >:: misc_2
   ]
 
 

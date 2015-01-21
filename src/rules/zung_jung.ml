@@ -238,7 +238,11 @@ let one_suit_ check mahjong declared =
     fold_tilesets
       (fun acc tileset _ ->
         match acc with
-        | `Init -> suit_of_tileset tileset
+        | `Init ->
+          begin match suit_of_tileset tileset with
+          | `Honor -> check `Init `Honor
+          | suit -> suit
+          end
         | `Fail -> `Fail
         | suit -> check suit (suit_of_tileset tileset)
       )
