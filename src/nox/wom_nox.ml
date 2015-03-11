@@ -211,7 +211,7 @@ let read_event game events =
     print_string "> "; flush stdout;
     begin match Scanf.scanf "%i\n" (fun x -> x) with
     | i ->
-      if 0 < i && i < List.length events then
+      if 0 < i && i <= List.length events then
         List.nth events (i - 1)
       else
         bad_declare_move events
