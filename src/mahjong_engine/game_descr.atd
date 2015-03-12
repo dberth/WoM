@@ -1,0 +1,24 @@
+(*Copyright (C) 2015 Denis Berthod *)
+
+type tile = string wrap <ocaml t="Tileset.tile" wrap="Tileset.unique_string_of_tile" unwrap="Tileset.tile_of_unique_string">
+
+
+type player = int
+
+type tile_pos = int <doc text="A position in the initial array">
+
+type event = [
+  | Init of tile option list <ocaml repr="array">
+  | Wall_breaker_roll of int
+  | Break_wall_roll of int
+  | Deal
+  | Draw of player
+  | Discard of (player * tile_pos)
+  | Mahjong of player
+  | Concealed_kong of (player * tile_pos list)
+  | Small_kong of (player * tile_pos)
+  | Chow of (player * tile_pos list)
+  | Pong of (player * tile_pos list)
+  | Kong of (player * tile_pos list)
+  | No_action of player
+] <ocaml repr="classic">
