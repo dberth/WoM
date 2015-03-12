@@ -106,6 +106,8 @@ val string_of_tile_descr: tile_descr -> string
 
 val string_of_tile: tile -> string
 
+val tile_of_string: string -> tile
+
 val tiles_to_chow: tile_descr -> tile_descr list list
 
 type tileset_status =

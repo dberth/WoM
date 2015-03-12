@@ -143,6 +143,25 @@ let string_of_tile_descr = function
   | West_wind -> "ww"
   | North_wind -> "nw"
 
+let tile_descr_of_string s =
+  let get_num s = int_of_string (String.sub s 1 1) in
+  match s.[0] with
+  | 'b' -> Bam (get_num s)
+  | 'd' -> Dot (get_num s)
+  | 'c' -> Char (get_num s)
+  | 'r' -> Red_dragon
+  | 'g' -> Green_dragon
+  | 'e' -> East_wind
+  | 's' -> South_wind
+  | 'n' -> North_wind
+  | 'w' ->
+    begin match s.[1] with
+    | 'd' -> White_dragon
+    | 'w' -> West_wind
+    | _ -> assert false
+    end
+  | _ -> assert false
+
 let compare_tile t1 t2 =
   match t1, t2 with
   | Num (kind1, _), Num (kind2, _)
@@ -242,8 +261,16 @@ let add_tile tile tileset = add_basic_tileset tiles_rep.(tile) tileset
 
 let remove_tile tile tileset = remove_basic_tileset tiles_rep.(tile) tileset
 
+let tile_of_tile_descr tile =
+  match Hashtbl.find tile_of_tile_descr_table tile with
+  | exception Not_found -> assert false
+  | x -> x
+
 let string_of_tile tile =
   string_of_tile_descr (tile_descr_of_tile tile)
+
+let tile_of_string s =
+  tile_of_tile_descr (tile_descr_of_string s)
 
 let set_tile_descr tile tile_descr =
   tiles_descr.(tile) <- tile_descr;
@@ -259,10 +286,6 @@ let basic_tileset_of_tiles l =
   | [x] -> x
   | _ -> raise (Invalid_argument "basic_tileset_of_tiles")
 
-let tile_of_tile_descr tile =
-  match Hashtbl.find tile_of_tile_descr_table tile with
-  | exception Not_found -> assert false
-  | x -> x
 
 let tiles_of_tileset tileset =
   List.map tile_of_tile_descr (tile_descr_of_tileset tileset)

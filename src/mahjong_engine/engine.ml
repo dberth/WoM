@@ -4,9 +4,9 @@ module IntSet = Set.Make(struct type t = int let compare x y = x - y end)
 open Tileset
 open Fsm
 
-type player = int
+type player = Game_descr_t.player
 
-type tile_pos = int (*A position in the initial array*)
+type tile_pos = Game_descr_t.tile_pos (*A position in the initial array*)
 
 type declared = (tileset * tile_pos list * bool (*is_concealed*)) list
 
@@ -31,19 +31,19 @@ type end_game =
   | No_winner
   | Mahjong of mahjong
 
-type event =
-  | Init of tile option array
+type event = Game_descr_t.event =
+  | Init of Tileset.tile option array
   | Wall_breaker_roll of int
   | Break_wall_roll of int
   | Deal
   | Draw of player
-  | Discard of player * tile_pos
+  | Discard of (player * tile_pos)
   | Mahjong of player
-  | Concealed_kong of player * tile_pos list
-  | Small_kong of player * tile_pos
-  | Chow of player * tile_pos list
-  | Pong of player * tile_pos list
-  | Kong of player * tile_pos list
+  | Concealed_kong of (player * tile_pos list)
+  | Small_kong of (player * tile_pos)
+  | Chow of (player * tile_pos list)
+  | Pong of (player * tile_pos list)
+  | Kong of (player * tile_pos list)
   | No_action of player
 
 exception Irrelevant_event of (event * string)
