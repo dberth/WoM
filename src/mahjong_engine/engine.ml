@@ -4,9 +4,9 @@ module IntSet = Set.Make(struct type t = int let compare x y = x - y end)
 open Tileset
 open Fsm
 
-type player = Game_descr_t.player
+type player = Game_descr.round_player
 
-type tile_pos = Game_descr_t.tile_pos (*A position in the initial array*)
+type tile_pos = Game_descr.tile_pos (*A position in the initial array*)
 
 type declared = (tileset * tile_pos list * bool (*is_concealed*)) list
 
@@ -31,7 +31,7 @@ type end_game =
   | No_winner
   | Mahjong of mahjong
 
-type event = Game_descr_t.event =
+type event = Game_descr.event =
   | Init of Tileset.tile option array
   | Wall_breaker_roll of int
   | Break_wall_roll of int

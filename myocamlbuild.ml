@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 234f5ea73350d39f7d9dfbcf52d5bfa3) *)
+(* DO NOT EDIT (digest: 7fe6e48163395d1e1bcdbeab591c0bc0) *)
 module OASISGettext = struct
 (* # 22 "src/oasis/OASISGettext.ml" *)
 
@@ -609,6 +609,7 @@ let package_default =
   {
      MyOCamlbuildBase.lib_ocaml =
        [
+          ("game_description", ["src/game_description"], []);
           ("mahjong_engine", ["src/mahjong_engine"], []);
           ("mahjong_ai", ["src/mahjong_ai"], []);
           ("rules", ["src/rules"], [])
@@ -616,6 +617,105 @@ let package_default =
      lib_c = [];
      flags =
        [
+          (["oasis_library_game_description_byte"; "ocaml"; "link"; "byte"],
+            [
+               (OASISExpr.EBool true,
+                 S
+                   [
+                      A "-w";
+                      A "+9+33+34+36..39";
+                      A "-warn-error";
+                      A "+9+33+34+32..39";
+                      A "-annot";
+                      A "-bin-annot"
+                   ])
+            ]);
+          ([
+              "oasis_library_game_description_native";
+              "ocaml";
+              "link";
+              "native"
+           ],
+            [
+               (OASISExpr.EBool true,
+                 S
+                   [
+                      A "-w";
+                      A "+9+33+34+36..39";
+                      A "-warn-error";
+                      A "+9+33+34+36..39";
+                      A "-annot";
+                      A "-bin-annot"
+                   ])
+            ]);
+          ([
+              "oasis_library_game_description_byte";
+              "ocaml";
+              "ocamldep";
+              "byte"
+           ],
+            [
+               (OASISExpr.EBool true,
+                 S
+                   [
+                      A "-w";
+                      A "+9+33+34+36..39";
+                      A "-warn-error";
+                      A "+9+33+34+32..39";
+                      A "-annot";
+                      A "-bin-annot"
+                   ])
+            ]);
+          ([
+              "oasis_library_game_description_native";
+              "ocaml";
+              "ocamldep";
+              "native"
+           ],
+            [
+               (OASISExpr.EBool true,
+                 S
+                   [
+                      A "-w";
+                      A "+9+33+34+36..39";
+                      A "-warn-error";
+                      A "+9+33+34+36..39";
+                      A "-annot";
+                      A "-bin-annot"
+                   ])
+            ]);
+          (["oasis_library_game_description_byte"; "ocaml"; "compile"; "byte"
+           ],
+            [
+               (OASISExpr.EBool true,
+                 S
+                   [
+                      A "-w";
+                      A "+9+33+34+36..39";
+                      A "-warn-error";
+                      A "+9+33+34+32..39";
+                      A "-annot";
+                      A "-bin-annot"
+                   ])
+            ]);
+          ([
+              "oasis_library_game_description_native";
+              "ocaml";
+              "compile";
+              "native"
+           ],
+            [
+               (OASISExpr.EBool true,
+                 S
+                   [
+                      A "-w";
+                      A "+9+33+34+36..39";
+                      A "-warn-error";
+                      A "+9+33+34+36..39";
+                      A "-annot";
+                      A "-bin-annot"
+                   ])
+            ]);
           (["oasis_library_mahjong_engine_byte"; "ocaml"; "link"; "byte"],
             [
                (OASISExpr.EBool true,
@@ -1371,6 +1471,7 @@ let package_default =
           ("test", ["src/mahjong_ai"; "src/mahjong_engine"; "src/rules"]);
           ("src/rules", ["src/mahjong_engine"]);
           ("src/nox", ["src/mahjong_ai"; "src/mahjong_engine"; "src/rules"]);
+          ("src/mahjong_engine", ["src/game_description"]);
           ("src/mahjong_ai", ["src/mahjong_engine"]);
           ("src/engine_debugger", ["src/mahjong_engine"])
        ]
@@ -1381,7 +1482,7 @@ let conf = {MyOCamlbuildFindlib.no_automatic_syntax = false}
 
 let dispatch_default = MyOCamlbuildBase.dispatch_default conf package_default;;
 
-# 1385 "myocamlbuild.ml"
+# 1486 "myocamlbuild.ml"
 (* OASIS_STOP *)
 
 let oasis_executables =
@@ -1419,6 +1520,14 @@ let atd_dispatcher = function
 	let atdgen = "atdgen" in
 	tag_atdgen env ["%_v.ml";"%_v.mli";];
 	Cmd (S [A atdgen; A "-v"; P (env "%.atd")]);
+       end);
+    rule "atdgen: .atd -> _b.ml*"
+      ~prods:["%_b.ml";"%_b.mli";]
+      ~dep:"%.atd"
+      (begin fun env build ->
+	let atdgen = "atdgen" in
+	tag_atdgen env ["%_b.ml";"%_b.mli";];
+	Cmd (S [A atdgen; A "-b"; P (env "%.atd")]);
        end) ;
     ()	    
   | _ -> ()
@@ -1430,6 +1539,6 @@ let () =
        dispatch_default hook;
        Ocamlbuild_js_of_ocaml.dispatcher
          ~oasis_executables
-         hook;
-       atd_dispatcher hook
+         hook(*;
+       atd_dispatcher hook*)
     )
