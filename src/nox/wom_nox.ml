@@ -271,6 +271,7 @@ let rec loop human_players action_handler game state =
       | Init _ :: tl
       | tl -> Init (known_tiles game) :: tl
     in
+    
     show_game human_players game;
     let possible_actions = Fsm.accepted_events game state in
     let event =
@@ -296,6 +297,8 @@ let rec loop human_players action_handler game state =
           Mahjong_ai.mc_ai_with_bias ~irregular_hands ~seven_pairs ~evaluate_game ~nb_trajectory events 0.8
     in
     let game, state = Fsm.run ~with_history: true action_handler game (lazy state) [event] in
+    let game_descr = make_game_descr game state in
+    Game_descr.dump game_descr "round_dump.bak";
     loop human_players action_handler game state
 
 let () =
