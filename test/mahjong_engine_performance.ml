@@ -2,6 +2,7 @@
 
 open Tileset
 open Engine
+open Game_descr
 
 let tiles =
   [|

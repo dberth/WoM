@@ -24,3 +24,12 @@ type game = Game_descr_t.game =
     current_round: event list;
   }
 
+let dump ?(json = false) game path =
+  let oc = open_out path in
+  let outbuf = Bi_outbuf.create_channel_writer oc in
+  let write_game =
+    if json then Game_descr_j.write_game else Game_descr_b.write_game
+  in
+  write_game outbuf game;
+  Bi_outbuf.flush_channel_writer outbuf;
+  close_out oc

@@ -23,3 +23,5 @@ type game =
   {
     current_round: event list;
   }
+
+val dump: ?json: bool -> game -> string -> unit

@@ -1,6 +1,7 @@
 (*Copyright (C) 2014 Denis Berthod*)
 
 open Engine
+open Game_descr
 
 let rec remove_empty = function
   | [] -> []
@@ -35,9 +36,10 @@ let mc_next_event_with_bias game state bias =
   | _ ->
     let high_priority_actions =
       List.filter
-        (function
-        | Mahjong _ | Concealed_kong _ | Small_kong _ -> true
-        | _ -> false
+        (fun event ->
+          match (event: Game_descr.event) with
+          | Mahjong _ | Concealed_kong _ | Small_kong _ -> true
+          | _ -> false
         )
         possible_actions
     in

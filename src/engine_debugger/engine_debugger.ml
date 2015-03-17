@@ -2,6 +2,7 @@
 
 open Fsm
 open Engine
+open Game_descr
 
 let rec loop action_handler game state =
   match finished game with

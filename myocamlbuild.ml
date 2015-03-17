@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 7fe6e48163395d1e1bcdbeab591c0bc0) *)
+(* DO NOT EDIT (digest: 926e5a6b48a144c6b2c1a08c824c99c9) *)
 module OASISGettext = struct
 (* # 22 "src/oasis/OASISGettext.ml" *)
 
@@ -1472,7 +1472,7 @@ let package_default =
           ("src/rules", ["src/mahjong_engine"]);
           ("src/nox", ["src/mahjong_ai"; "src/mahjong_engine"; "src/rules"]);
           ("src/mahjong_engine", ["src/game_description"]);
-          ("src/mahjong_ai", ["src/mahjong_engine"]);
+          ("src/mahjong_ai", ["src/game_description"; "src/mahjong_engine"]);
           ("src/engine_debugger", ["src/mahjong_engine"])
        ]
   }

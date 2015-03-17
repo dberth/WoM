@@ -10,6 +10,8 @@ XOCamlbuildPLuginTags: package(js_of_ocaml.ocamlbuild)
 OcamlVersion: >= 4.02
 
 PreBuildCommand: atdgen -t src/game_description/game_descr.atd
+PreBuildCommand: atdgen -b src/game_description/game_descr.atd
+PreBuildCommand: atdgen -j src/game_description/game_descr.atd
 
 Library game_description
   Path:            src/game_description
@@ -17,7 +19,7 @@ Library game_description
   CompiledObject:  best
   Build:           true
   BuildDepends:    atdgen
-  Modules:         Game_descr_t, Tileset, Game_descr
+  Modules:         Game_descr_t, Game_descr_b, Game_descr_j, Tileset, Game_descr
   Findlibname:     game_description
   NativeOpt: 	   -w +9+33+34+36..39 -warn-error +9+33+34+36..39 -annot -bin-annot
   ByteOpt:	   -w +9+33+34+36..39 -warn-error +9+33+34+32..39 -annot -bin-annot
@@ -38,7 +40,7 @@ Library mahjong_ai
   BuildTools:	   ocamlbuild
   CompiledObject:  best
   Build:	   true
-  BuildDepends:	   mahjong_engine
+  BuildDepends:	   game_description, mahjong_engine
   Modules:	   Mahjong_ai
   Findlibname:	   mahjong_ai
   NativeOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot

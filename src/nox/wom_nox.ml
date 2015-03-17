@@ -1,6 +1,7 @@
 (*Copyright (C) 2014 Denis Berthod*)
 
 open Engine
+open Game_descr
 
 let rec make_list x n =
   if n = 0 then
@@ -163,7 +164,11 @@ let discard_events game events hand =
     let tiles = List.sort Tileset.compare_tiles (Tileset.tiles_of_tileset hand) in
     duplicate_events game events tiles
 
-let read_event game events =
+let make_game_descr game state =
+  let events = Fsm.history state in
+  {current_round = Engine.set_real_init_tiles events game}
+
+let read_event game events game_descr =
   let hand = current_player_hand game in
   let rec loop () =
     print_string "> "; flush stdout;
@@ -181,6 +186,9 @@ let read_event game events =
       | "k" | "K" -> kong_loop ()
       | "p" | "P" -> pong_loop ()
       | "c" | "C" -> chow_loop ()
+      | "dump" ->
+        Game_descr.dump game_descr "wom_dump.bak";
+        loop ()
       | _ -> bad_move ()
     end
   and bad_move () =
@@ -247,8 +255,9 @@ let human_player_event possible_actions game state =
   match possible_actions with
   | [] -> assert false
   | [Init _ as x] | [Break_wall_roll _ as x] | [Wall_breaker_roll _ as x] | [Deal as x] | [Draw _ as x]-> x 
-  | _ -> read_event game possible_actions
-
+  | _ ->
+    let game_descr = make_game_descr game state in
+    read_event game possible_actions game_descr
 
 let rec loop human_players action_handler game state =
   let nb_trajectory = 1_000 in

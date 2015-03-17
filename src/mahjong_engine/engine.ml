@@ -3,10 +3,7 @@
 module IntSet = Set.Make(struct type t = int let compare x y = x - y end)
 open Tileset
 open Fsm
-
-type player = Game_descr.round_player
-
-type tile_pos = Game_descr.tile_pos (*A position in the initial array*)
+open Game_descr
 
 type declared = (tileset * tile_pos list * bool (*is_concealed*)) list
 
@@ -22,7 +19,7 @@ type mahjong =
   {
     declared: declared;
     hand: tileset;
-    discard_player: player option;
+    discard_player: round_player option;
     last_drawn_tile: Tileset.tile option;
     extraordinary_events: extraordinary_event list;
   }
@@ -30,21 +27,6 @@ type mahjong =
 type end_game =
   | No_winner
   | Mahjong of mahjong
-
-type event = Game_descr.event =
-  | Init of Tileset.tile option array
-  | Wall_breaker_roll of int
-  | Break_wall_roll of int
-  | Deal
-  | Draw of player
-  | Discard of (player * tile_pos)
-  | Mahjong of player
-  | Concealed_kong of (player * tile_pos list)
-  | Small_kong of (player * tile_pos)
-  | Chow of (player * tile_pos list)
-  | Pong of (player * tile_pos list)
-  | Kong of (player * tile_pos list)
-  | No_action of player
 
 exception Irrelevant_event of (event * string)
 
@@ -59,7 +41,7 @@ type player_state =
     declared: declared;
     discarded_tiles: int list;
     last_drawn_tile: (int * bool) option;
-    immunity: (Tileset.tile * player) list
+    immunity: (Tileset.tile * round_player) list
   }
 
 
@@ -681,7 +663,7 @@ let mahjong_event hand_with_other_tile ~seven_pairs ?irregular_hands game =
   let player_state = current_player_state game in
   match Tileset.mahjong ~seven_pairs ?irregular_hands (4 - List.length player_state.declared) (hand_with_other_tile game) with
   | [] -> []
-  | _ -> [Mahjong game.current_player]
+  | _ -> [(Mahjong game.current_player: event)]
 
 let kr_mahjong_event ?irregular_hands game =
   mahjong_event hand_with_kr_tile ?irregular_hands game
@@ -993,7 +975,7 @@ let build_engine ~seven_pairs ?irregular_hands events =
       let mahjong_event =
         match Tileset.mahjong ~seven_pairs ?irregular_hands (4 - List.length player_state.declared) player_state.hand with
         | [] -> []
-        | _ -> [Mahjong game.current_player]
+        | _ -> [(Mahjong game.current_player : event)]
       in
       let concealed_kong_events = concealed_kong_events player_state game in
       let small_kong_events =
@@ -1410,3 +1392,15 @@ let current_player_wind {current_player; _} =
   | 2 -> ww
   | 3 -> nw
   | _ -> assert false
+
+let rec replace_init_event new_init = function
+  | [] -> []
+  | Init _ :: tl -> new_init :: tl
+  | hd :: tl -> hd :: replace_init_event new_init tl 
+
+let set_real_init_tiles events {tiles; _} =
+  let n = Array.length tiles in 
+  let init_tiles = Array.make n None in
+  for i = 0 to n - 1 do init_tiles.(i) <- Some tiles.(i) done;
+  let new_init = Init init_tiles in
+  replace_init_event new_init events
