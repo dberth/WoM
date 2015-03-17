@@ -308,5 +308,13 @@ let () =
   Random.self_init ();
   let irregular_hands = Rule_manager.irregular_hands () in
   let seven_pairs = Rule_manager.seven_pairs () in
-  let action_handler, game, state = build_engine ~irregular_hands ~seven_pairs [] in
+  let initial_events =
+    if Array.length Sys.argv <= 1 then
+      []
+    else
+      let dump_file = Sys.argv.(1) in
+      let {Game_descr.current_round} = Game_descr.restore dump_file in
+      current_round
+  in
+  let action_handler, game, state = build_engine ~irregular_hands ~seven_pairs initial_events in
   loop [0] action_handler game state

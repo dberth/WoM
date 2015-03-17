@@ -33,3 +33,17 @@ let dump ?(json = false) game path =
   write_game outbuf game;
   Bi_outbuf.flush_channel_writer outbuf;
   close_out oc
+
+let restore path =
+  let ic = open_in path in
+  let inbuf = Bi_inbuf.from_channel ic in
+  match Game_descr_b.read_game inbuf with
+  | game -> close_in ic; game
+  | exception exn ->
+    close_in ic;
+    let ic = open_in path in
+    let lexer_state = Yojson.init_lexer () in
+    let lexbuf = Lexing.from_channel ic in
+    match Game_descr_j.read_game lexer_state lexbuf with
+    | game -> close_in ic; game
+    | exception _ -> close_in ic; raise exn

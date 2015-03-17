@@ -25,3 +25,5 @@ type game =
   }
 
 val dump: ?json: bool -> game -> string -> unit
+
+val restore: string -> game
