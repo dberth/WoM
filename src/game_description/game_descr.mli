@@ -19,8 +19,32 @@ type round_event =
   | Kong of (round_player * tile_pos list)
   | No_action of round_player
 
+type player_idx = int
+
+type ai_conf =
+  {
+    name: string;
+    force: int;
+  }
+
+type player_kind =
+  | Human
+  | AI of ai_conf
+
+type player_descr =
+  {
+    name: string;
+    kind: player_kind;
+  }
+
+type game_event =
+  | Player of player_descr
+  | East_seat of player_idx
+  | Score of (player_idx * int)
+  
 type game =
   {
+    game_events: game_event list;
     current_round: round_event list;
   }
 

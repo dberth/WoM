@@ -166,7 +166,7 @@ let discard_events game events hand =
 
 let make_game_descr game state =
   let events = Fsm.history state in
-  {current_round = Engine.set_real_init_tiles events game}
+  {current_round = Engine.set_real_init_tiles events game; game_events = []}
 
 let read_event game events game_descr =
   let hand = current_player_hand game in
@@ -313,7 +313,7 @@ let () =
       []
     else
       let dump_file = Sys.argv.(1) in
-      let {Game_descr.current_round} = Game_descr.restore dump_file in
+      let {Game_descr.current_round; _} = Game_descr.restore dump_file in
       current_round
   in
   let action_handler, game, state = build_engine ~irregular_hands ~seven_pairs initial_events in
