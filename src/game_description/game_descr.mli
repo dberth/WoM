@@ -4,7 +4,7 @@ type round_player = int
 
 type tile_pos = int
 
-type event =
+type round_event =
   | Init of Tileset.tile option array
   | Wall_breaker_roll of int
   | Break_wall_roll of int
@@ -21,7 +21,7 @@ type event =
 
 type game =
   {
-    current_round: event list;
+    current_round: round_event list;
   }
 
 val dump: ?json: bool -> game -> string -> unit

@@ -28,7 +28,7 @@ type end_game =
   | No_winner
   | Mahjong of mahjong
 
-exception Irrelevant_event of (event * string)
+exception Irrelevant_event of (round_event * string)
 
 module TMap = Tileset.Map
 
@@ -59,8 +59,8 @@ type game =
     discarded_tile: int option;
     discard_player: int option;
     end_game: end_game option;
-    discard_event: event option;
-    small_kong_event: event option;
+    discard_event: round_event option;
+    small_kong_event: round_event option;
     nb_player_turn_entry: int;
   }
 
@@ -663,7 +663,7 @@ let mahjong_event hand_with_other_tile ~seven_pairs ?irregular_hands game =
   let player_state = current_player_state game in
   match Tileset.mahjong ~seven_pairs ?irregular_hands (4 - List.length player_state.declared) (hand_with_other_tile game) with
   | [] -> []
-  | _ -> [(Mahjong game.current_player: event)]
+  | _ -> [(Mahjong game.current_player: round_event)]
 
 let kr_mahjong_event ?irregular_hands game =
   mahjong_event hand_with_kr_tile ?irregular_hands game
@@ -788,7 +788,7 @@ let on_player_turn_exit event game =
     {game with small_kong_event = Some event; current_player = next_player player}
   | _ -> assert false
 
-let on_tile_discarded_exit (event: event) game =
+let on_tile_discarded_exit (event: round_event) game =
   match event with
   | Mahjong player ->
     check_player player event game |>
@@ -804,7 +804,7 @@ let on_tile_discarded_exit (event: event) game =
     }
   | _ -> assert false
 
-let on_td_1_no_action_2_exit (event: event) game =
+let on_td_1_no_action_2_exit (event: round_event) game =
   match event with
   | Mahjong player ->
     check_player player event game |>
@@ -820,7 +820,7 @@ let on_td_1_no_action_2_exit (event: event) game =
     }
   | _ -> assert false
 
-let on_td_1_chow_2_exit (event: event) game =
+let on_td_1_chow_2_exit (event: round_event) game =
   match event with
   | Mahjong player ->
     check_player player event game |>
@@ -836,7 +836,7 @@ let on_td_1_chow_2_exit (event: event) game =
     }
   | _ -> assert false
 
-let on_td_1_pong_2_exit (event: event) game =
+let on_td_1_pong_2_exit (event: round_event) game =
   match event with
   | Mahjong player ->
     check_player player event game |>
@@ -846,7 +846,7 @@ let on_td_1_pong_2_exit (event: event) game =
     {game with current_player = next_player player}
   | _ -> assert false
 
-let on_td_1_kong_2_exit (event: event) game =
+let on_td_1_kong_2_exit (event: round_event) game =
   match event with
   | Mahjong player ->
     check_player player event game |>
@@ -856,7 +856,7 @@ let on_td_1_kong_2_exit (event: event) game =
     {game with current_player = next_player player}
   | _ -> assert false
 
-let on_td_1_no_action_3_exit (event: event) game =
+let on_td_1_no_action_3_exit (event: round_event) game =
   match event with
   | Mahjong player ->
     check_player player event game |>
@@ -866,7 +866,7 @@ let on_td_1_no_action_3_exit (event: event) game =
   | Kong (player, tiles_pos) -> declare_discarded_tileset ~is_pong: false player tiles_pos event game
   | _ -> assert false
 
-let on_td_2_pong_3_exit (event: event) game =
+let on_td_2_pong_3_exit (event: round_event) game =
   match event with
   | Mahjong player ->
     check_player player event game |>
@@ -878,7 +878,7 @@ let on_td_2_pong_3_exit (event: event) game =
     end
   | _ -> assert false
 
-let on_td_2_kong_3_exit (event: event) game =
+let on_td_2_kong_3_exit (event: round_event) game =
   match event with
   | Mahjong player ->
     check_player player event game |>
@@ -891,7 +891,7 @@ let on_td_2_kong_3_exit (event: event) game =
   | _ -> assert false
 
 
-let on_td_1_chow_3_exit (event: event) game =
+let on_td_1_chow_3_exit (event: round_event) game =
   match event with
   | Mahjong player ->
     check_player player event game |>
@@ -910,7 +910,7 @@ let on_kong_declared_exit event game =
   | Draw player -> check_player player event game |> draw_last_tile player
   | _ -> assert false
   
-let on_wait_for_kong_robbing_exit (event: event) game =
+let on_wait_for_kong_robbing_exit (event: round_event) game =
   match event with
   | Mahjong player ->
     check_player player event game |>
@@ -919,7 +919,7 @@ let on_wait_for_kong_robbing_exit (event: event) game =
     {game with current_player = next_player player}
   | _ -> assert false
 
-let on_kr_2_exit (event: event) game =
+let on_kr_2_exit (event: round_event) game =
   match event with
   | Mahjong player ->
     check_player player event game |>
@@ -928,7 +928,7 @@ let on_kr_2_exit (event: event) game =
     {game with current_player = next_player player}
   | _ -> assert false
 
-let on_kr_3_exit (event: event) game =
+let on_kr_3_exit (event: round_event) game =
   match event with
   | Mahjong player ->
     check_player player event game |>
@@ -975,7 +975,7 @@ let build_engine ~seven_pairs ?irregular_hands events =
       let mahjong_event =
         match Tileset.mahjong ~seven_pairs ?irregular_hands (4 - List.length player_state.declared) player_state.hand with
         | [] -> []
-        | _ -> [(Mahjong game.current_player : event)]
+        | _ -> [(Mahjong game.current_player : round_event)]
       in
       let concealed_kong_events = concealed_kong_events player_state game in
       let small_kong_events =

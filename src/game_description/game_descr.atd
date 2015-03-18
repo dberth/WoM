@@ -7,7 +7,7 @@ type round_player = int <doc text="Player 0 is east and so on.">
 
 type tile_pos = int <doc text="A position in the initial array.">
 
-type event = [
+type round_event = [
   | Init of tile option list <ocaml repr="array">
   | Wall_breaker_roll of int
   | Break_wall_roll of int
@@ -25,5 +25,5 @@ type event = [
 
 type game =
   {
-    current_round: event list;
+    current_round: round_event list;
   }

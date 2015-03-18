@@ -4,7 +4,7 @@ type round_player = Game_descr_t.round_player
 
 type tile_pos = Game_descr_t.tile_pos
 
-type event = Game_descr_t.event =
+type round_event = Game_descr_t.round_event =
   | Init of Tileset.tile option array
   | Wall_breaker_roll of int
   | Break_wall_roll of int
@@ -21,7 +21,7 @@ type event = Game_descr_t.event =
 
 type game = Game_descr_t.game =
   {
-    current_round: event list;
+    current_round: round_event list;
   }
 
 let dump ?(json = false) game path =

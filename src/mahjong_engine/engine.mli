@@ -26,13 +26,13 @@ type end_game =
   | Mahjong of mahjong
 
 
-exception Irrelevant_event of (Game_descr.event * string)
+exception Irrelevant_event of (Game_descr.round_event * string)
 
 val build_engine:
   seven_pairs: bool ->
   ?irregular_hands: Tileset.irregular_hands ->
-  Game_descr.event list ->
-  (Game_descr.event, game) Fsm.action_handler * game * (Game_descr.event, game) Fsm.state
+  Game_descr.round_event list ->
+  (Game_descr.round_event, game) Fsm.action_handler * game * (Game_descr.round_event, game) Fsm.state
 
 val finished: game -> end_game option
 
@@ -40,7 +40,7 @@ val string_of_end_game: end_game -> string
 
 val string_of_game: game -> string
 
-val string_of_event: game -> Game_descr.event -> string
+val string_of_event: game -> Game_descr.round_event -> string
 
 val known_tiles: game -> Tileset.tile option array
 
@@ -72,4 +72,4 @@ val current_player_wind: game -> Tileset.tile
 
 val last_drawn_tile: Game_descr.round_player -> game -> Tileset.tile option
 
-val set_real_init_tiles: Game_descr.event list -> game -> Game_descr.event list
+val set_real_init_tiles: Game_descr.round_event list -> game -> Game_descr.round_event list

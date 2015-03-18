@@ -6,6 +6,6 @@ val mc_ai_with_bias:
   seven_pairs: bool ->
   evaluate_game: (Game_descr.round_player -> Engine.game -> float) ->
   nb_trajectory: int ->
-  Game_descr.event list ->
+  Game_descr.round_event list ->
   float ->
-  Game_descr.event
+  Game_descr.round_event

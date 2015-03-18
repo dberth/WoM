@@ -37,7 +37,7 @@ let mc_next_event_with_bias game state bias =
     let high_priority_actions =
       List.filter
         (fun event ->
-          match (event: Game_descr.event) with
+          match (event: Game_descr.round_event) with
           | Mahjong _ | Concealed_kong _ | Small_kong _ -> true
           | _ -> false
         )

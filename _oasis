@@ -9,9 +9,9 @@ AlphaFeatures: ocamlbuild_more_args
 XOCamlbuildPLuginTags: package(js_of_ocaml.ocamlbuild)
 OcamlVersion: >= 4.02
 
-PreBuildCommand: atdgen -t src/game_description/game_descr.atd
-PreBuildCommand: atdgen -b src/game_description/game_descr.atd
-PreBuildCommand: atdgen -j src/game_description/game_descr.atd
+PreBuildCommand: atdgen -t src/game_description/game_descr.atd &&\
+                 atdgen -b src/game_description/game_descr.atd &&\
+                 atdgen -j src/game_description/game_descr.atd
 
 Library game_description
   Path:            src/game_description
