@@ -24,7 +24,7 @@ type mahjong =
     extraordinary_events: extraordinary_event list;
   }
 
-type end_game =
+type end_round =
   | No_winner
   | Mahjong of mahjong
 
@@ -45,7 +45,7 @@ type player_state =
   }
 
 
-type game =
+type round =
   {
     tiles: tile array;
     wall_breaker_roll: int;
@@ -58,7 +58,7 @@ type game =
     current_player: int;
     discarded_tile: int option;
     discard_player: int option;
-    end_game: end_game option;
+    end_round: end_round option;
     discard_event: round_event option;
     small_kong_event: round_event option;
     nb_player_turn_entry: int;
@@ -76,7 +76,7 @@ let init_player =
     immunity = [];
   }
 
-let init_game =
+let init_round =
   {
     tiles = [||];
     wall_breaker_roll = 0;
@@ -89,7 +89,7 @@ let init_game =
     current_player = 0;
     discarded_tile = None;
     discard_player = None;
-    end_game = None;
+    end_round = None;
     discard_event = None;
     small_kong_event = None;
     nb_player_turn_entry = 0;
@@ -164,11 +164,11 @@ let string_of_player_state tiles {tiles_pos; semi_chows; declared; discarded_til
     (string_of_possible_small_kongs possible_small_kongs)
     (string_of_last_drawn_tile last_drawn_tile)
 
-let string_of_end_game = function
+let string_of_end_round = function
   | No_winner -> "No_winner"
   | Mahjong mahjong -> string_of_mahjong mahjong
 
-let string_of_game
+let string_of_round
     {
       tiles;
       wall_breaker_roll = _;
@@ -181,12 +181,12 @@ let string_of_game
       current_player;
       discarded_tile;
       discard_player;
-      end_game;
+      end_round;
       discard_event;
       small_kong_event;
       nb_player_turn_entry;
     } =
-  Printf.sprintf "{\ncurrent_tile: %i;\n last_tile: %i;\n player_0:\n%s;\nplayer_1:\n%s;\nplayer_2:\n%s;\nplayer_3:\n%s;\ncurrent_player: %i;\n;\n discarded_tile: %s;\n discard_player: %s; end_game: %s;\n discard_event: %s;\n small_kong_event: %s;\nnb_player_turn_entry: %i;\n}"
+  Printf.sprintf "{\ncurrent_tile: %i;\n last_tile: %i;\n player_0:\n%s;\nplayer_1:\n%s;\nplayer_2:\n%s;\nplayer_3:\n%s;\ncurrent_player: %i;\n;\n discarded_tile: %s;\n discard_player: %s; end_round: %s;\n discard_event: %s;\n small_kong_event: %s;\nnb_player_turn_entry: %i;\n}"
     current_tile
     last_tile
     (string_of_player_state tiles player_0)
@@ -196,7 +196,7 @@ let string_of_game
     current_player
     (match discarded_tile with Some i -> string_of_int i | None -> "None")
     (match discard_player with Some i -> string_of_int i | None -> "None")
-    (match end_game with Some end_game -> string_of_end_game end_game | None -> "None")
+    (match end_round with Some end_round -> string_of_end_round end_round | None -> "None")
     (match discard_event with Some event -> string_of_event tiles event | None -> "None")
     (match small_kong_event with Some event -> string_of_event tiles event | None -> "None")
     nb_player_turn_entry
@@ -210,20 +210,20 @@ let () =
       | _ -> None
     )
 
-let update_player player f game =
+let update_player player f round =
   match player with
-  | 0 -> {game with player_0 = f game.player_0}
-  | 1 -> {game with player_1 = f game.player_1}
-  | 2 -> {game with player_2 = f game.player_2}
-  | 3 -> {game with player_3 = f game.player_3}
+  | 0 -> {round with player_0 = f round.player_0}
+  | 1 -> {round with player_1 = f round.player_1}
+  | 2 -> {round with player_2 = f round.player_2}
+  | 3 -> {round with player_3 = f round.player_3}
   | _ -> assert false
 
-let update_game_from_player player f game =
+let update_round_from_player player f round =
   match player with
-  | 0 -> f game.player_0
-  | 1 -> f game.player_1
-  | 2 -> f game.player_2
-  | 3 -> f game.player_3
+  | 0 -> f round.player_0
+  | 1 -> f round.player_1
+  | 2 -> f round.player_2
+  | 3 -> f round.player_3
   | _ -> assert false
 
 let init_tiles =
@@ -293,11 +293,11 @@ let first_tile_index wall_breaker_roll break_wall_roll =
   let count_start_index = wall_breaker * nb_tile_by_side in
   (count_start_index + 2 * (wall_breaker_roll + break_wall_roll)) mod nb_tiles
 
-let incr_current_tile game =
-  {game with current_tile = (game.current_tile + 1) mod nb_tiles}
+let incr_current_tile round =
+  {round with current_tile = (round.current_tile + 1) mod nb_tiles}
 
-let decr_last_tile game =
-  {game with last_tile = (game.last_tile + nb_tiles - 1) mod nb_tiles}
+let decr_last_tile round =
+  {round with last_tile = (round.last_tile + nb_tiles - 1) mod nb_tiles}
 
 let rec insert_sorted x = function
   | [] -> [x]
@@ -364,10 +364,10 @@ let populate_semi_chows tile pos tiles_pos semi_chows =
     set_semi_chows false succ_pos succ_succ pos |>
     set_semi_chows false succ_succ_pos succ pos
     
-let set_tile ~set_last_drawn_tile ~in_kong_box player pos game =
+let set_tile ~set_last_drawn_tile ~in_kong_box player pos round =
   update_player player
     (fun player_state ->
-      let  tile = game.tiles.(pos) in
+      let  tile = round.tiles.(pos) in
       let hand = add_tile tile player_state.hand in
       let tiles_pos = add_tile_in_tiles_pos tile pos player_state.tiles_pos in 
       let semi_chows = populate_semi_chows tile pos tiles_pos player_state.semi_chows in
@@ -379,23 +379,23 @@ let set_tile ~set_last_drawn_tile ~in_kong_box player pos game =
       in
       {player_state with hand; tiles_pos; semi_chows; last_drawn_tile}
     )
-    game
+    round
 
-let draw_tile player game =
-  let game = incr_current_tile game in
-  set_tile ~set_last_drawn_tile: true ~in_kong_box: false player game.current_tile game
+let draw_tile player round =
+  let round = incr_current_tile round in
+  set_tile ~set_last_drawn_tile: true ~in_kong_box: false player round.current_tile round
 
-let draw_last_tile player game =
-  let game = decr_last_tile game in
-  set_tile ~set_last_drawn_tile: true ~in_kong_box: true player game.last_tile game
+let draw_last_tile player round =
+  let round = decr_last_tile round in
+  set_tile ~set_last_drawn_tile: true ~in_kong_box: true player round.last_tile round
 
-let draw_4_tiles player game =
-  draw_tile player game |>
+let draw_4_tiles player round =
+  draw_tile player round |>
     draw_tile player |>
     draw_tile player |>
     draw_tile player
 
-let deal_turn f game = f 0 game |> f 1 |> f 2 |> f 3
+let deal_turn f round = f 0 round |> f 1 |> f 2 |> f 3
 
 let remove_pos_from_tiles_pos pos tile tiles_pos =
   TMap.update
@@ -433,11 +433,11 @@ let remove_pos_from_semi_chows pos tile semi_chows =
     remove_pos_from_side_semi_chows pos (Tileset.tile_succ tile) |>
     remove_pos_from_side_semi_chows pos (Tileset.tile_succ_succ tile)
 
-let check_player player event game =
-  if player = game.current_player then
-    game
+let check_player player event round =
+  if player = round.current_player then
+    round
   else
-    raise (Irrelevant_event(event, Printf.sprintf "Expected player was %i." game.current_player))
+    raise (Irrelevant_event(event, Printf.sprintf "Expected player was %i." round.current_player))
 
 let remove_tile_from_hand tile_idx tiles event (player_state: player_state) =
   let tile = tiles.(tile_idx) in
@@ -456,28 +456,28 @@ let prev_player player = (player + 3) mod 4
 
 let prev_prev_player player = (player + 2) mod 4
 
-let update_immunity_other_player player discard_player tile game =
+let update_immunity_other_player player discard_player tile round =
   update_player player
     (fun player_state ->
        {player_state with immunity = (tile, discard_player) :: player_state.immunity}
     )
-    game
+    round
 
-let update_immunity player tile game =
-  update_player player (fun player_state -> {player_state with immunity = [tile, player]}) game |>
+let update_immunity player tile round =
+  update_player player (fun player_state -> {player_state with immunity = [tile, player]}) round |>
   update_immunity_other_player (next_player player) player tile |>
   update_immunity_other_player (prev_prev_player player) player tile |>
   update_immunity_other_player (prev_player player) player tile
     
 
-let discard player tile_idx event game =
-  let tile = game.tiles.(tile_idx) in
-  {game with
+let discard player tile_idx event round =
+  let tile = round.tiles.(tile_idx) in
+  {round with
     discarded_tile = Some tile_idx;
     discard_player = Some player;
     current_player = next_player player
   } |>
-  update_player player (remove_tile_from_hand tile_idx game.tiles event) |>
+  update_player player (remove_tile_from_hand tile_idx round.tiles event) |>
   update_immunity player tile
 
 let remaining_tiles {current_tile; last_tile; _} =
@@ -486,23 +486,23 @@ let remaining_tiles {current_tile; last_tile; _} =
   else
     last_tile - current_tile + 1
 
-let mahjong ~discard_player ?(extraordinary_events = []) player game =
-  update_game_from_player player
+let mahjong ~discard_player ?(extraordinary_events = []) player round =
+  update_round_from_player player
     (fun {hand; declared; last_drawn_tile; immunity; _} ->
       let hand, last_drawn_tile, win_on_kong_event =
-        match game.discarded_tile with
+        match round.discarded_tile with
         | None ->
           let last_drawn_tile, win_on_kong_event =
             match last_drawn_tile with
             | None -> None, []
             | Some (pos, win_on_kong) ->
-              Some game.tiles.(pos),
+              Some round.tiles.(pos),
               (if win_on_kong then [Win_on_kong] else [])
           in
           hand, last_drawn_tile, win_on_kong_event
-        | Some discarded_tile -> Tileset.add_tile (game.tiles.(discarded_tile)) hand, Some game.tiles.(discarded_tile), []
+        | Some discarded_tile -> Tileset.add_tile (round.tiles.(discarded_tile)) hand, Some round.tiles.(discarded_tile), []
       in
-      let remaining_tiles = remaining_tiles game in
+      let remaining_tiles = remaining_tiles round in
       let last_tile_event =
         if remaining_tiles < 14 then
           match discard_player with
@@ -512,7 +512,7 @@ let mahjong ~discard_player ?(extraordinary_events = []) player game =
           []
       in
       let blessing_events =
-        if game.nb_player_turn_entry = 1 then
+        if round.nb_player_turn_entry = 1 then
           match discard_player with
           | Some _ -> [Blessing_of_earth]
           | None -> [Blessing_of_heaven]
@@ -520,10 +520,10 @@ let mahjong ~discard_player ?(extraordinary_events = []) player game =
           []
       in
       let discard_player =
-        match game.discarded_tile with
+        match round.discarded_tile with
         | None -> discard_player
         | Some tile_pos ->
-          let tile = game.tiles.(tile_pos) in
+          let tile = round.tiles.(tile_pos) in
           match List.assoc tile immunity with
           | exception Not_found -> discard_player
           | new_discard_player ->
@@ -538,9 +538,9 @@ let mahjong ~discard_player ?(extraordinary_events = []) player game =
         blessing_events @
         extraordinary_events
       in
-      {game with end_game = Some (Mahjong {declared; hand; discard_player; last_drawn_tile; extraordinary_events})}
+      {round with end_round = Some (Mahjong {declared; hand; discard_player; last_drawn_tile; extraordinary_events})}
     )
-    game
+    round
 
 let mk_tileset_of_tiles_pos tiles tiles_pos =
   List.fold_left
@@ -548,31 +548,31 @@ let mk_tileset_of_tiles_pos tiles tiles_pos =
     empty
     tiles_pos
 
-let declare_tileset ~is_pong ~concealed player tiles_pos event game =
+let declare_tileset ~is_pong ~concealed player tiles_pos event round =
   update_player player
     (fun player_state ->
       let player_state =
         List.fold_left
           (fun player_state tile_idx ->
-            let res = remove_tile_from_hand tile_idx game.tiles event player_state in
+            let res = remove_tile_from_hand tile_idx round.tiles event player_state in
             res
           )
           player_state
           tiles_pos
       in
-      let tileset = mk_tileset_of_tiles_pos game.tiles tiles_pos in
+      let tileset = mk_tileset_of_tiles_pos round.tiles tiles_pos in
       let possible_small_kongs =
         if is_pong then
-          game.tiles.(List.hd tiles_pos) :: player_state.possible_small_kongs
+          round.tiles.(List.hd tiles_pos) :: player_state.possible_small_kongs
         else
           player_state.possible_small_kongs
       in
       {player_state with declared = (tileset, tiles_pos, concealed) :: player_state.declared; possible_small_kongs}
     )
-    game
+    round
 
-let declare_concealed_kong player tiles_pos event game =
-  declare_tileset ~is_pong: false ~concealed: true player tiles_pos event game
+let declare_concealed_kong player tiles_pos event round =
+  declare_tileset ~is_pong: false ~concealed: true player tiles_pos event round
 
 let set_small_kong tile_pos tiles event player_state =
   let rec aux = function
@@ -589,37 +589,37 @@ let set_small_kong tile_pos tiles event player_state =
   in
   {player_state with declared = aux player_state.declared}
 
-let declare_small_kong game =
-  match game.small_kong_event with
+let declare_small_kong round =
+  match round.small_kong_event with
   | Some (Small_kong(player, tile_pos) as event) ->
-    {game with small_kong_event = None} |>
+    {round with small_kong_event = None} |>
       update_player player
         (fun player_state ->
-          remove_tile_from_hand tile_pos game.tiles event player_state |>
-            set_small_kong tile_pos game.tiles event
+          remove_tile_from_hand tile_pos round.tiles event player_state |>
+            set_small_kong tile_pos round.tiles event
         )
   | _ -> assert false
       
 
-let set_discarded_tile player tiles_pos event game =
-  match game.discarded_tile with
+let set_discarded_tile player tiles_pos event round =
+  match round.discarded_tile with
   | None -> assert false
   | Some discarded_tile ->
     if List.mem discarded_tile tiles_pos then begin
-      {game with discarded_tile = None; discard_player = None; current_player = player} |>
+      {round with discarded_tile = None; discard_player = None; current_player = player} |>
         set_tile ~set_last_drawn_tile: false ~in_kong_box: false player discarded_tile
     end else
       raise (Irrelevant_event(event, "Event doesn't concern discarded tile."))
 
-let declare_discarded_tileset ~is_pong player tiles_pos event game =
-  set_discarded_tile player tiles_pos event game |>
+let declare_discarded_tileset ~is_pong player tiles_pos event round =
+  set_discarded_tile player tiles_pos event round |>
     declare_tileset ~is_pong ~concealed: false player tiles_pos event
 
-let set_discarded_tile player game =
-  match game.discarded_tile with
+let set_discarded_tile player round =
+  match round.discarded_tile with
   | None -> assert false
   | Some discarded_tile ->
-    { game with
+    { round with
       current_player = next_player player;
       discarded_tile = None;
       discard_player = None;
@@ -638,38 +638,38 @@ let player_state player {player_0; player_1; player_2; player_3; _} =
   | 3 -> player_3
   | _ -> assert false
 
-let current_player_state game = player_state game.current_player game
+let current_player_state round = player_state round.current_player round
 
-let get_discarded_tile_pos game =
-  match game.discarded_tile with
+let get_discarded_tile_pos round =
+  match round.discarded_tile with
   | None -> assert false
   | Some tile_pos -> tile_pos
 
-let get_discarded_tile game =
-  game.tiles.(get_discarded_tile_pos game)
+let get_discarded_tile round =
+  round.tiles.(get_discarded_tile_pos round)
 
-let hand_with_discarded_tile game =
-  let {hand; _} = current_player_state game in
-  let tile = get_discarded_tile game in
+let hand_with_discarded_tile round =
+  let {hand; _} = current_player_state round in
+  let tile = get_discarded_tile round in
   add_tile tile hand
 
-let hand_with_kr_tile game =
-  match game.small_kong_event with
+let hand_with_kr_tile round =
+  match round.small_kong_event with
   | Some (Small_kong(_, tile_pos)) ->
-    add_tile (game.tiles.(tile_pos)) (current_player_state game).hand
+    add_tile (round.tiles.(tile_pos)) (current_player_state round).hand
   | _ -> assert false
 
-let mahjong_event hand_with_other_tile ~seven_pairs ?irregular_hands game =
-  let player_state = current_player_state game in
-  match Tileset.mahjong ~seven_pairs ?irregular_hands (4 - List.length player_state.declared) (hand_with_other_tile game) with
+let mahjong_event hand_with_other_tile ~seven_pairs ?irregular_hands round =
+  let player_state = current_player_state round in
+  match Tileset.mahjong ~seven_pairs ?irregular_hands (4 - List.length player_state.declared) (hand_with_other_tile round) with
   | [] -> []
-  | _ -> [(Mahjong game.current_player: round_event)]
+  | _ -> [(Mahjong round.current_player: round_event)]
 
-let kr_mahjong_event ?irregular_hands game =
-  mahjong_event hand_with_kr_tile ?irregular_hands game
+let kr_mahjong_event ?irregular_hands round =
+  mahjong_event hand_with_kr_tile ?irregular_hands round
 
-let mahjong_event ?irregular_hands game =
-  mahjong_event hand_with_discarded_tile ?irregular_hands game
+let mahjong_event ?irregular_hands round =
+  mahjong_event hand_with_discarded_tile ?irregular_hands round
 
 let rec take n l =
   if n = 0 then
@@ -679,270 +679,270 @@ let rec take n l =
     | [] -> []
     | hd :: tl -> hd :: take (n - 1) tl
 
-let discard_events {tiles_pos; _} game =
+let discard_events {tiles_pos; _} round =
   TMap.fold
     (fun _ positions acc ->
       match positions with
       | [] -> acc
-      | hd :: _ -> Discard (game.current_player, hd) :: acc
+      | hd :: _ -> Discard (round.current_player, hd) :: acc
     )
     tiles_pos
     []
 
-let pong_and_kong_events game =
+let pong_and_kong_events round =
   let pos =
-    match game.discarded_tile with
+    match round.discarded_tile with
     | None -> assert false
     | Some pos -> pos
   in
-  let {tiles_pos; _} = current_player_state game in
-  let tile = game.tiles.(pos) in
+  let {tiles_pos; _} = current_player_state round in
+  let tile = round.tiles.(pos) in
   let positions = TMap.find_default tile [] tiles_pos in
   let l = List.length positions in
   if l = 3 then
-    [Pong (game.current_player, insert_sorted pos (take 2 positions));
-     Kong (game.current_player, insert_sorted pos positions)
+    [Pong (round.current_player, insert_sorted pos (take 2 positions));
+     Kong (round.current_player, insert_sorted pos positions)
     ]
   else if l = 2 then
-    [Pong (game.current_player, insert_sorted pos positions)]
+    [Pong (round.current_player, insert_sorted pos positions)]
   else
     []
 
-let concealed_kong_events {tiles_pos; _} game =
+let concealed_kong_events {tiles_pos; _} round =
   TMap.fold
     (fun _ positions acc ->
       if List.length positions = 4 then
-        Concealed_kong(game.current_player, positions) :: acc
+        Concealed_kong(round.current_player, positions) :: acc
       else
         acc
     )
     tiles_pos
     []
 
-let no_action_event game = [No_action game.current_player]
+let no_action_event round = [No_action round.current_player]
 
 (*** Actions ***)
 
-let on_game_start_exit event game =
+let on_round_start_exit event round =
   match event with
   | Init known_positions ->
     let tiles = shuffle known_positions in
-    {game with tiles;}
+    {round with tiles;}
   | _ -> assert false
 
-let on_wait_for_wall_breaker_roll_exit event game =
+let on_wait_for_wall_breaker_roll_exit event round =
   match event with
   | Wall_breaker_roll wall_breaker_roll ->
-    {game with wall_breaker_roll}
+    {round with wall_breaker_roll}
   | _ -> assert false
 
-let on_wait_for_break_roll_exit event game =
+let on_wait_for_break_roll_exit event round =
   match event with
   | Break_wall_roll dice ->
-    let current_tile = first_tile_index game.wall_breaker_roll dice in 
-    {game with
+    let current_tile = first_tile_index round.wall_breaker_roll dice in 
+    {round with
       current_tile;
       last_tile = (current_tile + nb_tiles - 1) mod nb_tiles;
     }
   | _ -> assert false
 
-let on_wait_for_deal_exit event game =
+let on_wait_for_deal_exit event round =
   match event with
   | Deal ->
-    deal_turn draw_4_tiles game |>
+    deal_turn draw_4_tiles round |>
       deal_turn draw_4_tiles |>
       deal_turn draw_4_tiles |>
       deal_turn draw_tile
   | _ -> assert false
 
-let on_wait_for_draw_in_wall_entry _ game =
-  if remaining_tiles game < 14 then
-    {game with end_game = Some No_winner}
+let on_wait_for_draw_in_wall_entry _ round =
+  if remaining_tiles round < 14 then
+    {round with end_round = Some No_winner}
   else
-    game
+    round
 
-let on_player_turn_entry _ game =
-  {game with
+let on_player_turn_entry _ round =
+  {round with
    discard_event = None;
-   nb_player_turn_entry = game.nb_player_turn_entry + 1;
+   nb_player_turn_entry = round.nb_player_turn_entry + 1;
   }
 
-let on_wait_for_draw_in_wall_exit event game =
+let on_wait_for_draw_in_wall_exit event round =
   match event with
   | Draw player ->
-    check_player player event game |> draw_tile player
+    check_player player event round |> draw_tile player
   | _ -> assert false
 
-let on_player_turn_exit event game =
+let on_player_turn_exit event round =
   match event with
   | Discard (player, tile_idx) ->
-    check_player player event game |> discard player tile_idx event
+    check_player player event round |> discard player tile_idx event
   | Mahjong player ->
-    check_player player event game |>
+    check_player player event round |>
       mahjong ~discard_player: None player (*Maybe do this on mahjong declared state ?*)
   | Concealed_kong (player, tiles_pos) ->
-    check_player player event game |>
+    check_player player event round |>
       declare_concealed_kong player tiles_pos event 
   | Small_kong (player, tile_pos) ->
-    let game = check_player player event game in
-    {game with small_kong_event = Some event; current_player = next_player player}
+    let round = check_player player event round in
+    {round with small_kong_event = Some event; current_player = next_player player}
   | _ -> assert false
 
-let on_tile_discarded_exit (event: round_event) game =
+let on_tile_discarded_exit (event: round_event) round =
   match event with
   | Mahjong player ->
-    check_player player event game |>
+    check_player player event round |>
       mahjong ~discard_player: (Some (prev_player player)) player
   | No_action player
   | Chow (player, _)
   | Pong (player, _)
   | Kong (player, _) ->
-    let game = check_player player event game in
-    {game with
+    let round = check_player player event round in
+    {round with
       current_player = next_player player;
       discard_event = Some event;
     }
   | _ -> assert false
 
-let on_td_1_no_action_2_exit (event: round_event) game =
+let on_td_1_no_action_2_exit (event: round_event) round =
   match event with
   | Mahjong player ->
-    check_player player event game |>
+    check_player player event round |>
       mahjong ~discard_player: (Some (prev_prev_player player)) player
   | No_action player ->
-    let game = check_player player event game in
-    {game with current_player = next_player player}
+    let round = check_player player event round in
+    {round with current_player = next_player player}
   | Pong (player, _) | Kong (player, _) ->
-    let game = check_player player event game in
-    {game with
+    let round = check_player player event round in
+    {round with
       current_player = next_player player;
       discard_event = Some event;
     }
   | _ -> assert false
 
-let on_td_1_chow_2_exit (event: round_event) game =
+let on_td_1_chow_2_exit (event: round_event) round =
   match event with
   | Mahjong player ->
-    check_player player event game |>
+    check_player player event round |>
       mahjong ~discard_player: (Some (prev_prev_player player)) player
   | No_action player ->
-    let game = check_player player event game in
-    {game with current_player = next_player player}
+    let round = check_player player event round in
+    {round with current_player = next_player player}
   | Pong (player, _) | Kong (player, _) ->
-    let game = check_player player event game in
-    {game with
+    let round = check_player player event round in
+    {round with
       current_player = next_player player;
       discard_event = Some event;
     }
   | _ -> assert false
 
-let on_td_1_pong_2_exit (event: round_event) game =
+let on_td_1_pong_2_exit (event: round_event) round =
   match event with
   | Mahjong player ->
-    check_player player event game |>
+    check_player player event round |>
       mahjong ~discard_player: (Some (prev_prev_player player)) player
   | No_action player ->
-    let game = check_player player event game in
-    {game with current_player = next_player player}
+    let round = check_player player event round in
+    {round with current_player = next_player player}
   | _ -> assert false
 
-let on_td_1_kong_2_exit (event: round_event) game =
+let on_td_1_kong_2_exit (event: round_event) round =
   match event with
   | Mahjong player ->
-    check_player player event game |>
+    check_player player event round |>
       mahjong ~discard_player: (Some (prev_prev_player player)) player
   | No_action player ->
-    let game = check_player player event game in
-    {game with current_player = next_player player}
+    let round = check_player player event round in
+    {round with current_player = next_player player}
   | _ -> assert false
 
-let on_td_1_no_action_3_exit (event: round_event) game =
+let on_td_1_no_action_3_exit (event: round_event) round =
   match event with
   | Mahjong player ->
-    check_player player event game |>
+    check_player player event round |>
       mahjong ~discard_player: (Some (next_player player)) player
-  | No_action player -> set_discarded_tile (next_player player) game
-  | Pong (player, tiles_pos) -> declare_discarded_tileset ~is_pong: true player tiles_pos event game
-  | Kong (player, tiles_pos) -> declare_discarded_tileset ~is_pong: false player tiles_pos event game
+  | No_action player -> set_discarded_tile (next_player player) round
+  | Pong (player, tiles_pos) -> declare_discarded_tileset ~is_pong: true player tiles_pos event round
+  | Kong (player, tiles_pos) -> declare_discarded_tileset ~is_pong: false player tiles_pos event round
   | _ -> assert false
 
-let on_td_2_pong_3_exit (event: round_event) game =
+let on_td_2_pong_3_exit (event: round_event) round =
   match event with
   | Mahjong player ->
-    check_player player event game |>
+    check_player player event round |>
       mahjong ~discard_player: (Some (next_player player)) player
   | No_action _ ->
-    begin match game.discard_event with
-    | Some (Pong(player, tiles_pos)) -> declare_discarded_tileset ~is_pong: true player tiles_pos event game
+    begin match round.discard_event with
+    | Some (Pong(player, tiles_pos)) -> declare_discarded_tileset ~is_pong: true player tiles_pos event round
     | _ -> assert false
     end
   | _ -> assert false
 
-let on_td_2_kong_3_exit (event: round_event) game =
+let on_td_2_kong_3_exit (event: round_event) round =
   match event with
   | Mahjong player ->
-    check_player player event game |>
+    check_player player event round |>
       mahjong ~discard_player: (Some (next_player player)) player
   | No_action _ ->
-    begin match game.discard_event with
-    | Some(Kong(player, tiles_pos)) -> declare_discarded_tileset ~is_pong: false player tiles_pos event game
+    begin match round.discard_event with
+    | Some(Kong(player, tiles_pos)) -> declare_discarded_tileset ~is_pong: false player tiles_pos event round
     | _ -> assert false
     end
   | _ -> assert false
 
 
-let on_td_1_chow_3_exit (event: round_event) game =
+let on_td_1_chow_3_exit (event: round_event) round =
   match event with
   | Mahjong player ->
-    check_player player event game |>
+    check_player player event round |>
       mahjong ~discard_player: (Some (next_player player)) player
   | No_action _->
-    begin match game.discard_event with
-    | Some(Chow(player, tiles_pos)) -> declare_discarded_tileset ~is_pong: false player tiles_pos event game
+    begin match round.discard_event with
+    | Some(Chow(player, tiles_pos)) -> declare_discarded_tileset ~is_pong: false player tiles_pos event round
     | _ -> assert false
     end
-  | Pong (player, tiles_pos) -> declare_discarded_tileset ~is_pong: true player tiles_pos event game
-  | Kong (player, tiles_pos) -> declare_discarded_tileset ~is_pong: false player tiles_pos event game
+  | Pong (player, tiles_pos) -> declare_discarded_tileset ~is_pong: true player tiles_pos event round
+  | Kong (player, tiles_pos) -> declare_discarded_tileset ~is_pong: false player tiles_pos event round
   | _ -> assert false
 
-let on_kong_declared_exit event game =
+let on_kong_declared_exit event round =
   match event with
-  | Draw player -> check_player player event game |> draw_last_tile player
+  | Draw player -> check_player player event round |> draw_last_tile player
   | _ -> assert false
   
-let on_wait_for_kong_robbing_exit (event: round_event) game =
+let on_wait_for_kong_robbing_exit (event: round_event) round =
   match event with
   | Mahjong player ->
-    check_player player event game |>
+    check_player player event round |>
       mahjong ~discard_player: (Some (prev_player player)) ~extraordinary_events: [Kong_robbing] player
   | No_action player ->
-    {game with current_player = next_player player}
+    {round with current_player = next_player player}
   | _ -> assert false
 
-let on_kr_2_exit (event: round_event) game =
+let on_kr_2_exit (event: round_event) round =
   match event with
   | Mahjong player ->
-    check_player player event game |>
+    check_player player event round |>
       mahjong ~discard_player: (Some (prev_prev_player player)) ~extraordinary_events: [Kong_robbing] player
   | No_action player ->
-    {game with current_player = next_player player}
+    {round with current_player = next_player player}
   | _ -> assert false
 
-let on_kr_3_exit (event: round_event) game =
+let on_kr_3_exit (event: round_event) round =
   match event with
   | Mahjong player ->
-    check_player player event game |>
+    check_player player event round |>
       mahjong ~discard_player: (Some (next_player player)) ~extraordinary_events: [Kong_robbing] player
-  | No_action _-> declare_small_kong game
+  | No_action _-> declare_small_kong round
   | _ -> assert false
 
 
 let build_engine ~seven_pairs ?irregular_hands events = 
-  let rec game_start = lazy (new_state
+  let rec round_start = lazy (new_state
     ~accepted_events: (fun _ -> [Init [||]])
       (function
       | Init _ -> wait_for_wall_breaker_roll
-      | event -> raise (Irrelevant_event (event, "game_start"))))
+      | event -> raise (Irrelevant_event (event, "round_start"))))
 
   and wait_for_wall_breaker_roll = lazy (new_state
     ~accepted_events: (fun _ -> [Wall_breaker_roll 0])
@@ -963,27 +963,27 @@ let build_engine ~seven_pairs ?irregular_hands events =
       | event -> raise (Irrelevant_event (event, "wait_for_deal"))))
     
   and wait_for_draw_in_wall = lazy (new_state
-    ~accepted_events: (fun game -> [Draw (game.current_player)])
+    ~accepted_events: (fun round -> [Draw (round.current_player)])
       (function
       | Draw _ -> player_turn
       | event -> raise (Irrelevant_event (event, "wait_for_draw_in_wall"))))
 
   and player_turn =
-    let accepted_events game =
-      let player_state = current_player_state game in
-      let discard_events = discard_events player_state game in
+    let accepted_events round =
+      let player_state = current_player_state round in
+      let discard_events = discard_events player_state round in
       let mahjong_event =
         match Tileset.mahjong ~seven_pairs ?irregular_hands (4 - List.length player_state.declared) player_state.hand with
         | [] -> []
-        | _ -> [(Mahjong game.current_player : round_event)]
+        | _ -> [(Mahjong round.current_player : round_event)]
       in
-      let concealed_kong_events = concealed_kong_events player_state game in
+      let concealed_kong_events = concealed_kong_events player_state round in
       let small_kong_events =
         List.fold_left
           (fun acc tile ->
             match TMap.find_default tile [] player_state.tiles_pos with
             | [] -> acc
-            | [pos] -> Small_kong (game.current_player, pos) :: acc
+            | [pos] -> Small_kong (round.current_player, pos) :: acc
             | x ->
               print_endline (String.concat "; " (List.map (fun tile -> string_of_tile_descr (tile_descr_of_tile tile)) player_state.possible_small_kongs));
               print_endline (String.concat "; " (List.map string_of_int x));
@@ -1006,22 +1006,22 @@ let build_engine ~seven_pairs ?irregular_hands events =
         | event -> raise (Irrelevant_event (event, "player_turn"))))
 
   and tile_discarded =
-    let accepted_events game =
+    let accepted_events round =
       let discarded_pos =
-        match game.discarded_tile with
+        match round.discarded_tile with
         | None -> assert false
         | Some pos -> pos
       in
-      let player_state = current_player_state game in
+      let player_state = current_player_state round in
       let chow_events =
-        let tile = game.tiles.(discarded_pos) in
+        let tile = round.tiles.(discarded_pos) in
         List.map
           (fun (x, y) ->
-            Chow (game.current_player, List.sort (-) [discarded_pos; x; y])
+            Chow (round.current_player, List.sort (-) [discarded_pos; x; y])
           )
           (TMap.find_default tile [] player_state.semi_chows)
       in
-      no_action_event game @ mahjong_event ~seven_pairs ?irregular_hands game @ chow_events @ pong_and_kong_events game
+      no_action_event round @ mahjong_event ~seven_pairs ?irregular_hands round @ chow_events @ pong_and_kong_events round
     in
     lazy (new_state
         ~accepted_events
@@ -1034,8 +1034,8 @@ let build_engine ~seven_pairs ?irregular_hands events =
         | event -> raise (Irrelevant_event (event, "tile_discarded"))))
 
   and td_1_no_action_2 =
-    let accepted_events game =
-      List.fold_left (fun acc f -> f game @ acc)
+    let accepted_events round =
+      List.fold_left (fun acc f -> f round @ acc)
         []
         [no_action_event;
          mahjong_event ~seven_pairs ?irregular_hands;
@@ -1052,8 +1052,8 @@ let build_engine ~seven_pairs ?irregular_hands events =
         | event -> raise (Irrelevant_event (event, "1_no_action_2"))))
 
   and td_1_chow_2 =
-    let accepted_events game =
-      List.fold_left (fun acc f -> f game @ acc)
+    let accepted_events round =
+      List.fold_left (fun acc f -> f round @ acc)
         []
         [no_action_event;
          mahjong_event ~seven_pairs ?irregular_hands;
@@ -1070,8 +1070,8 @@ let build_engine ~seven_pairs ?irregular_hands events =
         | event -> raise (Irrelevant_event (event, "1_chow_2"))))
 
   and td_1_pong_2 =
-    let accepted_events game =
-      List.fold_left (fun acc f -> f game @ acc)
+    let accepted_events round =
+      List.fold_left (fun acc f -> f round @ acc)
         []
         [no_action_event;
          mahjong_event ~seven_pairs ?irregular_hands;
@@ -1085,8 +1085,8 @@ let build_engine ~seven_pairs ?irregular_hands events =
       | event -> raise (Irrelevant_event (event, "1_pong_2"))))
 
   and td_1_kong_2 =
-    let accepted_events game =
-      List.fold_left (fun acc f -> f game @ acc)
+    let accepted_events round =
+      List.fold_left (fun acc f -> f round @ acc)
         []
         [no_action_event;
          mahjong_event ~seven_pairs ?irregular_hands;
@@ -1100,8 +1100,8 @@ let build_engine ~seven_pairs ?irregular_hands events =
         | event -> raise (Irrelevant_event (event, "1_kong_2"))))
 
   and td_1_no_action_3 =
-    let accepted_events game =
-      List.fold_left (fun acc f -> f game @ acc)
+    let accepted_events round =
+      List.fold_left (fun acc f -> f round @ acc)
         []
         [no_action_event;
          mahjong_event ~seven_pairs ?irregular_hands;
@@ -1118,8 +1118,8 @@ let build_engine ~seven_pairs ?irregular_hands events =
         | event -> raise (Irrelevant_event (event, "1_no_action_3"))))
 
   and td_2_pong_3 =
-    let accepted_events game =
-      List.fold_left (fun acc f -> f game @ acc)
+    let accepted_events round =
+      List.fold_left (fun acc f -> f round @ acc)
         []
         [no_action_event;
          mahjong_event ~seven_pairs ?irregular_hands;
@@ -1133,8 +1133,8 @@ let build_engine ~seven_pairs ?irregular_hands events =
         | event -> raise (Irrelevant_event (event, "2_pong_3"))))
 
   and td_2_kong_3 =
-    let accepted_events game =
-      List.fold_left (fun acc f -> f game @ acc)
+    let accepted_events round =
+      List.fold_left (fun acc f -> f round @ acc)
         []
         [no_action_event;
          mahjong_event ~seven_pairs ?irregular_hands;
@@ -1148,8 +1148,8 @@ let build_engine ~seven_pairs ?irregular_hands events =
         | event -> raise (Irrelevant_event (event, "2_kong_3"))))
 
   and td_1_chow_3 =
-    let accepted_events game =
-      List.fold_left (fun acc f -> f game @ acc)
+    let accepted_events round =
+      List.fold_left (fun acc f -> f round @ acc)
         []
         [no_action_event;
          mahjong_event ~seven_pairs ?irregular_hands;
@@ -1166,8 +1166,8 @@ let build_engine ~seven_pairs ?irregular_hands events =
         | event -> raise (Irrelevant_event (event, "1_chow_3"))))
 
   and td_1_pong_3 =
-    let accepted_events game =
-      List.fold_left (fun acc f -> f game @ acc)
+    let accepted_events round =
+      List.fold_left (fun acc f -> f round @ acc)
         []
         [no_action_event;
          mahjong_event ~seven_pairs ?irregular_hands;
@@ -1181,8 +1181,8 @@ let build_engine ~seven_pairs ?irregular_hands events =
         | event -> raise (Irrelevant_event (event, "1_pong_3"))))
 
   and td_1_kong_3 =
-    let accepted_events game =
-      List.fold_left (fun acc f -> f game @ acc)
+    let accepted_events round =
+      List.fold_left (fun acc f -> f round @ acc)
         []
         [no_action_event;
          mahjong_event ~seven_pairs ?irregular_hands;
@@ -1199,14 +1199,14 @@ let build_engine ~seven_pairs ?irregular_hands events =
 
   and kong_declared =
     lazy (new_state
-      ~accepted_events: (fun game -> [Draw game.current_player])
+      ~accepted_events: (fun round -> [Draw round.current_player])
         (function
         | Draw _ -> player_turn
         | event -> raise (Irrelevant_event (event, "kong_declared"))))
 
   and wait_for_kong_robbing =
-    let accepted_events game =
-      List.fold_left (fun acc f -> f game @ acc)
+    let accepted_events round =
+      List.fold_left (fun acc f -> f round @ acc)
         []
         [no_action_event;
          kr_mahjong_event ~seven_pairs ?irregular_hands;
@@ -1220,8 +1220,8 @@ let build_engine ~seven_pairs ?irregular_hands events =
         | event -> raise (Irrelevant_event (event, "wait_for_kong_robbing"))))
 
   and kr_2 =
-    let accepted_events game =
-      List.fold_left (fun acc f -> f game @ acc)
+    let accepted_events round =
+      List.fold_left (fun acc f -> f round @ acc)
         []
         [no_action_event;
          kr_mahjong_event ~seven_pairs ?irregular_hands;
@@ -1235,8 +1235,8 @@ let build_engine ~seven_pairs ?irregular_hands events =
         | event -> raise (Irrelevant_event (event, "kr_2"))))
 
   and kr_3 =
-    let accepted_events game =
-      List.fold_left (fun acc f -> f game @ acc)
+    let accepted_events round =
+      List.fold_left (fun acc f -> f round @ acc)
         []
         [no_action_event;
          kr_mahjong_event ~seven_pairs ?irregular_hands;
@@ -1253,7 +1253,7 @@ let build_engine ~seven_pairs ?irregular_hands events =
     empty_action_handler |>
       on_entry wait_for_draw_in_wall on_wait_for_draw_in_wall_entry |>
       on_entry player_turn on_player_turn_entry |>
-      on_exit game_start on_game_start_exit |>
+      on_exit round_start on_round_start_exit |>
       on_exit wait_for_wall_breaker_roll on_wait_for_wall_breaker_roll_exit |>
       on_exit wait_for_break_roll on_wait_for_break_roll_exit |>
       on_exit wait_for_deal on_wait_for_deal_exit |>
@@ -1276,10 +1276,10 @@ let build_engine ~seven_pairs ?irregular_hands events =
       on_exit kr_3 on_kr_3_exit
 
   in
-  let world, state = run action_handler init_game game_start events in
+  let world, state = run action_handler init_round round_start events in
   action_handler, world, state
 
-let finished {end_game; _} = end_game
+let finished {end_round; _} = end_round
 
 let set_known_tile tiles known_tiles tile_pos =
   known_tiles.(tile_pos) <- Some (tiles.(tile_pos))
@@ -1318,38 +1318,38 @@ let known_tiles {current_player; tiles; player_0; player_1; player_2; player_3; 
 
 let current_player {current_player; _} = current_player
 
-let current_player_hand game =
-  let {hand; _} = current_player_state game in
+let current_player_hand round =
+  let {hand; _} = current_player_state round in
   hand
 
-let player_hand player game =
-  let {hand; _} = player_state player game in
+let player_hand player round =
+  let {hand; _} = player_state player round in
   hand
 
-let player_declared_sets player game =
-  let {declared; _} = player_state player game in
+let player_declared_sets player round =
+  let {declared; _} = player_state player round in
   declared
 
-let player_discarded_tiles player game =
-  let {discarded_tiles; _} = player_state player game in
+let player_discarded_tiles player round =
+  let {discarded_tiles; _} = player_state player round in
   List.fold_right
     (fun i acc ->
-      game.tiles.(i) :: acc
+      round.tiles.(i) :: acc
     )
     discarded_tiles
     []
 
-let nb_tiles_in_hand player game =
+let nb_tiles_in_hand player round =
   TMap.fold
     (fun tile positions acc ->
        acc + List.length positions
     )
-    (player_state player game).tiles_pos
+    (player_state player round).tiles_pos
     0
 
 let tile_of_tile_pos {tiles; _} pos = tiles.(pos)
 
-let descr_of_tile_pos game pos = tile_descr_of_tile (tile_of_tile_pos game pos)
+let descr_of_tile_pos round pos = tile_descr_of_tile (tile_of_tile_pos round pos)
 
 let rec is_in_declared pos = function
   | [] -> false
@@ -1359,8 +1359,8 @@ let rec is_in_declared pos = function
     else
       is_in_declared pos tl
 
-let is_in_current_player_hand game pos =
-  let {declared; tiles_pos; _} = current_player_state game in
+let is_in_current_player_hand round pos =
+  let {declared; tiles_pos; _} = current_player_state round in
   if is_in_declared pos declared then
     true
   else
@@ -1372,18 +1372,18 @@ let is_in_current_player_hand game pos =
       tiles_pos
       false
 
-let discarded_tile game =
-  match game.discarded_tile with
+let discarded_tile round =
+  match round.discarded_tile with
   | None -> None
-  | Some pos -> Some (game.tiles.(pos))
+  | Some pos -> Some (round.tiles.(pos))
 
 let discard_player {discard_player; _} = discard_player
 
-let last_drawn_tile player game =
-  let {last_drawn_tile; _} = player_state player game in
+let last_drawn_tile player round =
+  let {last_drawn_tile; _} = player_state player round in
   match last_drawn_tile with
   | None -> None
-  | Some (pos, _) -> Some game.tiles.(pos)
+  | Some (pos, _) -> Some round.tiles.(pos)
 
 let current_player_wind {current_player; _} =
   match current_player with

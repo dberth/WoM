@@ -97,8 +97,8 @@ let build_rule check =
   let open Engine in
   let irregular_hands = Tileset.no_irregular_hand in
   let seven_pairs = check seven_pairs in
-  let explain_hand_score game =
-    match finished game with
+  let explain_hand_score round =
+    match finished round with
     | None -> assert false
     | Some No_winner -> [], 0.
     | Some (Mahjong {declared; hand; _}) ->
@@ -116,22 +116,22 @@ let build_rule check =
         mahjongs
       
   in
-  let explain_player_score player game ~hand_score =
+  let explain_player_score player round ~hand_score =
     let status =
       if hand_score = 0. then
         `Draw
-      else if current_player game = player then
+      else if current_player round = player then
         `Winner
       else
         `Looser
     in
     player_pts status hand_score 
   in
-  let evaluate_game player game =
-    let hand_score = snd (explain_hand_score game) in
-    snd (explain_player_score player game ~hand_score)
+  let evaluate_round player round =
+    let hand_score = snd (explain_hand_score round) in
+    snd (explain_player_score player round ~hand_score)
   in
-  {irregular_hands; seven_pairs; evaluate_game; explain_hand_score; explain_player_score}
+  {irregular_hands; seven_pairs; evaluate_round; explain_hand_score; explain_player_score}
 
 let register () =
   register_rule_builder

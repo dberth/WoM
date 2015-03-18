@@ -4,26 +4,26 @@ open Fsm
 open Engine
 open Game_descr
 
-let rec loop action_handler game state =
-  match finished game with
-  | Some end_game -> print_endline (string_of_end_game end_game)
+let rec loop action_handler round state =
+  match finished round with
+  | Some end_round -> print_endline (string_of_end_round end_round)
   | None ->
     (* let history = Fsm.history state in *)
     (* let events = *)
     (*   match history with *)
     (*   | [] -> [] *)
     (*   | Init _ :: tl *)
-    (*   | tl -> Init (known_tiles game) :: tl *)
+    (*   | tl -> Init (known_tiles round) :: tl *)
     (* in *)
-    (* let _, partial_game, _ = build_engine events in *)
-    let partial_game = game in
-    let possible_actions = accepted_events partial_game state in
-    print_endline (string_of_game partial_game);
+    (* let _, partial_round, _ = build_engine events in *)
+    let partial_round = round in
+    let possible_actions = accepted_events partial_round state in
+    print_endline (string_of_round partial_round);
     let rec read_event_loop () =
       List.iteri
         (fun i event ->
           if i <> 0 && i mod 5 = 0 then print_endline "";
-          Printf.printf "%i) %s   " i (string_of_event partial_game event);
+          Printf.printf "%i) %s   " i (string_of_event partial_round event);
         )
         possible_actions;
       print_string "\n>  ";
@@ -45,9 +45,9 @@ let rec loop action_handler game state =
               Break_wall_roll i
             | _ ->  event
           in
-          print_endline (string_of_event partial_game event);
-          let game, state = run ~with_history: true action_handler game (lazy state) [event] in
-          loop action_handler game state
+          print_endline (string_of_event partial_round event);
+          let round, state = run ~with_history: true action_handler round (lazy state) [event] in
+          loop action_handler round state
       | exception Scanf.Scan_failure msg ->
         print_endline ("Scan failure: " ^ msg);
         Scanf.scanf "%s\n" (fun _ -> ());
@@ -58,6 +58,6 @@ let rec loop action_handler game state =
     read_event_loop ()
 
 let () =
-  let action_handler, game, state = build_engine ~seven_pairs: false [] in
-  loop action_handler game state
+  let action_handler, round, state = build_engine ~seven_pairs: false [] in
+  loop action_handler round state
     

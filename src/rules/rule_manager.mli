@@ -4,9 +4,9 @@ type rule =
   {
     irregular_hands: Tileset.irregular_hands;
     seven_pairs: bool;
-    evaluate_game: (Game_descr.round_player -> Engine.game -> float);
-    explain_hand_score: (Engine.game -> (string * float) list * float);
-    explain_player_score: (Game_descr.round_player -> Engine.game -> hand_score: float -> string * float);
+    evaluate_round: (Game_descr.round_player -> Engine.round -> float);
+    explain_hand_score: (Engine.round -> (string * float) list * float);
+    explain_player_score: (Game_descr.round_player -> Engine.round -> hand_score: float -> string * float);
   }
 
 type flag
@@ -38,8 +38,8 @@ val irregular_hands: unit -> Tileset.irregular_hands
 
 val seven_pairs: unit -> bool
 
-val evaluate_game: Game_descr.round_player -> Engine.game -> float
+val evaluate_round: Game_descr.round_player -> Engine.round -> float
 
-val explain_hand_score: Engine.game -> (string * float) list * float
+val explain_hand_score: Engine.round -> (string * float) list * float
 
-val explain_player_score: Game_descr.round_player -> Engine.game -> hand_score: float -> string * float
+val explain_player_score: Game_descr.round_player -> Engine.round -> hand_score: float -> string * float

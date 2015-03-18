@@ -60,44 +60,44 @@ let show_discarded_tile player discard_player = function
     else
       print_endline ""
 
-let show_player visibles player game =
+let show_player visibles player round =
   if player <> 0 then print_endline "--------------------";
   let s1, s2 =
-    if player = current_player game then
+    if player = current_player round then
       "[","]"
-    else if Some player = discard_player game then
+    else if Some player = discard_player round then
       "<", ">"
     else
       " ", " "
   in
   print_endline (Printf.sprintf "%sPLAYER %i%s:" s1 player s2);
-  show_declared (player_declared_sets player game);
+  show_declared (player_declared_sets player round);
   begin
     if List.mem player visibles then begin
-      let current = last_drawn_tile player game in
-      show_hand ?current (player_hand player game);
-      show_hand_nb (nb_tiles_in_hand player game)
+      let current = last_drawn_tile player round in
+      show_hand ?current (player_hand player round);
+      show_hand_nb (nb_tiles_in_hand player round)
     end else
-      let n = nb_tiles_in_hand player game in
+      let n = nb_tiles_in_hand player round in
       print_endline (String.concat "" (make_list "[XX]" n));
   end;
   print_string "DISCARD: ";
-  show_discarded_tile player (discard_player game) (discarded_tile game);
-  show_discarded_tiles (player_discarded_tiles player game)
+  show_discarded_tile player (discard_player round) (discarded_tile round);
+  show_discarded_tiles (player_discarded_tiles player round)
 
-let show_game visibles game =
+let show_round visibles round =
   print_endline "====================";
   for i = 0 to 3 do
-    show_player visibles i game
+    show_player visibles i round
   done
 
-let show_end_game game =
-  show_game [0; 1; 2; 3] game;
-  match finished game with
+let show_end_round round =
+  show_round [0; 1; 2; 3] round;
+  match finished round with
   | None -> assert false
   | Some No_winner -> print_endline "==== DRAW GAME ==="
   | _ ->
-    let hand_explanation, score = Rule_manager.explain_hand_score game in
+    let hand_explanation, score = Rule_manager.explain_hand_score round in
     let hand_explanation = List.sort (fun (_, x) (_, y) -> compare x y) hand_explanation in
     let hand_explanations =
       String.concat "\n"
@@ -112,7 +112,7 @@ let show_end_game game =
       String.concat "\n"
         (List.map
            (fun player ->
-              let s, v = Rule_manager.explain_player_score player game ~hand_score: score in
+              let s, v = Rule_manager.explain_player_score player round ~hand_score: score in
               Printf.sprintf "%s: %.0f" s v
            )
            [0; 1; 2; 3]
@@ -120,29 +120,29 @@ let show_end_game game =
     in
     print_endline
       (Printf.sprintf "==== PLAYER %i WINS WITH %.0f PTS===\n%s\n====\n%s\n"
-         (current_player game)
+         (current_player round)
          score
          hand_explanations
          player_explanations
       )
          
 
-let string_of_tile_pos game pos =
-  Tileset.string_of_tile_descr (descr_of_tile_pos game pos)
+let string_of_tile_pos round pos =
+  Tileset.string_of_tile_descr (descr_of_tile_pos round pos)
 
-let compare_discard_events game e1 e2 =
+let compare_discard_events round e1 e2 =
   match e1, e2 with
   | Discard(_, pos1), Discard(_, pos2) ->
-    compare (tile_of_tile_pos game pos1) (tile_of_tile_pos game pos2)
+    compare (tile_of_tile_pos round pos1) (tile_of_tile_pos round pos2)
   | _ -> assert false
 
-let duplicate_events game events tiles =
+let duplicate_events round events tiles =
   let table = Hashtbl.create 4 in
   List.iter
     (fun event ->
        match event with
        | Discard (_, pos) ->
-         Hashtbl.add table (tile_of_tile_pos game pos) event
+         Hashtbl.add table (tile_of_tile_pos round pos) event
        | _ -> assert false
     )
     events;
@@ -154,7 +154,7 @@ let duplicate_events game events tiles =
     )
     tiles
 
-let discard_events game events hand =
+let discard_events round events hand =
   let events =
     List.filter (function Discard _ -> true | _ -> false) events
   in
@@ -162,32 +162,32 @@ let discard_events game events hand =
   | [] -> []
   | _ ->
     let tiles = List.sort Tileset.compare_tiles (Tileset.tiles_of_tileset hand) in
-    duplicate_events game events tiles
+    duplicate_events round events tiles
 
-let make_game_descr game state =
+let make_round_descr round state =
   let events = Fsm.history state in
-  {current_round = Engine.set_real_init_tiles events game; game_events = []}
+  {current_round = Engine.set_real_init_tiles events round; game_events = []}
 
-let read_event game events game_descr =
-  let hand = current_player_hand game in
+let read_event round events round_descr =
+  let hand = current_player_hand round in
   let rec loop () =
     print_string "> "; flush stdout;
     begin match Scanf.scanf "%i\n" (fun x -> x) with
     | i ->
-      let discard_events = discard_events game events hand in
+      let discard_events = discard_events round events hand in
       if 0 < i && i <= List.length discard_events then
         List.nth discard_events (i - 1)
       else
         bad_move ()
     | exception Scanf.Scan_failure _ ->
       match Scanf.scanf "%s\n" (fun x -> x) with
-      | "" -> send_event (No_action (current_player game))
-      | "m" | "M" -> send_event (Mahjong (current_player game))
+      | "" -> send_event (No_action (current_player round))
+      | "m" | "M" -> send_event (Mahjong (current_player round))
       | "k" | "K" -> kong_loop ()
       | "p" | "P" -> pong_loop ()
       | "c" | "C" -> chow_loop ()
       | "dump" ->
-        Game_descr.dump game_descr "wom_dump.bak";
+        Game_descr.dump round_descr "wom_dump.bak";
         loop ()
       | _ -> bad_move ()
     end
@@ -207,7 +207,7 @@ let read_event game events game_descr =
     | _ ->
       List.iteri
         (fun i event ->
-          print_endline (Printf.sprintf "%i) %s" (i + 1) (String.concat "" (List.map  (fun pos -> Printf.sprintf "[%s]" (string_of_tile_pos game pos)) (get_set event))))
+          print_endline (Printf.sprintf "%i) %s" (i + 1) (String.concat "" (List.map  (fun pos -> Printf.sprintf "[%s]" (string_of_tile_pos round pos)) (get_set event))))
         )
         events;
       declare_loop events
@@ -251,29 +251,29 @@ let read_event game events game_descr =
   in
   loop ()
 
-let human_player_event possible_actions game state =
+let human_player_event possible_actions round state =
   match possible_actions with
   | [] -> assert false
   | [Init _ as x] | [Break_wall_roll _ as x] | [Wall_breaker_roll _ as x] | [Deal as x] | [Draw _ as x]-> x 
   | _ ->
-    let game_descr = make_game_descr game state in
-    read_event game possible_actions game_descr
+    let round_descr = make_round_descr round state in
+    read_event round possible_actions round_descr
 
-let rec loop human_players action_handler game state =
+let rec loop human_players action_handler round state =
   let nb_trajectory = 1_000 in
-  match finished game with
-  | Some _ -> show_end_game game
+  match finished round with
+  | Some _ -> show_end_round round
   | None ->
     let history = Fsm.history state in
     let events =
       match history with
       | [] -> []
       | Init _ :: tl
-      | tl -> Init (known_tiles game) :: tl
+      | tl -> Init (known_tiles round) :: tl
     in
     
-    show_game human_players game;
-    let possible_actions = Fsm.accepted_events game state in
+    show_round human_players round;
+    let possible_actions = Fsm.accepted_events round state in
     let event =
       match possible_actions with
       | [] -> assert false
@@ -287,19 +287,19 @@ let rec loop human_players action_handler game state =
         print_endline (Printf.sprintf "Roll a %i." i);
         Break_wall_roll i
       | _ ->
-        let current_player = current_player game in
+        let current_player = current_player round in
         if List.mem current_player human_players then
-          human_player_event possible_actions game state
+          human_player_event possible_actions round state
         else
-          let evaluate_game player game = Rule_manager.evaluate_game player game in
+          let evaluate_round player round = Rule_manager.evaluate_round player round in
           let irregular_hands = Rule_manager.irregular_hands () in
           let seven_pairs = Rule_manager.seven_pairs () in
-          Mahjong_ai.mc_ai_with_bias ~irregular_hands ~seven_pairs ~evaluate_game ~nb_trajectory events 0.8
+          Mahjong_ai.mc_ai_with_bias ~irregular_hands ~seven_pairs ~evaluate_round ~nb_trajectory events 0.8
     in
-    let game, state = Fsm.run ~with_history: true action_handler game (lazy state) [event] in
-    let game_descr = make_game_descr game state in
-    Game_descr.dump game_descr "round_dump.bak";
-    loop human_players action_handler game state
+    let round, state = Fsm.run ~with_history: true action_handler round (lazy state) [event] in
+    let round_descr = make_round_descr round state in
+    Game_descr.dump round_descr "round_dump.bak";
+    loop human_players action_handler round state
 
 let () =
   Simple.register ();
@@ -316,5 +316,5 @@ let () =
       let {Game_descr.current_round; _} = Game_descr.restore dump_file in
       current_round
   in
-  let action_handler, game, state = build_engine ~irregular_hands ~seven_pairs initial_events in
-  loop [0] action_handler game state
+  let action_handler, round, state = build_engine ~irregular_hands ~seven_pairs initial_events in
+  loop [0] action_handler round state

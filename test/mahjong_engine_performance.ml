@@ -53,15 +53,15 @@ let () =
 
 
 let perf_test () =
-  let nb_games = ref 0 in
-  let nb_draw_games = ref 0 in
-  let evaluate_game player game =
-    incr nb_games;
-    match finished game with
+  let nb_rounds = ref 0 in
+  let nb_draw_rounds = ref 0 in
+  let evaluate_round player round =
+    incr nb_rounds;
+    match finished round with
     | None -> assert false
-    | Some No_winner -> incr nb_draw_games; 0.
+    | Some No_winner -> incr nb_draw_rounds; 0.
     | Some (Mahjong _) ->
-      if current_player game = player then
+      if current_player round = player then
         1.
       else
         -1.
@@ -79,14 +79,14 @@ let perf_test () =
     ]
   in
   for _ = 1 to nb_simulations do
-    ignore (Mahjong_ai.mc_ai_with_bias ~seven_pairs: false ~evaluate_game ~nb_trajectory  events 0.8)
+    ignore (Mahjong_ai.mc_ai_with_bias ~seven_pairs: false ~evaluate_round ~nb_trajectory  events 0.8)
   done;
   let tf = Unix.gettimeofday () in
-  (tf -. ti), nb_simulations, nb_trajectory, !nb_draw_games, !nb_games 
+  (tf -. ti), nb_simulations, nb_trajectory, !nb_draw_rounds, !nb_rounds 
 
 let () =
-  let time, nb_simulations, nb_trajectory, nb_draw_games, nb_games =
+  let time, nb_simulations, nb_trajectory, nb_draw_rounds, nb_rounds =
     perf_test ()
   in
   print_endline (Printf.sprintf "%i simulation with %i trajectory in %.4f seconds." nb_simulations nb_trajectory time);
-  print_endline (Printf.sprintf "%i / %i draw games i.e. %.2f%%." nb_draw_games nb_games ((float nb_draw_games) /. (float nb_games) *. 100.))
+  print_endline (Printf.sprintf "%i / %i draw rounds i.e. %.2f%%." nb_draw_rounds nb_rounds ((float nb_draw_rounds) /. (float nb_rounds) *. 100.))

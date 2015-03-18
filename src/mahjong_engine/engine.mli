@@ -1,6 +1,6 @@
 (*Copyright (C) 2014 Denis Berthod*)
 
-type game
+type round
 
 type declared = (Tileset.tileset * Game_descr.tile_pos list * bool (*is_concealed*)) list
 
@@ -21,7 +21,7 @@ type mahjong =
     extraordinary_events: extraordinary_event list;
   }
 
-type end_game =
+type end_round =
   | No_winner
   | Mahjong of mahjong
 
@@ -32,44 +32,44 @@ val build_engine:
   seven_pairs: bool ->
   ?irregular_hands: Tileset.irregular_hands ->
   Game_descr.round_event list ->
-  (Game_descr.round_event, game) Fsm.action_handler * game * (Game_descr.round_event, game) Fsm.state
+  (Game_descr.round_event, round) Fsm.action_handler * round * (Game_descr.round_event, round) Fsm.state
 
-val finished: game -> end_game option
+val finished: round -> end_round option
 
-val string_of_end_game: end_game -> string
+val string_of_end_round: end_round -> string
 
-val string_of_game: game -> string
+val string_of_round: round -> string
 
-val string_of_event: game -> Game_descr.round_event -> string
+val string_of_event: round -> Game_descr.round_event -> string
 
-val known_tiles: game -> Tileset.tile option array
+val known_tiles: round -> Tileset.tile option array
 
 val random_game: Tileset.tile option array
 
-val current_player: game -> Game_descr.round_player
+val current_player: round -> Game_descr.round_player
 
-val current_player_hand: game -> Tileset.tileset
+val current_player_hand: round -> Tileset.tileset
 
-val player_hand: Game_descr.round_player -> game -> Tileset.tileset
+val player_hand: Game_descr.round_player -> round -> Tileset.tileset
 
-val player_discarded_tiles: Game_descr.round_player -> game -> Tileset.tile list
+val player_discarded_tiles: Game_descr.round_player -> round -> Tileset.tile list
 
-val player_declared_sets: Game_descr.round_player -> game -> declared
+val player_declared_sets: Game_descr.round_player -> round -> declared
 
-val nb_tiles_in_hand: Game_descr.round_player -> game -> int
+val nb_tiles_in_hand: Game_descr.round_player -> round -> int
 
-val tile_of_tile_pos: game -> int -> Tileset.tile
+val tile_of_tile_pos: round -> int -> Tileset.tile
 
-val descr_of_tile_pos: game -> int -> Tileset.tile_descr
+val descr_of_tile_pos: round -> int -> Tileset.tile_descr
 
-val is_in_current_player_hand: game -> int -> bool
+val is_in_current_player_hand: round -> int -> bool
 
-val discarded_tile: game -> Tileset.tile option
+val discarded_tile: round -> Tileset.tile option
 
-val discard_player: game -> int option
+val discard_player: round -> int option
 
-val current_player_wind: game -> Tileset.tile
+val current_player_wind: round -> Tileset.tile
 
-val last_drawn_tile: Game_descr.round_player -> game -> Tileset.tile option
+val last_drawn_tile: Game_descr.round_player -> round -> Tileset.tile option
 
-val set_real_init_tiles: Game_descr.round_event list -> game -> Game_descr.round_event list
+val set_real_init_tiles: Game_descr.round_event list -> round -> Game_descr.round_event list

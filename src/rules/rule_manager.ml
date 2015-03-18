@@ -4,9 +4,9 @@ type rule =
   {
     irregular_hands: Tileset.irregular_hands;
     seven_pairs: bool;
-    evaluate_game: (Game_descr.round_player -> Engine.game -> float);
-    explain_hand_score: (Engine.game -> (string * float) list * float);
-    explain_player_score: (Game_descr.round_player -> Engine.game -> hand_score: float -> string * float);
+    evaluate_round: (Game_descr.round_player -> Engine.round -> float);
+    explain_hand_score: (Engine.round -> (string * float) list * float);
+    explain_player_score: (Game_descr.round_player -> Engine.round -> hand_score: float -> string * float);
   }
 
 let new_id =
@@ -122,17 +122,17 @@ let seven_pairs () =
   | None -> assert false
   | Some {seven_pairs; _} -> seven_pairs
 
-let evaluate_game player game =
+let evaluate_round player round =
   match !current_rule with
   | None -> assert false
-  | Some {evaluate_game; _} -> evaluate_game player game
+  | Some {evaluate_round; _} -> evaluate_round player round
 
-let explain_hand_score game =
+let explain_hand_score round =
   match !current_rule with
   | None -> assert false
-  | Some {explain_hand_score; _} -> explain_hand_score game
+  | Some {explain_hand_score; _} -> explain_hand_score round
 
-let explain_player_score player game ~hand_score =
+let explain_player_score player round ~hand_score =
   match !current_rule with
   | None -> assert false
-  | Some {explain_player_score; _} -> explain_player_score player game ~hand_score
+  | Some {explain_player_score; _} -> explain_player_score player round ~hand_score

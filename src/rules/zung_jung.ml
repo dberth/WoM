@@ -997,9 +997,9 @@ let player_pts status hand_pts =
         | `Discarder -> "Discarder to a big hand pays hand points x 3 - 50", -. (hand_pts *. 3. -. 50.)
         
 
-let explain_hand_score ~irregular_hands ~seven_pairs check game =
+let explain_hand_score ~irregular_hands ~seven_pairs check round =
   let open Engine in
-  match finished game with
+  match finished round with
   | None -> assert false
   | Some No_winner -> [], 0.
   | Some (Mahjong {declared; hand; last_drawn_tile; extraordinary_events; discard_player = _}) ->
@@ -1010,7 +1010,7 @@ let explain_hand_score ~irregular_hands ~seven_pairs check game =
       List.fold_left
         (fun (explanations, score) mahjong ->
            let new_explanations, new_score =
-             mahjong_pts check extraordinary_events (current_player_wind game) last_drawn_tile hand mahjong declared
+             mahjong_pts check extraordinary_events (current_player_wind round) last_drawn_tile hand mahjong declared
            in
            if new_score < score then
              explanations, score
@@ -1020,15 +1020,15 @@ let explain_hand_score ~irregular_hands ~seven_pairs check game =
         ([], 0.)
         mahjongs
 
-let explain_player_score player game ~hand_score =
+let explain_player_score player round ~hand_score =
   let open Engine in
   let status =
     if hand_score = 0. then
       `Draw
-    else if current_player game = player then
+    else if current_player round = player then
       `Winner
     else
-      match finished game with
+      match finished round with
       | Some (Mahjong {discard_player; _}) -> begin
         match discard_player with
         | None -> `Big_looser
@@ -1058,14 +1058,14 @@ let build_rule check =
     else
       Tileset.no_irregular_hand
   in
-  let explain_hand_score game =
-    explain_hand_score ~irregular_hands ~seven_pairs check game
+  let explain_hand_score round =
+    explain_hand_score ~irregular_hands ~seven_pairs check round
   in
-  let evaluate_game player game =
-    let hand_score = snd (explain_hand_score game) in
-    snd (explain_player_score player game ~hand_score)
+  let evaluate_round player round =
+    let hand_score = snd (explain_hand_score round) in
+    snd (explain_player_score player round ~hand_score)
   in
-  {irregular_hands; seven_pairs; evaluate_game; explain_hand_score; explain_player_score}
+  {irregular_hands; seven_pairs; evaluate_round; explain_hand_score; explain_player_score}
       
 
 

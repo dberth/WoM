@@ -4,7 +4,7 @@ val mc_ai_with_bias:
   ?debug: bool ->
   ?irregular_hands: Tileset.irregular_hands ->
   seven_pairs: bool ->
-  evaluate_game: (Game_descr.round_player -> Engine.game -> float) ->
+  evaluate_round: (Game_descr.round_player -> Engine.round -> float) ->
   nb_trajectory: int ->
   Game_descr.round_event list ->
   float ->

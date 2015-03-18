@@ -22,13 +22,13 @@ let apply_bias bias buckets =
   aux (remove_empty buckets)
 
 
-let mc_next_event_with_bias game state bias =
-  let possible_actions = Fsm.accepted_events game state in
+let mc_next_event_with_bias round state bias =
+  let possible_actions = Fsm.accepted_events round state in
   match possible_actions with
   | [] ->
     List.iter
       (fun event ->
-        print_endline (string_of_event game event)
+        print_endline (string_of_event round event)
       )
       (Fsm.history state);
     assert false
@@ -57,18 +57,18 @@ let mc_next_event_with_bias game state bias =
       match discard_actions with
       | _ :: _ ->
         begin try
-          apply_bias bias [discard_actions; [No_action (current_player game)]]
+          apply_bias bias [discard_actions; [No_action (current_player round)]]
         with
-        | Failure _ -> print_endline (String.concat "; " (List.map (string_of_event game) discard_actions)); assert false
+        | Failure _ -> print_endline (String.concat "; " (List.map (string_of_event round) discard_actions)); assert false
         end
       | _ ->
-        let {Tileset.alone; in_sub_chow; in_pair; in_3set} = Tileset.status_of_tileset (current_player_hand game) in
+        let {Tileset.alone; in_sub_chow; in_pair; in_3set} = Tileset.status_of_tileset (current_player_hand round) in
         let tile_descr = apply_bias bias [alone; in_sub_chow; in_pair; in_3set] in
         try
           List.find
             (function
               | Discard(_, tile_pos) ->
-                descr_of_tile_pos game tile_pos = tile_descr
+                descr_of_tile_pos round tile_pos = tile_descr
               | _ -> false
             )
             possible_actions
@@ -76,28 +76,28 @@ let mc_next_event_with_bias game state bias =
         | Not_found -> assert false
 
 let mc_trajectory_with_bias ?irregular_hands ~seven_pairs ~event_history ~possible_actions bias =
-  let action_handler, game, state = build_engine ?irregular_hands ~seven_pairs event_history in
+  let action_handler, round, state = build_engine ?irregular_hands ~seven_pairs event_history in
   let chosen_event = List.nth possible_actions (Random.int (List.length possible_actions)) in
-  let game, state = Fsm.run action_handler game (lazy state) [chosen_event] in
-  let rec loop game state =
-    match finished game with
-    | Some _ -> game, chosen_event
+  let round, state = Fsm.run action_handler round (lazy state) [chosen_event] in
+  let rec loop round state =
+    match finished round with
+    | Some _ -> round, chosen_event
     | None ->
-      let event = mc_next_event_with_bias game state bias in
-      let game, state = Fsm.run (*~with_history: true*) action_handler game (lazy state) [event] in
-      loop game state
+      let event = mc_next_event_with_bias round state bias in
+      let round, state = Fsm.run (*~with_history: true*) action_handler round (lazy state) [event] in
+      loop round state
   in
-  loop game state
+  loop round state
 
 let apply_score possible_actions_tab action score =
   let (nb, sum) = try Hashtbl.find possible_actions_tab action with Not_found -> assert false in
   Hashtbl.replace possible_actions_tab action (nb +. 1., sum +. score)
 
-let apply_amaf possible_actions_tab possible_actions chosen_action game score =
+let apply_amaf possible_actions_tab possible_actions chosen_action round score =
   List.iter
     (function
       | Discard (_, tile_pos) as action ->
-        if not (is_in_current_player_hand game tile_pos) then
+        if not (is_in_current_player_hand round tile_pos) then
           apply_score possible_actions_tab action score
       | action when action = chosen_action ->
         apply_score possible_actions_tab action score
@@ -105,20 +105,20 @@ let apply_amaf possible_actions_tab possible_actions chosen_action game score =
     )
     possible_actions
 
-let mc_ai_with_bias ?(debug = false) ?irregular_hands ~seven_pairs ~evaluate_game ~nb_trajectory event_history bias =
-  let _, game, state = build_engine ?irregular_hands ~seven_pairs event_history in
-  let possible_actions = Fsm.accepted_events game state in
+let mc_ai_with_bias ?(debug = false) ?irregular_hands ~seven_pairs ~evaluate_round ~nb_trajectory event_history bias =
+  let _, round, state = build_engine ?irregular_hands ~seven_pairs event_history in
+  let possible_actions = Fsm.accepted_events round state in
   let possible_actions_tab = Hashtbl.create 14 in
   List.iter (fun x -> Hashtbl.add possible_actions_tab x (0., 0.)) possible_actions;
   match possible_actions with
   | [] -> assert false
   | [unique_action] -> unique_action
   | _ ->
-    let player = current_player game in
+    let player = current_player round in
     for _ = 1 to nb_trajectory do
-      let game, chosen_action = mc_trajectory_with_bias ?irregular_hands ~seven_pairs ~event_history ~possible_actions bias in
-      let score = evaluate_game player game in
-      apply_amaf possible_actions_tab possible_actions chosen_action game score;
+      let round, chosen_action = mc_trajectory_with_bias ?irregular_hands ~seven_pairs ~event_history ~possible_actions bias in
+      let score = evaluate_round player round in
+      apply_amaf possible_actions_tab possible_actions chosen_action round score;
     done;
     let result =
       Hashtbl.fold
@@ -126,11 +126,11 @@ let mc_ai_with_bias ?(debug = false) ?irregular_hands ~seven_pairs ~evaluate_gam
           match result with
           | None ->
             let average = sum /. nb in
-            if debug then print_endline (Printf.sprintf "%.2f, %s" average (string_of_event game event));
+            if debug then print_endline (Printf.sprintf "%.2f, %s" average (string_of_event round event));
             Some (average, event)
           | Some (old_average, old_event) ->
             let average = sum /. nb in
-            if debug then print_endline (Printf.sprintf "%.2f, %s" average (string_of_event game event));
+            if debug then print_endline (Printf.sprintf "%.2f, %s" average (string_of_event round event));
             if old_average <  average then
               Some (average, event)
             else
