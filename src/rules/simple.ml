@@ -133,7 +133,7 @@ let build_rule check =
   in
   {irregular_hands; seven_pairs; evaluate_round; explain_hand_score; explain_player_score}
 
-let register () =
+let () =
   register_rule_builder
     ~is_default: false
     ~flags

@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 926e5a6b48a144c6b2c1a08c824c99c9) *)
+(* DO NOT EDIT (digest: c8622baba94015d3b6108d07963f10f4) *)
 module OASISGettext = struct
 (* # 22 "src/oasis/OASISGettext.ml" *)
 
@@ -882,7 +882,7 @@ let package_default =
                       A "-bin-annot"
                    ])
             ]);
-          (["oasis_library_rules_byte"; "ocaml"; "link"; "byte"],
+          (["oasis_object_rules_byte"; "ocaml"; "link"; "byte"],
             [
                (OASISExpr.EBool true,
                  S
@@ -895,7 +895,7 @@ let package_default =
                       A "-bin-annot"
                    ])
             ]);
-          (["oasis_library_rules_native"; "ocaml"; "link"; "native"],
+          (["oasis_object_rules_native"; "ocaml"; "link"; "native"],
             [
                (OASISExpr.EBool true,
                  S
@@ -908,7 +908,7 @@ let package_default =
                       A "-bin-annot"
                    ])
             ]);
-          (["oasis_library_rules_byte"; "ocaml"; "ocamldep"; "byte"],
+          (["oasis_object_rules_byte"; "ocaml"; "ocamldep"; "byte"],
             [
                (OASISExpr.EBool true,
                  S
@@ -921,7 +921,7 @@ let package_default =
                       A "-bin-annot"
                    ])
             ]);
-          (["oasis_library_rules_native"; "ocaml"; "ocamldep"; "native"],
+          (["oasis_object_rules_native"; "ocaml"; "ocamldep"; "native"],
             [
                (OASISExpr.EBool true,
                  S
@@ -934,7 +934,7 @@ let package_default =
                       A "-bin-annot"
                    ])
             ]);
-          (["oasis_library_rules_byte"; "ocaml"; "compile"; "byte"],
+          (["oasis_object_rules_byte"; "ocaml"; "compile"; "byte"],
             [
                (OASISExpr.EBool true,
                  S
@@ -947,7 +947,7 @@ let package_default =
                       A "-bin-annot"
                    ])
             ]);
-          (["oasis_library_rules_native"; "ocaml"; "compile"; "native"],
+          (["oasis_object_rules_native"; "ocaml"; "compile"; "native"],
             [
                (OASISExpr.EBool true,
                  S

@@ -302,8 +302,7 @@ let rec loop human_players action_handler round state =
     loop human_players action_handler round state
 
 let () =
-  Simple.register ();
-  Zung_jung.register ();
+  Rules.Loader.load_rules ();
   Rule_manager.set_default_rule ();
   Random.self_init ();
   let irregular_hands = Rule_manager.irregular_hands () in

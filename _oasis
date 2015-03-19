@@ -1,13 +1,14 @@
-OASISFormat: 0.4
-Name:        wom
-Version:     0.0.1
-Synopsis:    Winds of Mahjong. A 4 player mahjong game.
-Authors:     Denis Berthod
-License:     BSD-3-clause
-Plugins:     DevFiles (0.4), META (0.4), StdFiles (0.4)
+OASISFormat:   0.4
+Name:          wom
+Version:       0.0.1
+Synopsis:      Winds of Mahjong. A 4 player mahjong game.
+Authors:       Denis Berthod
+License:       BSD-3-clause
+Plugins:       DevFiles (0.4), META (0.4), StdFiles (0.4)
 AlphaFeatures: ocamlbuild_more_args
+BetaFeatures:  section_object
 XOCamlbuildPLuginTags: package(js_of_ocaml.ocamlbuild)
-OcamlVersion: >= 4.02
+OcamlVersion:  >= 4.02
 
 PreBuildCommand: atdgen -t src/game_description/game_descr.atd &&\
                  atdgen -b src/game_description/game_descr.atd &&\
@@ -46,14 +47,14 @@ Library mahjong_ai
   NativeOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
   ByteOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
 
-Library rules
+Object rules
   Path:		   src/rules
   BuildTools:	   ocamlbuild
   CompiledObject:  best
   Build:	   true
   BuildDepends:	   mahjong_engine
-  Modules:	   Simple, Zung_jung
-  Findlibname:	   rules
+  Modules:	   Loader, Simple, Zung_jung
+  FindlibFullName: rules
   NativeOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
   ByteOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
 
