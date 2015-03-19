@@ -30,7 +30,7 @@ Library mahjong_engine
   CompiledObject:  best
   Build:           true
   BuildDepends:    game_description
-  Modules:         Fsm, Engine
+  Modules:         Fsm, Rule_manager, Engine
   Findlibname:     mahjong_engine
   NativeOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
   ByteOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
@@ -52,7 +52,7 @@ Library rules
   CompiledObject:  best
   Build:	   true
   BuildDepends:	   mahjong_engine
-  Modules:	   Rule_manager, Simple, Zung_jung
+  Modules:	   Simple, Zung_jung
   Findlibname:	   rules
   NativeOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
   ByteOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
