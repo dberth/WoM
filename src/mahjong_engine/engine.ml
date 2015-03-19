@@ -1,4 +1,4 @@
-(*Copyright (C) 2014 Denis Berthod*)
+(*Copyright (C) 2015 Denis Berthod*)
 
 module IntSet = Set.Make(struct type t = int let compare x y = x - y end)
 open Tileset

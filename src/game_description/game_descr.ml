@@ -37,7 +37,14 @@ type player_descr = Game_descr_t.player_descr =
     kind: player_kind;
   }
 
+type rule_descr = Game_descr_t.rule_descr =
+  {
+    name: string;
+    flags: string list;
+  }
+
 type game_event = Game_descr_t.game_event =
+  | Set_rule of rule_descr
   | Player of player_descr
   | East_seat of player_idx
   | Score of (player_idx * int)
