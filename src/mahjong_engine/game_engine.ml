@@ -74,6 +74,16 @@ let on_wait_for_player_exit player_idx event game =
     game
   | _ -> assert false
 
+let on_wait_for_score_init_exit event game =
+  match event with
+  | Init_score score ->
+    for i = 0 to 3 do
+      let player = game.players.(i) in
+      game.players.(i) <- {player with score}
+    done;
+    game
+  | _ -> assert false
+
 let build_game_engine ?current_round_events game_events =
   let rec game_start =
     lazy (new_state
@@ -170,7 +180,8 @@ let build_game_engine ?current_round_events game_events =
     on_exit wait_for_player_0 (on_wait_for_player_exit 0) |>
     on_exit wait_for_player_0 (on_wait_for_player_exit 1) |>
     on_exit wait_for_player_0 (on_wait_for_player_exit 2) |>
-    on_exit wait_for_player_0 (on_wait_for_player_exit 3)
+    on_exit wait_for_player_0 (on_wait_for_player_exit 3) |>
+    on_exit wait_for_score_init on_wait_for_score_init_exit
   in
   let world, state = run action_handler init_game game_start game_events in
   action_handler, world, state
