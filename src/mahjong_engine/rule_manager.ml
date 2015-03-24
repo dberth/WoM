@@ -68,6 +68,44 @@ let register_rule_builder ~is_default ~flags ~default_flags ~build_rule name =
 let all_rule_builders () =
   Hashtbl.fold (fun id _ acc -> id :: acc) rule_builders []
 
+let rule_builder_of_name s =
+  Hashtbl.fold
+    (fun id {name; _} result ->
+       match result with
+       | Some _ -> result
+       | None ->
+          if s = name then
+            Some id
+          else
+            None
+    )
+    rule_builders
+    None
+
+let flags_of_flag_names rule_builder names =
+  match names with
+  | None -> None
+  | Some names ->
+    match Hashtbl.find rule_builders rule_builder with
+    | {flags = builder_flags; _} ->
+      Some
+        (List.fold_left
+           (fun acc flag ->
+              match Hashtbl.find flags flag with
+              | flag_descr ->
+                if List.mem flag_descr.name names then
+                  flag :: acc
+                else
+                  acc
+              | exception Not_found -> assert false
+           )
+           []
+           builder_flags
+        )
+    | exception Not_found -> assert false
+
+  
+
 let all_flags rule_builder =
   begin match Hashtbl.find rule_builders rule_builder with
   | {flags; _} -> flags

@@ -47,6 +47,19 @@ let dummy_player_descr =
     kind = Human;
   }
 
+let set_rule {name; flags} game =
+  match Rule_manager.rule_builder_of_name name with
+  | None -> failwith (Printf.sprintf "Unknown rule set: %s" name)
+  | Some rule_builder ->
+    let flags = Rule_manager.flags_of_flag_names rule_builder flags in
+    let rule = Rule_manager.rule rule_builder flags in
+    {game with rule = Some rule}
+
+let on_game_start_exit event game =
+  match event with
+  | Set_rule rule_descr -> set_rule rule_descr game
+  | _ -> assert false
+
 let build_game_engine ?current_round_events game_events =
   let rec game_start =
     lazy (new_state
@@ -138,7 +151,8 @@ let build_game_engine ?current_round_events game_events =
            (function event -> raise (Irrelevant_event (event, "end_game"))))
   in
   let action_handler =
-    empty_action_handler
+    empty_action_handler |>
+    on_exit game_start on_game_start_exit
   in
   let world, state = run action_handler init_game game_start game_events in
   action_handler, world, state

@@ -26,7 +26,11 @@ val register_rule_builder:
 
 val all_rule_builders: unit -> rule_builder list
 
+val rule_builder_of_name: string -> rule_builder option
+
 val all_flags: rule_builder -> flag list
+
+val flags_of_flag_names: rule_builder -> string list option -> flag list option 
 
 val default_flags: rule_builder -> flag list
 
