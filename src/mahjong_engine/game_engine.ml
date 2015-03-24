@@ -55,9 +55,23 @@ let set_rule {name; flags} game =
     let rule = Rule_manager.rule rule_builder flags in
     {game with rule = Some rule}
 
+let player_of_player_descr {Game_descr.name; kind} =
+  {
+    name;
+    kind;
+    score = 0;
+  }
+
 let on_game_start_exit event game =
   match event with
   | Set_rule rule_descr -> set_rule rule_descr game
+  | _ -> assert false
+
+let on_wait_for_player_exit player_idx event game =
+  match event with
+  | Player player_descr ->
+    game.players.(player_idx) <- player_of_player_descr player_descr;
+    game
   | _ -> assert false
 
 let build_game_engine ?current_round_events game_events =
@@ -152,7 +166,11 @@ let build_game_engine ?current_round_events game_events =
   in
   let action_handler =
     empty_action_handler |>
-    on_exit game_start on_game_start_exit
+    on_exit game_start on_game_start_exit |>
+    on_exit wait_for_player_0 (on_wait_for_player_exit 0) |>
+    on_exit wait_for_player_0 (on_wait_for_player_exit 1) |>
+    on_exit wait_for_player_0 (on_wait_for_player_exit 2) |>
+    on_exit wait_for_player_0 (on_wait_for_player_exit 3)
   in
   let world, state = run action_handler init_game game_start game_events in
   action_handler, world, state
