@@ -46,7 +46,7 @@ val on_exit: ('event, 'world) state Lazy.t -> ('event, 'world) action -> ('event
 val add_exit_state_hook: ('event -> 'world -> unit) -> ('event, 'world) action_handler -> ('event, 'world) action_handler
     (**
        [add_exit_state_hook hook action_handler] returns an action handler
-       where hook is called each time a state is exited.
+       where [hook] is called each time a state is exited.
        The event is the event is the one that trigger the state exit.
        The world is the one resulting of the application
        of the exit actions of the state.

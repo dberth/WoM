@@ -40,14 +40,16 @@ type player_descr = Game_descr_t.player_descr =
 type rule_descr = Game_descr_t.rule_descr =
   {
     name: string;
-    flags: string list;
+    flags: string list option;
   }
 
 type game_event = Game_descr_t.game_event =
   | Set_rule of rule_descr
   | Player of player_descr
   | East_seat of player_idx
+  | Init_score of int
   | Score of (player_idx * int)
+  | End_game
   
 
 type game = Game_descr_t.game =

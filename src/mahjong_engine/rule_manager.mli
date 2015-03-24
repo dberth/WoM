@@ -30,16 +30,16 @@ val all_flags: rule_builder -> flag list
 
 val default_flags: rule_builder -> flag list
 
-val set_rule: rule_builder -> flag list option -> unit
+val rule: rule_builder -> flag list option -> rule
 
-val set_default_rule: unit -> unit
+val default_rule: unit -> rule
 
-val irregular_hands: unit -> Tileset.irregular_hands
+val irregular_hands: rule -> Tileset.irregular_hands
 
-val seven_pairs: unit -> bool
+val seven_pairs: rule -> bool
 
-val evaluate_round: Game_descr.round_player -> Engine.round -> float
+val evaluate_round: rule -> Game_descr.round_player -> Engine.round -> float
 
-val explain_hand_score: Engine.round -> (string * float) list * float
+val explain_hand_score: rule -> Engine.round -> (string * float) list * float
 
-val explain_player_score: Game_descr.round_player -> Engine.round -> hand_score: float -> string * float
+val explain_player_score: rule -> Game_descr.round_player -> Engine.round -> hand_score: float -> string * float

@@ -52,7 +52,6 @@ let rule_builders = Hashtbl.create 4
 let default_rule_builder = ref None
 
 let register_rule_builder ~is_default ~flags ~default_flags ~build_rule name =
-  print_endline "REGISTER";
   let id = new_id () in
   let rule_builder =
     {
@@ -65,8 +64,6 @@ let register_rule_builder ~is_default ~flags ~default_flags ~build_rule name =
   in
   if is_default then default_rule_builder := Some rule_builder;
   Hashtbl.add rule_builders id rule_builder
-
-let current_rule = ref None
 
 let all_rule_builders () =
   Hashtbl.fold (fun id _ acc -> id :: acc) rule_builders []
@@ -83,7 +80,7 @@ let default_flags rule_builder =
   | exception Not_found -> assert false
   end
 
-let set_rule rule_builder flags =
+let rule rule_builder flags =
   begin match Hashtbl.find rule_builders rule_builder with
   | {build_rule; default_flags; _} ->
     let flags =
@@ -101,38 +98,23 @@ let set_rule rule_builder flags =
       else
         set.(flag)
     in
-    current_rule := Some (build_rule test)
+    build_rule test
   | exception Not_found -> assert false
   end
 
 
-let set_default_rule () =
-  print_endline "ACCESS";
+let default_rule () =
   match !default_rule_builder with
   | None -> assert false
-  | Some rule_builder -> set_rule rule_builder.id None 
+  | Some rule_builder -> rule rule_builder.id None 
 
-let irregular_hands () =
-  match !current_rule with
-  | None -> assert false
-  | Some {irregular_hands; _} -> irregular_hands
+let irregular_hands {irregular_hands; _} = irregular_hands
 
-let seven_pairs () =
-  match !current_rule with
-  | None -> assert false
-  | Some {seven_pairs; _} -> seven_pairs
+let seven_pairs {seven_pairs; _} = seven_pairs
 
-let evaluate_round player round =
-  match !current_rule with
-  | None -> assert false
-  | Some {evaluate_round; _} -> evaluate_round player round
+let evaluate_round {evaluate_round; _} player round = evaluate_round player round
 
-let explain_hand_score round =
-  match !current_rule with
-  | None -> assert false
-  | Some {explain_hand_score; _} -> explain_hand_score round
+let explain_hand_score {explain_hand_score; _} round = explain_hand_score round
 
-let explain_player_score player round ~hand_score =
-  match !current_rule with
-  | None -> assert false
-  | Some {explain_player_score; _} -> explain_player_score player round ~hand_score
+let explain_player_score {explain_player_score; _} player round ~hand_score =
+  explain_player_score player round ~hand_score

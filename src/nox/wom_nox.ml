@@ -91,13 +91,13 @@ let show_round visibles round =
     show_player visibles i round
   done
 
-let show_end_round round =
+let show_end_round rule round =
   show_round [0; 1; 2; 3] round;
   match finished round with
   | None -> assert false
   | Some No_winner -> print_endline "==== DRAW GAME ==="
   | _ ->
-    let hand_explanation, score = Rule_manager.explain_hand_score round in
+    let hand_explanation, score = Rule_manager.explain_hand_score rule round in
     let hand_explanation = List.sort (fun (_, x) (_, y) -> compare x y) hand_explanation in
     let hand_explanations =
       String.concat "\n"
@@ -112,7 +112,7 @@ let show_end_round round =
       String.concat "\n"
         (List.map
            (fun player ->
-              let s, v = Rule_manager.explain_player_score player round ~hand_score: score in
+              let s, v = Rule_manager.explain_player_score rule player round ~hand_score: score in
               Printf.sprintf "%s: %.0f" s v
            )
            [0; 1; 2; 3]
@@ -259,10 +259,10 @@ let human_player_event possible_actions round state =
     let round_descr = make_round_descr round state in
     read_event round possible_actions round_descr
 
-let rec loop human_players action_handler round state =
+let rec loop rule human_players action_handler round state =
   let nb_trajectory = 1_000 in
   match finished round with
-  | Some _ -> show_end_round round
+  | Some _ -> show_end_round rule round
   | None ->
     let history = Fsm.history state in
     let events =
@@ -291,22 +291,22 @@ let rec loop human_players action_handler round state =
         if List.mem current_player human_players then
           human_player_event possible_actions round state
         else
-          let evaluate_round player round = Rule_manager.evaluate_round player round in
-          let irregular_hands = Rule_manager.irregular_hands () in
-          let seven_pairs = Rule_manager.seven_pairs () in
+          let evaluate_round player round = Rule_manager.evaluate_round rule player round in
+          let irregular_hands = Rule_manager.irregular_hands rule in
+          let seven_pairs = Rule_manager.seven_pairs rule in
           Mahjong_ai.mc_ai_with_bias ~irregular_hands ~seven_pairs ~evaluate_round ~nb_trajectory events 0.8
     in
     let round, state = Fsm.run ~with_history: true action_handler round (lazy state) [event] in
     let round_descr = make_round_descr round state in
     Game_descr.dump round_descr "round_dump.bak";
-    loop human_players action_handler round state
+    loop rule human_players action_handler round state
 
 let () =
   Rules.Loader.load_rules ();
-  Rule_manager.set_default_rule ();
+  let rule = Rule_manager.default_rule () in
   Random.self_init ();
-  let irregular_hands = Rule_manager.irregular_hands () in
-  let seven_pairs = Rule_manager.seven_pairs () in
+  let irregular_hands = Rule_manager.irregular_hands rule in
+  let seven_pairs = Rule_manager.seven_pairs rule in
   let initial_events =
     if Array.length Sys.argv <= 1 then
       []
@@ -316,4 +316,4 @@ let () =
       current_round
   in
   let action_handler, round, state = build_engine ~irregular_hands ~seven_pairs initial_events in
-  loop [0] action_handler round state
+  loop rule [0] action_handler round state
