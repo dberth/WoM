@@ -39,7 +39,7 @@ type game_event =
     Set_rule of rule_descr
   | Player of player_descr
   | East_seat of player_idx
-  | Init_score of int
+  | Init_score of float
   | Round_event of round_event
   | End_round
   | End_game

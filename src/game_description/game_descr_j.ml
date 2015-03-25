@@ -45,7 +45,7 @@ type game_event = Game_descr_t.game_event =
     Set_rule of rule_descr
   | Player of player_descr
   | East_seat of player_idx
-  | Init_score of int
+  | Init_score of float
   | Round_event of round_event
   | End_round
   | End_game
@@ -2244,7 +2244,7 @@ let write_game_event : _ -> game_event -> _ = (
       | Init_score x ->
         Bi_outbuf.add_string ob "<\"Init_score\":";
         (
-          Yojson.Safe.write_int
+          Yojson.Safe.write_float
         ) ob x;
         Bi_outbuf.add_char ob '>'
       | Round_event x ->
@@ -2384,7 +2384,7 @@ let read_game_event = (
             | 3 ->
               Ag_oj_run.read_until_field_value p lb;
               let x = (
-                  Ag_oj_run.read_int
+                  Ag_oj_run.read_number
                 ) p lb
               in
               Yojson.Safe.read_space p lb;
@@ -2546,7 +2546,7 @@ let read_game_event = (
               Yojson.Safe.read_comma p lb;
               Yojson.Safe.read_space p lb;
               let x = (
-                  Ag_oj_run.read_int
+                  Ag_oj_run.read_number
                 ) p lb
               in
               Yojson.Safe.read_space p lb;

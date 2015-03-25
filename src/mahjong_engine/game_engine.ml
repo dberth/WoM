@@ -7,7 +7,7 @@ type player =
   {
     name: string;
     kind: Game_descr.player_kind;
-    score: int;
+    score: float;
   }
 
 type round_engine =
@@ -29,7 +29,7 @@ let dummy_player =
   {
     name = "";
     kind = Human;
-    score = 0;
+    score = 0.;
   }
 
 let init_game =
@@ -61,7 +61,7 @@ let player_of_player_descr {Game_descr.name; kind} =
   {
     name;
     kind;
-    score = 0;
+    score = 0.;
   }
 
 let on_game_start_exit event game =
@@ -90,6 +90,49 @@ let on_wait_for_east_seat_exit event game =
   match event with
   | East_seat player_idx -> {game with east_seat = player_idx}
   | _ -> assert false
+
+let on_round_entry _ ({current_round; rule; _} as game) =
+  match current_round with
+  | Some _ -> game
+  | None ->
+    match rule with
+    | None -> assert false
+    | Some rule ->
+      let seven_pairs = Rule_manager.seven_pairs rule in
+      let irregular_hands = Rule_manager.irregular_hands rule in
+      let action_handler, round, state =
+        Engine.build_engine
+          ~seven_pairs
+          ~irregular_hands
+          []
+      in
+      {game with current_round = Some {action_handler; round; state}}
+
+let on_round_exit event ({current_round; players; east_seat; rule; _} as game) =
+  match current_round with
+  | None -> assert false
+  | Some {action_handler; round; state} ->
+    match event with
+    | Round_event round_event ->
+      let round, state =
+        Fsm.run ~with_history: true action_handler round (lazy state) [round_event]
+      in
+      {game with current_round = Some {action_handler; round; state}}
+
+    | End_round ->
+      begin match rule with
+      | None -> assert false
+      | Some rule ->
+        for i =0 to 3 do
+          let player = players.(i) in
+          let round_player = (i + (4 - east_seat)) mod 4 in
+          let score = player.score +. Rule_manager.evaluate_round rule round_player round in
+          players.(i) <- {player with score} 
+        done;
+        let east_seat = (east_seat + 1) mod 4 in (*TODO should depend on the rule*)
+        {game with east_seat; current_round = None}
+      end
+    | _ -> assert false
 
 let round_accepted_events {current_round; _} =
   match current_round with
@@ -138,7 +181,7 @@ let build_game_engine ?current_round_events game_events =
 
   and wait_for_score_init =
     lazy (new_state
-           ~accepted_events: (fun _ -> [Init_score 0])
+           ~accepted_events: (fun _ -> [Init_score 0.])
            (function
              | Init_score _ -> wait_for_east_seat
              | event -> raise (Irrelevant_event (event, "wait_for_score_init"))))
@@ -178,7 +221,9 @@ let build_game_engine ?current_round_events game_events =
     on_exit wait_for_player_0 (on_wait_for_player_exit 2) |>
     on_exit wait_for_player_0 (on_wait_for_player_exit 3) |>
     on_exit wait_for_score_init on_wait_for_score_init_exit |>
-    on_exit wait_for_east_seat on_wait_for_east_seat_exit
+    on_exit wait_for_east_seat on_wait_for_east_seat_exit |>
+    on_entry round on_round_entry |>
+    on_exit round on_round_exit
   in
   let world, state = run action_handler init_game game_start game_events in
   action_handler, world, state

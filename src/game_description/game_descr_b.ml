@@ -45,7 +45,7 @@ type game_event = Game_descr_t.game_event =
     Set_rule of rule_descr
   | Player of player_descr
   | East_seat of player_idx
-  | Init_score of int
+  | Init_score of float
   | Round_event of round_event
   | End_round
   | End_game
@@ -1133,7 +1133,7 @@ let write_untagged_game_event : Bi_outbuf.t -> game_event -> unit = (
       | Init_score x ->
         Bi_outbuf.add_char4 ob '\187' '"' '\165' '\195';
         (
-          Bi_io.write_svint
+          Bi_io.write_float64
         ) ob x
       | Round_event x ->
         Bi_outbuf.add_char4 ob '\211' '\152' '\206' '\t';
@@ -1173,7 +1173,7 @@ let get_game_event_reader = (
               ) : game_event)
             | 992126403, true -> (Init_score (
                 (
-                  Ag_ob_run.read_int
+                  Ag_ob_run.read_float64
                 ) ib
               ) : game_event)
             | -744960503, true -> (Round_event (
@@ -1208,7 +1208,7 @@ let read_game_event = (
           ) : game_event)
         | 992126403, true -> (Init_score (
             (
-              Ag_ob_run.read_int
+              Ag_ob_run.read_float64
             ) ib
           ) : game_event)
         | -744960503, true -> (Round_event (
