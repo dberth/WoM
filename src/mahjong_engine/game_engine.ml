@@ -21,6 +21,7 @@ type game =
   {
     players: player array;
     rule: Rule_manager.rule option;
+    east_seat: int;
     current_round: round_engine option;
   }
 
@@ -35,6 +36,7 @@ let init_game =
   {
     players = Array.make 4 dummy_player;
     rule = None;
+    east_seat = 0;
     current_round = None;
   }
 
@@ -82,6 +84,11 @@ let on_wait_for_score_init_exit event game =
       game.players.(i) <- {player with score}
     done;
     game
+  | _ -> assert false
+
+let on_wait_for_east_seat_exit event game =
+  match event with
+  | East_seat player_idx -> {game with east_seat = player_idx}
   | _ -> assert false
 
 let round_accepted_events {current_round; _} =
@@ -170,7 +177,8 @@ let build_game_engine ?current_round_events game_events =
     on_exit wait_for_player_0 (on_wait_for_player_exit 1) |>
     on_exit wait_for_player_0 (on_wait_for_player_exit 2) |>
     on_exit wait_for_player_0 (on_wait_for_player_exit 3) |>
-    on_exit wait_for_score_init on_wait_for_score_init_exit
+    on_exit wait_for_score_init on_wait_for_score_init_exit |>
+    on_exit wait_for_east_seat on_wait_for_east_seat_exit
   in
   let world, state = run action_handler init_game game_start game_events in
   action_handler, world, state
