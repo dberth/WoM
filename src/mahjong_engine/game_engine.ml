@@ -84,6 +84,15 @@ let on_wait_for_score_init_exit event game =
     game
   | _ -> assert false
 
+let round_accepted_events {current_round; _} =
+  match current_round with
+  | None -> [Round_event (Init [||])]
+  | Some {state; round; _} ->
+    match Engine.finished round with
+    | Some _ -> [End_round]
+    | None ->
+      List.map (fun x -> Round_event x) (Fsm.accepted_events round state)
+
 let build_game_engine ?current_round_events game_events =
   let rec game_start =
     lazy (new_state
@@ -131,42 +140,22 @@ let build_game_engine ?current_round_events game_events =
     lazy (new_state
            ~accepted_events: (fun _ -> [East_seat 0])
            (function
-             | East_seat _ -> wait_for_score
+             | East_seat _ -> round
              | event -> raise (Irrelevant_event (event, "wait_for_east_seat"))))
-
-  and wait_for_score =
+      
+  and round =
     lazy (new_state
-           ~accepted_events: (fun _ -> [Score (0, 0)])
+           ~accepted_events: round_accepted_events
            (function
-             | Score _ -> wait_for_score_1
-             | event -> raise (Irrelevant_event (event, "wait_for_score_0"))))
-
-  and wait_for_score_1 =
-    lazy (new_state
-           ~accepted_events: (fun _ -> [Score (0, 0)])
-           (function
-             | Score _ -> wait_for_score_2
-             | event -> raise (Irrelevant_event (event, "wait_for_score_1"))))
-
-  and wait_for_score_2 =
-    lazy (new_state
-           ~accepted_events: (fun _ -> [Score (0, 0)])
-           (function
-             | Score _ -> wait_for_score_3
-             | event -> raise (Irrelevant_event (event, "wait_for_score_2"))))
-
-  and wait_for_score_3 =
-    lazy (new_state
-           ~accepted_events: (fun _ -> [Score (0, 0)])
-           (function
-             | Score _ -> wait_for_new_round
-             | event -> raise (Irrelevant_event (event, "wait_for_score_3"))))
+             | Round_event _ -> round
+             | End_round -> wait_for_new_round
+             | event -> raise (Irrelevant_event (event, "round"))))
 
   and wait_for_new_round =
     lazy (new_state
            ~accepted_events: (fun _ -> [East_seat 0; End_game])
            (function
-             | East_seat _ -> wait_for_score
+             | East_seat _ -> round
              | End_game -> end_game
              | event -> raise (Irrelevant_event (event, "wait_for_new_round"))))
 

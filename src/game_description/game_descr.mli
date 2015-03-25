@@ -48,7 +48,8 @@ type game_event =
   | Player of player_descr
   | East_seat of player_idx
   | Init_score of int
-  | Score of (player_idx * int)
+  | Round_event of round_event
+  | End_round
   | End_game
   
 type game =
