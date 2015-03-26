@@ -50,6 +50,7 @@ type game_event =
   | Init_score of float
   | Round_event of round_event
   | End_round
+  | New_round
   | End_game
   
 type game =

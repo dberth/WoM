@@ -131,7 +131,10 @@ let build_rule check =
     let hand_score = snd (explain_hand_score round) in
     snd (explain_player_score player round ~hand_score)
   in
-  {irregular_hands; seven_pairs; evaluate_round; explain_hand_score; explain_player_score}
+  let game_finished nb_rounds =
+    16 <= nb_rounds
+  in
+  {irregular_hands; seven_pairs; evaluate_round; explain_hand_score; explain_player_score; game_finished}
 
 let () =
   register_rule_builder

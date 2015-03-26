@@ -48,6 +48,7 @@ type game_event = Game_descr_t.game_event =
   | Init_score of float
   | Round_event of round_event
   | End_round
+  | New_round
   | End_game
 
 
@@ -2254,6 +2255,7 @@ let write_game_event : _ -> game_event -> _ = (
         ) ob x;
         Bi_outbuf.add_char ob '>'
       | End_round -> Bi_outbuf.add_string ob "<\"End_round\">"
+      | New_round -> Bi_outbuf.add_string ob "<\"New_round\">"
       | End_game -> Bi_outbuf.add_string ob "<\"End_game\">"
 )
 let string_of_game_event ?(len = 1024) x =
@@ -2284,7 +2286,7 @@ let read_game_event = (
                       match String.unsafe_get s pos with
                         | 'E' -> (
                             if String.unsafe_get s (pos+1) = 'n' && String.unsafe_get s (pos+2) = 'd' && String.unsafe_get s (pos+3) = '_' && String.unsafe_get s (pos+4) = 'g' && String.unsafe_get s (pos+5) = 'a' && String.unsafe_get s (pos+6) = 'm' && String.unsafe_get s (pos+7) = 'e' then (
-                              6
+                              7
                             )
                             else (
                               raise (Exit)
@@ -2303,31 +2305,40 @@ let read_game_event = (
                           )
                     )
                   | 9 -> (
-                      if String.unsafe_get s pos = 'E' then (
-                        match String.unsafe_get s (pos+1) with
-                          | 'a' -> (
-                              if String.unsafe_get s (pos+2) = 's' && String.unsafe_get s (pos+3) = 't' && String.unsafe_get s (pos+4) = '_' && String.unsafe_get s (pos+5) = 's' && String.unsafe_get s (pos+6) = 'e' && String.unsafe_get s (pos+7) = 'a' && String.unsafe_get s (pos+8) = 't' then (
-                                2
-                              )
-                              else (
-                                raise (Exit)
-                              )
+                      match String.unsafe_get s pos with
+                        | 'E' -> (
+                            match String.unsafe_get s (pos+1) with
+                              | 'a' -> (
+                                  if String.unsafe_get s (pos+2) = 's' && String.unsafe_get s (pos+3) = 't' && String.unsafe_get s (pos+4) = '_' && String.unsafe_get s (pos+5) = 's' && String.unsafe_get s (pos+6) = 'e' && String.unsafe_get s (pos+7) = 'a' && String.unsafe_get s (pos+8) = 't' then (
+                                    2
+                                  )
+                                  else (
+                                    raise (Exit)
+                                  )
+                                )
+                              | 'n' -> (
+                                  if String.unsafe_get s (pos+2) = 'd' && String.unsafe_get s (pos+3) = '_' && String.unsafe_get s (pos+4) = 'r' && String.unsafe_get s (pos+5) = 'o' && String.unsafe_get s (pos+6) = 'u' && String.unsafe_get s (pos+7) = 'n' && String.unsafe_get s (pos+8) = 'd' then (
+                                    5
+                                  )
+                                  else (
+                                    raise (Exit)
+                                  )
+                                )
+                              | _ -> (
+                                  raise (Exit)
+                                )
+                          )
+                        | 'N' -> (
+                            if String.unsafe_get s (pos+1) = 'e' && String.unsafe_get s (pos+2) = 'w' && String.unsafe_get s (pos+3) = '_' && String.unsafe_get s (pos+4) = 'r' && String.unsafe_get s (pos+5) = 'o' && String.unsafe_get s (pos+6) = 'u' && String.unsafe_get s (pos+7) = 'n' && String.unsafe_get s (pos+8) = 'd' then (
+                              6
                             )
-                          | 'n' -> (
-                              if String.unsafe_get s (pos+2) = 'd' && String.unsafe_get s (pos+3) = '_' && String.unsafe_get s (pos+4) = 'r' && String.unsafe_get s (pos+5) = 'o' && String.unsafe_get s (pos+6) = 'u' && String.unsafe_get s (pos+7) = 'n' && String.unsafe_get s (pos+8) = 'd' then (
-                                5
-                              )
-                              else (
-                                raise (Exit)
-                              )
-                            )
-                          | _ -> (
+                            else (
                               raise (Exit)
                             )
-                      )
-                      else (
-                        raise (Exit)
-                      )
+                          )
+                        | _ -> (
+                            raise (Exit)
+                          )
                     )
                   | 10 -> (
                       if String.unsafe_get s pos = 'I' && String.unsafe_get s (pos+1) = 'n' && String.unsafe_get s (pos+2) = 'i' && String.unsafe_get s (pos+3) = 't' && String.unsafe_get s (pos+4) = '_' && String.unsafe_get s (pos+5) = 's' && String.unsafe_get s (pos+6) = 'c' && String.unsafe_get s (pos+7) = 'o' && String.unsafe_get s (pos+8) = 'r' && String.unsafe_get s (pos+9) = 'e' then (
@@ -2406,6 +2417,10 @@ let read_game_event = (
             | 6 ->
               Yojson.Safe.read_space p lb;
               Yojson.Safe.read_gt p lb;
+              (New_round : game_event)
+            | 7 ->
+              Yojson.Safe.read_space p lb;
+              Yojson.Safe.read_gt p lb;
               (End_game : game_event)
             | _ -> (
                 assert false
@@ -2420,19 +2435,33 @@ let read_game_event = (
                 match len with
                   | 8 -> (
                       if String.unsafe_get s pos = 'E' && String.unsafe_get s (pos+1) = 'n' && String.unsafe_get s (pos+2) = 'd' && String.unsafe_get s (pos+3) = '_' && String.unsafe_get s (pos+4) = 'g' && String.unsafe_get s (pos+5) = 'a' && String.unsafe_get s (pos+6) = 'm' && String.unsafe_get s (pos+7) = 'e' then (
-                        1
+                        2
                       )
                       else (
                         raise (Exit)
                       )
                     )
                   | 9 -> (
-                      if String.unsafe_get s pos = 'E' && String.unsafe_get s (pos+1) = 'n' && String.unsafe_get s (pos+2) = 'd' && String.unsafe_get s (pos+3) = '_' && String.unsafe_get s (pos+4) = 'r' && String.unsafe_get s (pos+5) = 'o' && String.unsafe_get s (pos+6) = 'u' && String.unsafe_get s (pos+7) = 'n' && String.unsafe_get s (pos+8) = 'd' then (
-                        0
-                      )
-                      else (
-                        raise (Exit)
-                      )
+                      match String.unsafe_get s pos with
+                        | 'E' -> (
+                            if String.unsafe_get s (pos+1) = 'n' && String.unsafe_get s (pos+2) = 'd' && String.unsafe_get s (pos+3) = '_' && String.unsafe_get s (pos+4) = 'r' && String.unsafe_get s (pos+5) = 'o' && String.unsafe_get s (pos+6) = 'u' && String.unsafe_get s (pos+7) = 'n' && String.unsafe_get s (pos+8) = 'd' then (
+                              0
+                            )
+                            else (
+                              raise (Exit)
+                            )
+                          )
+                        | 'N' -> (
+                            if String.unsafe_get s (pos+1) = 'e' && String.unsafe_get s (pos+2) = 'w' && String.unsafe_get s (pos+3) = '_' && String.unsafe_get s (pos+4) = 'r' && String.unsafe_get s (pos+5) = 'o' && String.unsafe_get s (pos+6) = 'u' && String.unsafe_get s (pos+7) = 'n' && String.unsafe_get s (pos+8) = 'd' then (
+                              1
+                            )
+                            else (
+                              raise (Exit)
+                            )
+                          )
+                        | _ -> (
+                            raise (Exit)
+                          )
                     )
                   | _ -> (
                       raise (Exit)
@@ -2446,6 +2475,8 @@ let read_game_event = (
             | 0 ->
               (End_round : game_event)
             | 1 ->
+              (New_round : game_event)
+            | 2 ->
               (End_game : game_event)
             | _ -> (
                 assert false

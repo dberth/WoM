@@ -5,6 +5,7 @@ type rule =
     irregular_hands: Tileset.irregular_hands;
     seven_pairs: bool;
     evaluate_round: (Game_descr.round_player -> Engine.round -> float);
+    game_finished: (int (*nb_rounds*)-> bool);
     explain_hand_score: (Engine.round -> (string * float) list * float);
     explain_player_score: (Game_descr.round_player -> Engine.round -> hand_score: float -> string * float);
   }
@@ -149,6 +150,8 @@ let default_rule () =
 let irregular_hands {irregular_hands; _} = irregular_hands
 
 let seven_pairs {seven_pairs; _} = seven_pairs
+
+let game_finished {game_finished; _} = game_finished
 
 let evaluate_round {evaluate_round; _} player round = evaluate_round player round
 

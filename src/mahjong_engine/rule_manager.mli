@@ -5,6 +5,7 @@ type rule =
     irregular_hands: Tileset.irregular_hands;
     seven_pairs: bool;
     evaluate_round: (Game_descr.round_player -> Engine.round -> float);
+    game_finished: (int (*nb_rounds*)-> bool);
     explain_hand_score: (Engine.round -> (string * float) list * float);
     explain_player_score: (Game_descr.round_player -> Engine.round -> hand_score: float -> string * float);
   }
@@ -41,6 +42,8 @@ val default_rule: unit -> rule
 val irregular_hands: rule -> Tileset.irregular_hands
 
 val seven_pairs: rule -> bool
+
+val game_finished: rule -> int -> bool
 
 val evaluate_round: rule -> Game_descr.round_player -> Engine.round -> float
 

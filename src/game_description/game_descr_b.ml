@@ -48,6 +48,7 @@ type game_event = Game_descr_t.game_event =
   | Init_score of float
   | Round_event of round_event
   | End_round
+  | New_round
   | End_game
 
 
@@ -1141,6 +1142,7 @@ let write_untagged_game_event : Bi_outbuf.t -> game_event -> unit = (
           write_round_event
         ) ob x
       | End_round -> Bi_outbuf.add_char4 ob '\022' 'm' '\249' '\138'
+      | New_round -> Bi_outbuf.add_char4 ob '\020' '<' 'w' '\207'
       | End_game -> Bi_outbuf.add_char4 ob ';' '\241' '\238' '6'
 )
 let write_game_event ob x =
@@ -1182,6 +1184,7 @@ let get_game_event_reader = (
                 ) ib
               ) : game_event)
             | 376306058, false -> (End_round : game_event)
+            | 339507151, false -> (New_round : game_event)
             | 1005710902, false -> (End_game : game_event)
             | _ -> Ag_ob_run.unsupported_variant h has_arg
         )
@@ -1217,6 +1220,7 @@ let read_game_event = (
             ) ib
           ) : game_event)
         | 376306058, false -> (End_round : game_event)
+        | 339507151, false -> (New_round : game_event)
         | 1005710902, false -> (End_game : game_event)
         | _ -> Ag_ob_run.unsupported_variant h has_arg
     )

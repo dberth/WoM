@@ -23,6 +23,8 @@ type game =
     rule: Rule_manager.rule option;
     east_seat: int;
     current_round: round_engine option;
+    round_finished: bool;
+    nb_rounds: int;
   }
 
 let dummy_player =
@@ -38,6 +40,8 @@ let init_game =
     rule = None;
     east_seat = 0;
     current_round = None;
+    round_finished = false;
+    nb_rounds = 0;
   }
 
 
@@ -106,7 +110,10 @@ let on_round_entry _ ({current_round; rule; _} as game) =
           ~irregular_hands
           []
       in
-      {game with current_round = Some {action_handler; round; state}}
+      {game with
+       current_round = Some {action_handler; round; state};
+       round_finished = false
+      }
 
 let on_round_exit event ({current_round; players; east_seat; rule; _} as game) =
   match current_round with
@@ -129,10 +136,17 @@ let on_round_exit event ({current_round; players; east_seat; rule; _} as game) =
           let score = player.score +. Rule_manager.evaluate_round rule round_player round in
           players.(i) <- {player with score} 
         done;
-        let east_seat = (east_seat + 1) mod 4 in (*TODO should depend on the rule*)
-        {game with east_seat; current_round = None}
+        {game with round_finished = true; nb_rounds = game.nb_rounds + 1}
       end
     | _ -> assert false
+
+let on_wait_for_new_round_exit event ({east_seat; _} as game) =
+  match event with
+  | New_round ->
+    let east_seat = (east_seat + 1) mod 4 in (*TODO should depend on the rule*)
+    {game with east_seat; current_round = None}
+  | End_game -> game
+  | _ -> assert false
 
 let round_accepted_events {current_round; _} =
   match current_round with
@@ -142,6 +156,15 @@ let round_accepted_events {current_round; _} =
     | Some _ -> [End_round]
     | None ->
       List.map (fun x -> Round_event x) (Fsm.accepted_events round state)
+
+let new_round_accepted_events {nb_rounds; rule; _} =
+  match rule with
+  | None -> assert false
+  | Some rule ->
+    if Rule_manager.game_finished rule nb_rounds then
+      [End_game]
+    else
+      [New_round]
 
 let build_game_engine ?current_round_events game_events =
   let rec game_start =
@@ -203,9 +226,9 @@ let build_game_engine ?current_round_events game_events =
 
   and wait_for_new_round =
     lazy (new_state
-           ~accepted_events: (fun _ -> [East_seat 0; End_game])
+           ~accepted_events: new_round_accepted_events
            (function
-             | East_seat _ -> round
+             | New_round -> round
              | End_game -> end_game
              | event -> raise (Irrelevant_event (event, "wait_for_new_round"))))
 
@@ -223,7 +246,8 @@ let build_game_engine ?current_round_events game_events =
     on_exit wait_for_score_init on_wait_for_score_init_exit |>
     on_exit wait_for_east_seat on_wait_for_east_seat_exit |>
     on_entry round on_round_entry |>
-    on_exit round on_round_exit
+    on_exit round on_round_exit |>
+    on_exit wait_for_new_round on_wait_for_new_round_exit
   in
   let world, state = run action_handler init_game game_start game_events in
   action_handler, world, state
