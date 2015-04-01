@@ -166,7 +166,7 @@ let new_round_accepted_events {nb_rounds; rule; _} =
     else
       [New_round]
 
-let build_game_engine ?current_round_events game_events =
+let build_game_engine game_events =
   let rec game_start =
     lazy (new_state
            ~accepted_events: (fun _ -> [Set_rule {name = ""; flags = None}])
@@ -251,3 +251,106 @@ let build_game_engine ?current_round_events game_events =
   in
   let world, state = run action_handler init_game game_start game_events in
   action_handler, world, state
+
+type game_loop_callbacks =
+  {
+    get_rule: unit -> rule_descr;
+    get_player_name: unit -> string;
+    get_ai_player: unit -> player_descr;
+    get_initial_east_seat: unit -> int;
+    human_move: Engine.round -> round_event list -> round_event;
+    end_round: game -> unit;
+    new_round: game -> unit;
+    end_game: game -> unit
+  }
+
+let mk_player_events {current_round; _} =
+  match current_round with
+  | None -> assert false
+  | Some {round; state; _} ->
+    let events = Fsm.history state in
+    let known_tiles = Engine.known_tiles round in
+    List.map
+      (function
+        | Init _ -> Init known_tiles
+        | event -> event
+      )
+      events
+
+let current_player_kind {players; east_seat; current_round; _} =
+  match current_round with
+  | None -> assert false
+  | Some {round; _} ->
+    let round_player = Engine.current_player round in
+    let current_player = (round_player + east_seat) mod 4 in
+    players.(current_player).kind
+  
+let apply_ai ~irregular_hands ~seven_pairs ~evaluate_round events _name force =
+  Mahjong_ai.mc_ai_with_bias
+    ~irregular_hands
+    ~seven_pairs
+    ~evaluate_round
+    ~nb_trajectory: (max 100 (force * 500))
+    events
+    0.2
+
+let one_player_game_loop events callbacks =
+  let rec loop action_handler game state =
+    let run event = 
+      let new_game, new_state = Fsm.run ~with_history: true action_handler game (lazy state) [event] in
+      loop action_handler new_game new_state
+    in
+    match Fsm.accepted_events game state with
+    | [] -> callbacks.end_game game
+    | [Set_rule _] ->
+      let rule_descr = callbacks.get_rule () in
+      run (Set_rule rule_descr)
+    | [Player _] ->
+      let player_descr =
+        if game.players.(0) = dummy_player then
+          let name = callbacks.get_player_name () in
+          {name; kind = Human}
+        else
+          callbacks.get_ai_player ()
+      in
+      run (Player player_descr)
+    | [East_seat _] ->
+      let player_idx = callbacks.get_initial_east_seat () in
+      run (East_seat player_idx)
+    | [Init_score _] ->
+      (*TODO: use rule setting or maybe remove this event.*)
+      run (Init_score 0.)
+    | [End_round] ->
+      callbacks.end_round game;
+      run End_round
+    | [New_round] ->
+      callbacks.new_round game;
+      run New_round
+    | accepted_events ->
+      assert (List.for_all (function Round_event _ -> true | _ -> false) accepted_events);
+      match game.rule with
+      | None -> assert false
+      | Some rule ->
+        let seven_pairs = Rule_manager.seven_pairs rule in
+        let irregular_hands = Rule_manager.irregular_hands rule in
+        let player_events = mk_player_events game in
+        let _, player_round, player_state =
+          Engine.build_engine
+            ~seven_pairs
+            ~irregular_hands
+            player_events
+        in
+        let round_event =
+          match current_player_kind game with
+          | Human ->
+            let accepted_events = Fsm.accepted_events player_round player_state in
+            callbacks.human_move player_round accepted_events
+          | AI {name; force}  ->
+            let evaluate_round = Rule_manager.evaluate_round rule in
+            apply_ai ~irregular_hands ~seven_pairs ~evaluate_round player_events name force
+        in
+        run (Round_event round_event)
+  in
+  let action_handler, game, state = build_game_engine events in
+  loop action_handler game state
+  

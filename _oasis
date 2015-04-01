@@ -31,19 +31,8 @@ Library mahjong_engine
   CompiledObject:  best
   Build:           true
   BuildDepends:    game_description
-  Modules:         Fsm, Rule_manager, Engine, Game_engine
+  Modules:         Fsm, Rule_manager, Engine, Mahjong_ai, Game_engine
   Findlibname:     mahjong_engine
-  NativeOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
-  ByteOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
-
-Library mahjong_ai
-  Path:		   src/mahjong_ai
-  BuildTools:	   ocamlbuild
-  CompiledObject:  best
-  Build:	   true
-  BuildDepends:	   game_description, mahjong_engine
-  Modules:	   Mahjong_ai
-  Findlibname:	   mahjong_ai
   NativeOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
   ByteOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
 
@@ -61,7 +50,7 @@ Object rules
 Executable wom_nox
   Path:            src/nox
   BuildTools:	   ocamlbuild
-  BuildDepends:	   mahjong_engine, mahjong_ai, rules
+  BuildDepends:	   mahjong_engine, rules
   Build:	   true
   MainIs:	   wom_nox.ml
   CompiledObject:  best
@@ -81,7 +70,7 @@ Executable mahjong_engine_test
 Executable mahjong_engine_perf_test_js
   Path:            test
   BuildTools:      ocamlbuild
-  BuildDepends:    unix, mahjong_engine, mahjong_ai, js_of_ocaml, js_of_ocaml.syntax
+  BuildDepends:    unix, mahjong_engine, js_of_ocaml, js_of_ocaml.syntax
   Build:           false
   MainIs:          mahjong_engine_performance_js.ml
   CompiledObject:  byte
@@ -91,7 +80,7 @@ Executable mahjong_engine_perf_test_js
 Executable mahjong_engine_perf_test
   Path:            test
   BuildTools:      ocamlbuild
-  BuildDepends:    unix, mahjong_engine, mahjong_ai
+  BuildDepends:    unix, mahjong_engine
   Build:           true
   MainIs:          mahjong_engine_performance.ml
   CompiledObject:  best

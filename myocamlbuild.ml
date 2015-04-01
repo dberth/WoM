@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: c8622baba94015d3b6108d07963f10f4) *)
+(* DO NOT EDIT (digest: 2f37d55dbb1975380497b2e3c6bc7094) *)
 module OASISGettext = struct
 (* # 22 "src/oasis/OASISGettext.ml" *)
 
@@ -611,7 +611,6 @@ let package_default =
        [
           ("game_description", ["src/game_description"], []);
           ("mahjong_engine", ["src/mahjong_engine"], []);
-          ("mahjong_ai", ["src/mahjong_ai"], []);
           ("rules", ["src/rules"], [])
        ];
      lib_c = [];
@@ -792,84 +791,6 @@ let package_default =
               "compile";
               "native"
            ],
-            [
-               (OASISExpr.EBool true,
-                 S
-                   [
-                      A "-w";
-                      A "+9+32..39";
-                      A "-warn-error";
-                      A "+9+32..39";
-                      A "-annot";
-                      A "-bin-annot"
-                   ])
-            ]);
-          (["oasis_library_mahjong_ai_byte"; "ocaml"; "link"; "byte"],
-            [
-               (OASISExpr.EBool true,
-                 S
-                   [
-                      A "-w";
-                      A "+9+32..39";
-                      A "-warn-error";
-                      A "+9+32..39";
-                      A "-annot";
-                      A "-bin-annot"
-                   ])
-            ]);
-          (["oasis_library_mahjong_ai_native"; "ocaml"; "link"; "native"],
-            [
-               (OASISExpr.EBool true,
-                 S
-                   [
-                      A "-w";
-                      A "+9+32..39";
-                      A "-warn-error";
-                      A "+9+32..39";
-                      A "-annot";
-                      A "-bin-annot"
-                   ])
-            ]);
-          (["oasis_library_mahjong_ai_byte"; "ocaml"; "ocamldep"; "byte"],
-            [
-               (OASISExpr.EBool true,
-                 S
-                   [
-                      A "-w";
-                      A "+9+32..39";
-                      A "-warn-error";
-                      A "+9+32..39";
-                      A "-annot";
-                      A "-bin-annot"
-                   ])
-            ]);
-          (["oasis_library_mahjong_ai_native"; "ocaml"; "ocamldep"; "native"],
-            [
-               (OASISExpr.EBool true,
-                 S
-                   [
-                      A "-w";
-                      A "+9+32..39";
-                      A "-warn-error";
-                      A "+9+32..39";
-                      A "-annot";
-                      A "-bin-annot"
-                   ])
-            ]);
-          (["oasis_library_mahjong_ai_byte"; "ocaml"; "compile"; "byte"],
-            [
-               (OASISExpr.EBool true,
-                 S
-                   [
-                      A "-w";
-                      A "+9+32..39";
-                      A "-warn-error";
-                      A "+9+32..39";
-                      A "-annot";
-                      A "-bin-annot"
-                   ])
-            ]);
-          (["oasis_library_mahjong_ai_native"; "ocaml"; "compile"; "native"],
             [
                (OASISExpr.EBool true,
                  S
@@ -1468,11 +1389,10 @@ let package_default =
        ];
      includes =
        [
-          ("test", ["src/mahjong_ai"; "src/mahjong_engine"; "src/rules"]);
+          ("test", ["src/mahjong_engine"; "src/rules"]);
           ("src/rules", ["src/mahjong_engine"]);
-          ("src/nox", ["src/mahjong_ai"; "src/mahjong_engine"; "src/rules"]);
+          ("src/nox", ["src/mahjong_engine"; "src/rules"]);
           ("src/mahjong_engine", ["src/game_description"]);
-          ("src/mahjong_ai", ["src/game_description"; "src/mahjong_engine"]);
           ("src/engine_debugger", ["src/mahjong_engine"])
        ]
   }
@@ -1482,7 +1402,7 @@ let conf = {MyOCamlbuildFindlib.no_automatic_syntax = false}
 
 let dispatch_default = MyOCamlbuildBase.dispatch_default conf package_default;;
 
-# 1486 "myocamlbuild.ml"
+# 1406 "myocamlbuild.ml"
 (* OASIS_STOP *)
 
 let oasis_executables =
