@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 2f37d55dbb1975380497b2e3c6bc7094) *)
+(* DO NOT EDIT (digest: 382cbd0e73c08c8af448c48ec963086d) *)
 module OASISGettext = struct
 (* # 22 "src/oasis/OASISGettext.ml" *)
 
@@ -959,6 +959,94 @@ let package_default =
                       A "-bin-annot"
                    ])
             ]);
+          (["oasis_executable_wom_lambda_byte"; "ocaml"; "link"; "byte"],
+            [
+               (OASISExpr.EBool true,
+                 S
+                   [
+                      A "-w";
+                      A "+9+32..39";
+                      A "-warn-error";
+                      A "+9+32..39";
+                      A "-annot";
+                      A "-bin-annot"
+                   ])
+            ]);
+          (["oasis_executable_wom_lambda_native"; "ocaml"; "link"; "native"],
+            [
+               (OASISExpr.EBool true,
+                 S
+                   [
+                      A "-w";
+                      A "+9+32..39";
+                      A "-warn-error";
+                      A "+9+32..39";
+                      A "-annot";
+                      A "-bin-annot"
+                   ])
+            ]);
+          (["oasis_executable_wom_lambda_byte"; "ocaml"; "ocamldep"; "byte"],
+            [
+               (OASISExpr.EBool true,
+                 S
+                   [
+                      A "-w";
+                      A "+9+32..39";
+                      A "-warn-error";
+                      A "+9+32..39";
+                      A "-annot";
+                      A "-bin-annot"
+                   ])
+            ]);
+          ([
+              "oasis_executable_wom_lambda_native";
+              "ocaml";
+              "ocamldep";
+              "native"
+           ],
+            [
+               (OASISExpr.EBool true,
+                 S
+                   [
+                      A "-w";
+                      A "+9+32..39";
+                      A "-warn-error";
+                      A "+9+32..39";
+                      A "-annot";
+                      A "-bin-annot"
+                   ])
+            ]);
+          (["oasis_executable_wom_lambda_byte"; "ocaml"; "compile"; "byte"],
+            [
+               (OASISExpr.EBool true,
+                 S
+                   [
+                      A "-w";
+                      A "+9+32..39";
+                      A "-warn-error";
+                      A "+9+32..39";
+                      A "-annot";
+                      A "-bin-annot"
+                   ])
+            ]);
+          ([
+              "oasis_executable_wom_lambda_native";
+              "ocaml";
+              "compile";
+              "native"
+           ],
+            [
+               (OASISExpr.EBool true,
+                 S
+                   [
+                      A "-w";
+                      A "+9+32..39";
+                      A "-warn-error";
+                      A "+9+32..39";
+                      A "-annot";
+                      A "-bin-annot"
+                   ])
+            ]);
           ([
               "oasis_executable_mahjong_engine_test_byte";
               "ocaml";
@@ -1402,7 +1490,7 @@ let conf = {MyOCamlbuildFindlib.no_automatic_syntax = false}
 
 let dispatch_default = MyOCamlbuildBase.dispatch_default conf package_default;;
 
-# 1406 "myocamlbuild.ml"
+# 1494 "myocamlbuild.ml"
 (* OASIS_STOP *)
 
 let oasis_executables =

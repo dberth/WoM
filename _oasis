@@ -56,6 +56,16 @@ Executable wom_nox
   CompiledObject:  best
   NativeOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
   ByteOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
+
+Executable "wom_lambda"
+  Path:           src/wom_lambda
+  BuildTools:     ocamlbuild
+  BuildDepends:   lambda-term, lwt, lwt.ppx
+  MainIs:         wom_lambda.ml
+  build:          true
+  CompiledObject: best
+  NativeOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
+  ByteOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
   
 Executable mahjong_engine_test
   Path:		   test
