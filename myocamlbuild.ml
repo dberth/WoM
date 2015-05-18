@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 382cbd0e73c08c8af448c48ec963086d) *)
+(* DO NOT EDIT (digest: 8f4c22be6dbc251c51ed89714f3e6eac) *)
 module OASISGettext = struct
 (* # 22 "src/oasis/OASISGettext.ml" *)
 
@@ -1478,6 +1478,7 @@ let package_default =
      includes =
        [
           ("test", ["src/mahjong_engine"; "src/rules"]);
+          ("src/wom_lambda", ["src/mahjong_engine"]);
           ("src/rules", ["src/mahjong_engine"]);
           ("src/nox", ["src/mahjong_engine"; "src/rules"]);
           ("src/mahjong_engine", ["src/game_description"]);
@@ -1490,7 +1491,7 @@ let conf = {MyOCamlbuildFindlib.no_automatic_syntax = false}
 
 let dispatch_default = MyOCamlbuildBase.dispatch_default conf package_default;;
 
-# 1494 "myocamlbuild.ml"
+# 1495 "myocamlbuild.ml"
 (* OASIS_STOP *)
 
 let oasis_executables =

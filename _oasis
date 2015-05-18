@@ -60,7 +60,7 @@ Executable wom_nox
 Executable "wom_lambda"
   Path:           src/wom_lambda
   BuildTools:     ocamlbuild
-  BuildDepends:   lambda-term, lwt, lwt.ppx
+  BuildDepends:   lambda-term, lwt, lwt.ppx, mahjong_engine
   MainIs:         wom_lambda.ml
   build:          true
   CompiledObject: best

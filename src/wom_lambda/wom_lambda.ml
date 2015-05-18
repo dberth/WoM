@@ -1,5 +1,7 @@
 (*Copyright (C) 2015 Denis Berthod*)
 
+open Tileset
+
 let event_handler wakener rack event =
   let open LTerm_event in
   let open LTerm_key in
@@ -17,6 +19,12 @@ let gui =
   let rack = new Rack.rack "rack" in
   
   rack # on_event (event_handler wakener rack);
+
+  rack # set_hand 1 [Some c1; Some d1; Some b1; Some rd; Some wd; Some gd; Some ew; Some ww; Some nw; Some sw];
+
+  rack # set_exposed 1 [[Some b3; Some b4; Some b5];[Some c7; Some c7; Some c7];[None; Some d6; Some d6; None]];
+
+  rack # set_discard 1 [Some wd; Some rd; Some d1; Some c1; Some b1; Some gd; Some ew; Some sw; Some ww; Some nw];
 
   LTerm_widget.run term ~save_state: true rack waiter
   

@@ -1,6 +1,7 @@
 (*Copyright (C) 2015 Denis Berthod*)
 
 open LTerm_widget
+open Tileset
 
 type rack_config =
   {
@@ -14,32 +15,74 @@ type rack_config =
     separator: bool;
   }
 
+type player_rack_content =
+  {
+    mutable hand: tile option list;
+    mutable exposed: tile option list list;
+    mutable discard: tile option list
+  }
 
-let draw_tileset ctx row col tile_size nb =
+let draw_tileset ctx row col tile_size tiles =
   let open LTerm_draw in
-  let draw_row offset sep inner =
-    draw_string ctx (row + offset) col sep;
-    for i = 0 to nb - 1 do
-      draw_string ctx (row + offset) (col + i * (tile_size - 1) + 1) (String.make (tile_size - 2) inner ^ sep)
-    done
-  in
-  draw_row 0 " " '_';
-  for i = 1 to tile_size - 2 do
-    draw_row i "|" ' '
-  done;
-  draw_row (tile_size - 1) "'" '-'
+  let nb = List.length tiles in
+  if nb <> 0 then begin
+    let draw_row offset sep inner =
+      draw_string ctx (row + offset) col sep;
+      for i = 0 to nb - 1 do
+        draw_string ctx (row + offset) (col + i * (tile_size - 1) + 1) (String.make (tile_size - 2) inner ^ sep)
+      done
+    in
+    draw_row 0 " " '_';
+    for i = 1 to tile_size - 2 do
+      draw_row i "|" ' '
+    done;
+    draw_row (tile_size - 1) "'" '-';
+    List.iteri
+      (fun i tile ->
+         match tile with
+         | None -> ()
+         | Some tile ->
+           let tile_descr = tile_descr_of_tile tile in
+           Tile_repr.draw_tile_content ctx (row + 1) (col + i * (tile_size -1) + 1) tile_size tile_descr
+      )
+      tiles
+  end
 
-let draw_tile ctx row col tile_size = draw_tileset ctx row col tile_size 1
-  
-let draw_full_rack ctx row col tile_size =
-  let tileset nb col = draw_tileset ctx row col tile_size nb; col + (tile_size - 1 )* nb + 1 in
-  tileset 2 col |>
-  tileset 4 |>
-  tileset 4 |>
-  tileset 4 |>
-  tileset 4 |> fun _ -> ()
+let tileset_size tileset tile_size =
+  let nb = List.length tileset in
+  (tile_size - 1) * nb + 1
 
-let draw_rack ~top ~left ~separator ~border ~width ~height ~discard ctx =
+let draw_tilesets ctx row col tile_size tilesets =
+  ignore begin
+    List.fold_left
+      (fun left tiles ->
+         draw_tileset ctx row left tile_size tiles;
+         left + tileset_size tiles tile_size
+      )
+      col
+      tilesets
+  end
+
+let draw_tile ctx row col tile_size tile_descr = draw_tileset ctx row col tile_size [tile_descr]
+
+
+let exposed_size exposed tile_size =
+  List.fold_left
+    (fun acc tileset -> acc + tileset_size tileset tile_size)
+    0
+    exposed
+
+let draw_rack
+    ~top
+    ~left
+    ~separator
+    ~border
+    ~width
+    ~height
+    ~discard
+    ctx
+    {hand; exposed; discard = discard_tiles}
+  =
   let open LTerm_draw in
   let open LTerm_geom in
   let inner_height =
@@ -47,6 +90,14 @@ let draw_rack ~top ~left ~separator ~border ~width ~height ~discard ctx =
       height + discard + 1
     else
       height + discard
+  in
+  let draw_hand_and_exposed border  =
+    draw_tileset ctx (top + 1) (left + border) height hand;
+    match exposed with
+    | [] -> ()
+    | _ ->
+      let exposed_size = exposed_size exposed height in
+      draw_tilesets ctx (top + 1) (left + width - 1 - exposed_size) height exposed
   in
   begin
     if border then begin
@@ -56,17 +107,17 @@ let draw_rack ~top ~left ~separator ~border ~width ~height ~discard ctx =
         {row1 = top; row2; col1 = left; col2 = left + width}
         Heavy;
       if separator then draw_hline ctx (top + height + 1) (left + 1) (width - 2) Light;
-      draw_full_rack ctx (top + 1) (left + 1) height;
       if discard <> 0 then begin
         let offset = if separator then 2 else 1 in
-        draw_tile ctx (top + height + offset) (left + 1) discard
+        draw_tileset ctx (top + height + offset) (left + 1) discard discard_tiles
       end;
+      draw_hand_and_exposed 1;
       draw_string ctx 0 0 (Printf.sprintf "height: %i, inner_height: %i\n%!" height inner_height);
       row2
     end else begin
       draw_hline ctx top left width Heavy;
-      draw_full_rack ctx (top + 1) left height;
-      if discard <> 0 then draw_tile ctx (top + height + 1) left discard;
+      draw_hand_and_exposed 0;
+      if discard <> 0 then draw_tileset ctx (top + height + 1) left discard discard_tiles;
       top + inner_height + 1
     end
   end
@@ -167,9 +218,23 @@ let config_of_size {LTerm_geom.cols; rows} =
     |  None -> try_config 42 small_tile_config
   
 
+let empty_player_rack () =
+  {
+    hand = [];
+    exposed = [];
+    discard = [];
+  }
+
 class rack kind =
+  let rack_content = Array.init 4 (fun _ -> empty_player_rack ())in  
   object
     inherit t kind
+
+    method set_hand player hand = rack_content.(player).hand <- hand
+
+    method set_discard player discard = rack_content.(player).discard <- discard
+
+    method set_exposed player exposed = rack_content.(player).exposed <- exposed 
       
     method! draw ctx _focused_widget =
       let open LTerm_geom in
@@ -187,12 +252,12 @@ class rack kind =
             border;
             separator
           } ->
-        let draw_rack ~top ~height =
-          draw_rack ~top ~left: padding_left ~separator ~border ~width ~height ~discard: discard_size ctx
+        let draw_rack ~top ~height  player =
+          draw_rack ~top ~left: padding_left ~separator ~border ~width ~height ~discard: discard_size ctx rack_content.(player)
         in
-        let top = draw_rack ~top: padding_top ~height: other_size in
-        let top = draw_rack ~top ~height: other_size in
-        let top = draw_rack ~top ~height: other_size in
-        ignore (draw_rack ~top ~height: main_size)
+        let top = draw_rack ~top: padding_top ~height: other_size 1 in
+        let top = draw_rack ~top ~height: other_size 2 in
+        let top = draw_rack ~top ~height: other_size 3 in
+        ignore (draw_rack ~top ~height: main_size 0)
       
   end
