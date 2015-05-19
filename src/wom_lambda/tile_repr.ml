@@ -80,7 +80,7 @@ let draw_tile_7_1 put tile_descr =
   | Char 3 -> put 0 none "3-"; put 2 st_underline "-"; put 3 none "-"
   | Char 4 -> put 0 none "4 __"
   | Char 6 -> put 0 none "6"; put 1 st_underline " l "
-  | Char 7 -> put 0 none "7"; put 1 st_underline " l " 
+  | Char 7 -> put 0 none "7"; put 2 none ".," 
   | Char x -> put 0 none (string_of_int x)
   | Dot _
   | Bam _
@@ -109,7 +109,7 @@ let draw_tile_7_2 put tile_descr =
   | Char 4 -> put 1 none "["; put 2 st_underline "()"; put 4 none "]"
   | Char 5 -> put 1 none "1"; put 2 st_underline "In"
   | Char (6 | 8) -> put 1 none "/ \\"
-  | Char 7 -> put 2 none "|_"
+  | Char 7 -> put 2 none "t_"
   | Char 9 -> put 1 none "/-"; put 3 st_underline "i"
   | Red_dragon -> put 2 st_red_und ";"
   | Green_dragon -> put 2 st_green ","
@@ -128,7 +128,7 @@ let draw_tile_7_3 put tile_descr =
   | Bam 5 -> put 2 st_red "8"
   | Bam (6 | 7) -> put 0 st_green "8 8 8"
   | Bam 9 -> put 0 st_green "8"; put 2 st_red "8"; put 4 st_green "8"
-  | Char _ -> put 1 st_red "+;-"
+  | Char _ -> put 1 st_red "+j-"
   | Red_dragon ->
     put 1 st_red "[";
     put 2 st_red_und "|";
@@ -154,7 +154,7 @@ let draw_tile_7_4 put tile_descr =
   | Bam (6 | 7) -> put 0 st_green "8 8 8"
   | Bam 8 -> put 1 st_green "8\\/8"
   | Bam 9 -> put 0 st_green "8"; put 2 st_red "8"; put 4 st_green "8"
-  | Char _ -> put 0 st_red "_[+]"
+  | Char _ -> put 2 st_red "#"
   | Red_dragon -> put 2 st_red "|"
   | White_dragon -> put 0 none "#   #"
   | Green_dragon -> put 1 st_green "5!J"
@@ -168,7 +168,7 @@ let draw_tile_7_5 put tile_descr =
   match tile_descr with
   | Dot (6 | 7) -> put 1 st_red "@ @"
   | Dot 8 -> put 1 st_bold "@ @"
-  | Char _ -> put 0 st_red "|'-+)"
+  | Char _ -> put 1 st_red "t^@"
   | White_dragon -> put 0 none "#####"
   | _ -> ()
 
