@@ -85,8 +85,8 @@ let draw_tile_7_1 put tile_descr =
   | Dot _
   | Bam _
   | Red_dragon
-  | Green_dragon
-  | White_dragon -> ()
+  | Green_dragon -> ()
+  | White_dragon -> put 0 none "#####"
   | East_wind -> put 0 none "E"
   | South_wind -> put 0 none "S"
   | West_wind -> put 0 none "W"
@@ -111,6 +111,10 @@ let draw_tile_7_2 put tile_descr =
   | Char (6 | 8) -> put 1 none "/ \\"
   | Char 7 -> put 2 none "|_"
   | Char 9 -> put 1 none "/-"; put 3 st_underline "i"
+  | Red_dragon -> put 2 st_red_und ";"
+  | Green_dragon -> put 2 st_green ","
+  | White_dragon -> put 0 none "#   #"
+  | East_wind -> put 2 st_blue "."
   | _ -> ()
 
 let draw_tile_7_3 put tile_descr =
@@ -125,6 +129,16 @@ let draw_tile_7_3 put tile_descr =
   | Bam (6 | 7) -> put 0 st_green "8 8 8"
   | Bam 9 -> put 0 st_green "8"; put 2 st_red "8"; put 4 st_green "8"
   | Char _ -> put 1 st_red "+;-"
+  | Red_dragon ->
+    put 1 st_red "[";
+    put 2 st_red_und "|";
+    put 3 st_red "]"
+  | White_dragon -> put 0 none "#   #"
+  | Green_dragon -> put 1 st_green "/^\\"
+  | East_wind -> put 1 st_blue "[|]"
+  | South_wind -> put 2 st_blue_und "+"
+  | West_wind -> put 1 st_blue "---"
+  | North_wind -> put 1 st_blue ",L"
   | _ -> ()
 
 let draw_tile_7_4 put tile_descr =
@@ -141,6 +155,13 @@ let draw_tile_7_4 put tile_descr =
   | Bam 8 -> put 1 st_green "8\\/8"
   | Bam 9 -> put 0 st_green "8"; put 2 st_red "8"; put 4 st_green "8"
   | Char _ -> put 0 st_red "_[+]"
+  | Red_dragon -> put 2 st_red "|"
+  | White_dragon -> put 0 none "#   #"
+  | Green_dragon -> put 1 st_green "5!J"
+  | East_wind -> put 1 st_blue "'j`"
+  | South_wind -> put 1 st_blue "i+]"
+  | West_wind -> put 1 st_blue "\\H/"
+  | North_wind -> put 1 st_blue "/L"
   | _ -> ()
 
 let draw_tile_7_5 put tile_descr =
@@ -148,6 +169,7 @@ let draw_tile_7_5 put tile_descr =
   | Dot (6 | 7) -> put 1 st_red "@ @"
   | Dot 8 -> put 1 st_bold "@ @"
   | Char _ -> put 0 st_red "|'-+)"
+  | White_dragon -> put 0 none "#####"
   | _ -> ()
 
 let draw_tile_content ctx row col size tile_descr =
