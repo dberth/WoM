@@ -4,6 +4,8 @@ open Tileset
 open LTerm_draw
 open LTerm_style
 
+type tile_size = int
+
 let st_green = {none with foreground = Some lgreen}
 let st_red = {none with foreground = Some lred}
 let st_bold = {none with bold = Some true}
@@ -190,3 +192,43 @@ let draw_tile_content ctx row col size tile_descr =
     draw_tile_7_5 (put 4) tile_descr
   | _ -> assert false     
   
+let draw_tileset ctx row col tile_size tiles =
+  let open LTerm_draw in
+  let nb = List.length tiles in
+  if nb <> 0 then begin
+    let draw_row offset sep inner =
+      draw_string ctx (row + offset) col sep;
+      for i = 0 to nb - 1 do
+        draw_string ctx (row + offset) (col + i * (tile_size - 1) + 1) (String.make (tile_size - 2) inner ^ sep)
+      done
+    in
+    draw_row 0 " " '_';
+    for i = 1 to tile_size - 2 do
+      draw_row i "|" ' '
+    done;
+    draw_row (tile_size - 1) "'" '-';
+    List.iteri
+      (fun i tile ->
+         match tile with
+         | None -> ()
+         | Some tile ->
+           let tile_descr = tile_descr_of_tile tile in
+           draw_tile_content ctx (row + 1) (col + i * (tile_size -1) + 1) tile_size tile_descr
+      )
+      tiles
+  end
+
+let tileset_size tileset tile_size =
+  let nb = List.length tileset in
+  (tile_size - 1) * nb + 1
+
+let draw_tilesets ctx row col tile_size tilesets =
+  ignore begin
+    List.fold_left
+      (fun left tiles ->
+         draw_tileset ctx row left tile_size tiles;
+         left + tileset_size tiles tile_size
+      )
+      col
+      tilesets
+  end

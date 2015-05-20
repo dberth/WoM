@@ -22,53 +22,9 @@ type player_rack_content =
     mutable discard: tile option list
   }
 
-let draw_tileset ctx row col tile_size tiles =
-  let open LTerm_draw in
-  let nb = List.length tiles in
-  if nb <> 0 then begin
-    let draw_row offset sep inner =
-      draw_string ctx (row + offset) col sep;
-      for i = 0 to nb - 1 do
-        draw_string ctx (row + offset) (col + i * (tile_size - 1) + 1) (String.make (tile_size - 2) inner ^ sep)
-      done
-    in
-    draw_row 0 " " '_';
-    for i = 1 to tile_size - 2 do
-      draw_row i "|" ' '
-    done;
-    draw_row (tile_size - 1) "'" '-';
-    List.iteri
-      (fun i tile ->
-         match tile with
-         | None -> ()
-         | Some tile ->
-           let tile_descr = tile_descr_of_tile tile in
-           Tile_repr.draw_tile_content ctx (row + 1) (col + i * (tile_size -1) + 1) tile_size tile_descr
-      )
-      tiles
-  end
-
-let tileset_size tileset tile_size =
-  let nb = List.length tileset in
-  (tile_size - 1) * nb + 1
-
-let draw_tilesets ctx row col tile_size tilesets =
-  ignore begin
-    List.fold_left
-      (fun left tiles ->
-         draw_tileset ctx row left tile_size tiles;
-         left + tileset_size tiles tile_size
-      )
-      col
-      tilesets
-  end
-
-let draw_tile ctx row col tile_size tile_descr = draw_tileset ctx row col tile_size [tile_descr]
-
-
 let exposed_size exposed tile_size =
   List.fold_left
-    (fun acc tileset -> acc + tileset_size tileset tile_size)
+    (fun acc tileset -> acc + Tile_repr.tileset_size tileset tile_size)
     0
     exposed
 
@@ -92,12 +48,12 @@ let draw_rack
       height + discard
   in
   let draw_hand_and_exposed border  =
-    draw_tileset ctx (top + 1) (left + border) height hand;
+    Tile_repr.draw_tileset ctx (top + 1) (left + border) height hand;
     match exposed with
     | [] -> ()
     | _ ->
       let exposed_size = exposed_size exposed height in
-      draw_tilesets ctx (top + 1) (left + width - 1 - exposed_size) height exposed
+      Tile_repr.draw_tilesets ctx (top + 1) (left + width - 1 - exposed_size) height exposed
   in
   begin
     if border then begin
@@ -109,7 +65,7 @@ let draw_rack
       if separator then draw_hline ctx (top + height + 1) (left + 1) (width - 2) Light;
       if discard <> 0 then begin
         let offset = if separator then 2 else 1 in
-        draw_tileset ctx (top + height + offset) (left + 1) discard discard_tiles
+        Tile_repr.draw_tileset ctx (top + height + offset) (left + 1) discard discard_tiles
       end;
       draw_hand_and_exposed 1;
       draw_string ctx 0 0 (Printf.sprintf "height: %i, inner_height: %i\n%!" height inner_height);
@@ -117,7 +73,7 @@ let draw_rack
     end else begin
       draw_hline ctx top left width Heavy;
       draw_hand_and_exposed 0;
-      if discard <> 0 then draw_tileset ctx (top + height + 1) left discard discard_tiles;
+      if discard <> 0 then Tile_repr.draw_tileset ctx (top + height + 1) left discard discard_tiles;
       top + inner_height + 1
     end
   end
