@@ -181,6 +181,8 @@ let empty_player_rack () =
     discard = [];
   }
 
+type player = int
+
 class rack kind =
   let rack_content = Array.init 4 (fun _ -> empty_player_rack ())in  
   object
