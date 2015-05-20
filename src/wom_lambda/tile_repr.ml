@@ -75,7 +75,7 @@ let draw_tile_5_3 put tile_descr =
 
 let draw_tile_7_1 put tile_descr =
   match tile_descr with
-  | Dot 7 -> put 1 st_bold "@"
+  | Dot 7 -> put 0 st_bold "7@"
   | Bam 1 | Dot 1 -> put 0 none "1"
   | Char 1 -> put 0 none "1 __"
   | Char 2 -> put 0 none "2"; put 2 none "_"
@@ -83,9 +83,9 @@ let draw_tile_7_1 put tile_descr =
   | Char 4 -> put 0 none "4 __"
   | Char 6 -> put 0 none "6"; put 1 st_underline " l "
   | Char 7 -> put 0 none "7"; put 2 none ".," 
-  | Char x -> put 0 none (string_of_int x)
-  | Dot _
-  | Bam _
+  | Char x
+  | Dot x
+  | Bam x -> put 0 none (string_of_int x)
   | Red_dragon
   | Green_dragon -> ()
   | White_dragon -> put 0 none "#####"

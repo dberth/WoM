@@ -8,6 +8,10 @@ let event_handler wakener rack event =
   match event with
   | Resize _ -> rack # queue_draw; true
   | Key {code = Escape; _} -> Lwt.wakeup wakener (); true
+  | Key {code = Tab; _} ->
+    rack # set_reverse_mode (not (rack # reverse_mode));
+    rack # queue_draw;
+    true
   | _ -> false
   
   
@@ -20,19 +24,17 @@ let gui =
   
   rack # on_event (event_handler wakener rack);
 
-  rack # set_hand 1 [Some c1; Some d1; Some b1; Some rd; Some wd; Some gd; Some ew; Some ww; Some nw; Some sw];
+  let hand = [Some c1; Some c2; Some c3; Some c4; Some c5; Some c6; Some c7; Some c8; Some c9] in
 
-  rack # set_exposed 1 [[Some b3; Some b4; Some b5];[Some c7; Some c7; Some c7];[None; Some d6; Some d6; None]];
+  let exposed = [[Some rd; Some gd; Some wd]; [ Some ew; Some sw; Some ww; Some nw]] in
 
-  rack # set_discard 1 [Some wd; Some rd; Some d1; Some c1; Some b1; Some gd; Some ew; Some sw; Some ww; Some nw];
+  let discard = [Some d1; Some d2; Some d3; Some d4; Some d5; Some d6; Some d7; Some d8; Some d9; Some b1; Some b2; Some b3; Some b4; Some b5; Some b6; Some b7; Some b8; Some b9] in
 
-  (* rack # set_hand 0 [Some d1; Some d2; Some d3; Some d4; Some d5; Some d6; Some d7; Some d8; Some d9]; *)
-
-  (* rack # set_exposed 0 [[Some b1; Some b2; Some b3; Some b4; Some b5; Some b6; Some b7; Some b8; Some b9]]; *)
-
-  rack # set_hand 0 [Some c1; Some c2; Some c3; Some c4; Some c5; Some c6; Some c7; Some c8; Some c9];
-
-  rack # set_exposed 0 [[Some rd; Some gd; Some wd]; [ Some ew; Some sw; Some ww; Some nw]];
+  for i = 0 to 3 do
+    rack # set_hand i hand;
+    rack # set_exposed i exposed;
+    rack # set_discard i discard
+  done;
 
   LTerm_widget.run term ~save_state: true rack waiter
   

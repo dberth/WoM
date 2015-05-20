@@ -11,4 +11,8 @@ class rack: string ->
     method set_discard: player -> Tileset.tile option list -> unit
 
     method set_exposed: player -> Tileset.tile option list list -> unit 
+
+    method set_reverse_mode: bool -> unit
+
+    method reverse_mode: bool
   end

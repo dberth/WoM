@@ -36,6 +36,7 @@ let draw_rack
     ~width
     ~height
     ~discard
+    ~reverse
     ctx
     {hand; exposed; discard = discard_tiles}
   =
@@ -47,13 +48,17 @@ let draw_rack
     else
       height + discard
   in
-  let draw_hand_and_exposed border  =
-    Tile_repr.draw_tileset ctx (top + 1) (left + border) height hand;
-    match exposed with
-    | [] -> ()
-    | _ ->
-      let exposed_size = exposed_size exposed height in
-      Tile_repr.draw_tilesets ctx (top + 1) (left + width - 1 - exposed_size) height exposed
+  let draw_hand_and_exposed draw_discard row border height =
+    if draw_discard then
+      Tile_repr.draw_tileset ctx row (left + border) height discard_tiles
+    else begin
+      Tile_repr.draw_tileset ctx row (left + border) height hand;
+      match exposed with
+      | [] -> ()
+      | _ ->
+        let exposed_size = exposed_size exposed height in
+        Tile_repr.draw_tilesets ctx row (left + width - 1 - exposed_size) height exposed
+    end
   in
   begin
     if border then begin
@@ -65,15 +70,16 @@ let draw_rack
       if separator then draw_hline ctx (top + height + 1) (left + 1) (width - 2) Light;
       if discard <> 0 then begin
         let offset = if separator then 2 else 1 in
-        Tile_repr.draw_tileset ctx (top + height + offset) (left + 1) discard discard_tiles
+        draw_hand_and_exposed (not reverse) (top + height + offset) 1 discard
       end;
-      draw_hand_and_exposed 1;
+      draw_hand_and_exposed reverse (top + 1) 1 height;
       draw_string ctx 0 0 (Printf.sprintf "height: %i, inner_height: %i\n%!" height inner_height);
       row2
     end else begin
       draw_hline ctx top left width Heavy;
-      draw_hand_and_exposed 0;
-      if discard <> 0 then Tile_repr.draw_tileset ctx (top + height + 1) left discard discard_tiles;
+      draw_hand_and_exposed reverse (top + 1) 0 height;
+      if discard <> 0 then
+        draw_hand_and_exposed (not reverse) (top + height + 1) 0 discard;
       top + inner_height + 1
     end
   end
@@ -184,15 +190,21 @@ let empty_player_rack () =
 type player = int
 
 class rack kind =
-  let rack_content = Array.init 4 (fun _ -> empty_player_rack ())in  
+  let rack_content = Array.init 4 (fun _ -> empty_player_rack ()) in
   object
     inherit t kind
+
+    val mutable reverse = false
 
     method set_hand player hand = rack_content.(player).hand <- hand
 
     method set_discard player discard = rack_content.(player).discard <- discard
 
-    method set_exposed player exposed = rack_content.(player).exposed <- exposed 
+    method set_exposed player exposed = rack_content.(player).exposed <- exposed
+
+    method set_reverse_mode mode = reverse <- mode
+
+    method reverse_mode = reverse
       
     method! draw ctx _focused_widget =
       let open LTerm_geom in
@@ -211,7 +223,7 @@ class rack kind =
             separator
           } ->
         let draw_rack ~top ~height  player =
-          draw_rack ~top ~left: padding_left ~separator ~border ~width ~height ~discard: discard_size ctx rack_content.(player)
+          draw_rack ~top ~left: padding_left ~separator ~border ~width ~height ~discard: discard_size ~reverse ctx rack_content.(player)
         in
         let top = draw_rack ~top: padding_top ~height: other_size 1 in
         let top = draw_rack ~top ~height: other_size 2 in
