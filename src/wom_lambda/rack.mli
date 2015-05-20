@@ -12,6 +12,10 @@ class rack: string ->
 
     method set_exposed: player -> Tileset.tile option list list -> unit 
 
+    method set_name: player -> string -> unit
+
+    method set_seat_wind: player -> string -> unit
+
     method set_reverse_mode: bool -> unit
 
     method reverse_mode: bool

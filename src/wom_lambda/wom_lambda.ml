@@ -33,7 +33,8 @@ let gui =
   for i = 0 to 3 do
     rack # set_hand i hand;
     rack # set_exposed i exposed;
-    rack # set_discard i discard
+    rack # set_discard i discard;
+    rack # set_name i (Printf.sprintf " Player %i " i)
   done;
 
   LTerm_widget.run term ~save_state: true rack waiter

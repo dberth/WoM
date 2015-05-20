@@ -19,7 +19,9 @@ type player_rack_content =
   {
     mutable hand: tile option list;
     mutable exposed: tile option list list;
-    mutable discard: tile option list
+    mutable discard: tile option list;
+    mutable name: string option;
+    mutable seat_wind: string;
   }
 
 let exposed_size exposed tile_size =
@@ -38,7 +40,7 @@ let draw_rack
     ~discard
     ~reverse
     ctx
-    {hand; exposed; discard = discard_tiles}
+    {hand; exposed; discard = discard_tiles; name; seat_wind}
   =
   let open LTerm_draw in
   let open LTerm_geom in
@@ -60,7 +62,7 @@ let draw_rack
         Tile_repr.draw_tilesets ctx row (left + width - 1 - exposed_size) height exposed
     end
   in
-  begin
+  let new_top =
     if border then begin
       let row2 = top + inner_height + 2 in
       draw_frame
@@ -73,7 +75,6 @@ let draw_rack
         draw_hand_and_exposed (not reverse) (top + height + offset) 1 discard
       end;
       draw_hand_and_exposed reverse (top + 1) 1 height;
-      draw_string ctx 0 0 (Printf.sprintf "height: %i, inner_height: %i\n%!" height inner_height);
       row2
     end else begin
       draw_hline ctx top left width Heavy;
@@ -82,7 +83,23 @@ let draw_rack
         draw_hand_and_exposed (not reverse) (top + height + 1) 0 discard;
       top + inner_height + 1
     end
-  end
+  in
+  begin
+    match name with
+    | None -> ()
+    | Some name ->
+      let max_size = width - 6 - String.length seat_wind in
+      let name =
+        if max_size < String.length name then
+          String.sub name 0 max_size
+        else
+          name
+      in
+      LTerm_draw.draw_string ctx top (left + 1) (Printf.sprintf "<%s>" name)
+  end;
+  LTerm_draw.draw_string ctx top (left + width - 3 - String.length seat_wind) (Printf.sprintf "<%s>" seat_wind);
+  new_top
+
 
 let mk_config ~main_size ?other_size ?(discard_size = 0) ?(border = false) ?(separator = false) ~width rows cols =
   let other_size =
@@ -180,17 +197,27 @@ let config_of_size {LTerm_geom.cols; rows} =
     |  None -> try_config 42 small_tile_config
   
 
-let empty_player_rack () =
+let empty_player_rack player =
+  let seat_wind =
+    match player with
+    | 0 -> " E "
+    | 1 -> " S "
+    | 2 -> " W "
+    | 3 -> " N "
+    | _ -> assert false
+  in
   {
     hand = [];
     exposed = [];
     discard = [];
+    name = None;
+    seat_wind;
   }
 
 type player = int
 
 class rack kind =
-  let rack_content = Array.init 4 (fun _ -> empty_player_rack ()) in
+  let rack_content = Array.init 4 (fun i -> empty_player_rack i) in
   object
     inherit t kind
 
@@ -201,6 +228,10 @@ class rack kind =
     method set_discard player discard = rack_content.(player).discard <- discard
 
     method set_exposed player exposed = rack_content.(player).exposed <- exposed
+
+    method set_name player name = rack_content.(player).name <- Some name
+
+    method set_seat_wind player wind = rack_content.(player).seat_wind <- wind
 
     method set_reverse_mode mode = reverse <- mode
 
@@ -220,7 +251,7 @@ class rack kind =
             other_size;
             discard_size;
             border;
-            separator
+            separator;
           } ->
         let draw_rack ~top ~height  player =
           draw_rack ~top ~left: padding_left ~separator ~border ~width ~height ~discard: discard_size ~reverse ctx rack_content.(player)
