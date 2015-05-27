@@ -218,6 +218,11 @@ type player = int
 
 class rack kind =
   let rack_content = Array.init 4 (fun i -> empty_player_rack i) in
+  let config ctx =
+      let open LTerm_geom in
+      let {cols; rows} as size = LTerm_draw.size ctx in
+      config_of_size size
+  in
   object
     inherit t kind
 
@@ -237,11 +242,15 @@ class rack kind =
 
     method reverse_mode = reverse
       
+    method width ctx =
+      match config ctx with
+      | None -> None
+      | Some {width; _} -> Some width
+      
+
     method! draw ctx _focused_widget =
-      let open LTerm_geom in
-      let {cols; rows} as size = LTerm_draw.size ctx in
-      match config_of_size size with
-      | None -> () (*TODO put a message*)
+      match config ctx with
+      | None -> ()
       | Some 
           {
             padding_left;

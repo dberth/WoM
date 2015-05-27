@@ -18,5 +18,7 @@ class rack: string ->
 
     method set_reverse_mode: bool -> unit
 
+    method width: LTerm_draw.context -> int option
+
     method reverse_mode: bool
   end
