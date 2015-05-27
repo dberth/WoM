@@ -35,7 +35,7 @@ class playground (rack: Rack.rack) (river: River.river) =
     method! draw ctx focused_widget =
       let open LTerm_geom in
       let {rows; cols} = LTerm_draw.size ctx in
-      let side_width = 22 in
+      let side_width = river # width in
 
       let rack_rec = {row1 = 0; col1 = 0; row2 = rows; col2 = cols - side_width} in
       let rack_ctx = LTerm_draw.sub ctx rack_rec in
@@ -44,9 +44,9 @@ class playground (rack: Rack.rack) (river: River.river) =
       | Some rack_width ->
         let padding = calculate_padding ctx ~rack_width ~side_width in
         let rack_rec = {rack_rec with col1 = padding; col2 = padding + rack_width } in
-      let side_rec = {row1 = 0; col1 = cols - side_width - padding; row2 = rows ; col2 = cols} in
-        (* LTerm_draw.draw_frame ctx rack_rec LTerm_draw.Light; *)
-        (* LTerm_draw.draw_frame ctx side_rec LTerm_draw.Light; *)
+      let side_rec = {row1 = 0; col1 = cols - side_width - padding; row2 = rows ; col2 = cols - padding} in
+        LTerm_draw.draw_frame ctx rack_rec LTerm_draw.Light;
+        LTerm_draw.draw_frame ctx side_rec LTerm_draw.Light;
         rack # draw (LTerm_draw.sub ctx rack_rec) focused_widget;
         river # draw (LTerm_draw.sub ctx side_rec) focused_widget;
         (* for i = 0 to 150 do *)
@@ -65,7 +65,7 @@ let gui =
   
   let rack = new Rack.rack "rack" in
 
-  let river = new River.river "river" in
+  let river = new River.river 136 "river" in
   
   let playground = new playground rack river in
 
