@@ -19,12 +19,14 @@ let calculate_padding ctx ~rack_width ~side_width =
   let open LTerm_geom in
   let {cols; _} = LTerm_draw.size ctx in
   let remaining_space = cols - rack_width - side_width in
-  let base = remaining_space / 3 in
-  match remaining_space mod 3 with
-  | 0 -> base, base, base
-  | 1 -> base, base + 1, base
-  | 2 -> base + 1, base, base + 1
-  | _ -> assert false
+  if 30 < remaining_space then
+    (remaining_space - 10) / 2
+  else 
+    let base = remaining_space / 3 in
+    if remaining_space mod 3 = 2 then
+      base + 1
+    else
+      base
   
 class playground (rack: Rack.rack) (river: River.river) =
   object (this)
@@ -38,11 +40,11 @@ class playground (rack: Rack.rack) (river: River.river) =
       let rack_rec = {row1 = 0; col1 = 0; row2 = rows; col2 = cols - side_width} in
       let rack_ctx = LTerm_draw.sub ctx rack_rec in
       match rack # width rack_ctx with
-      | None -> LTerm_draw.draw_string ctx 0 0 "Screen is too small."
+      | None -> LTerm_draw.draw_string ctx 0 0 "The screen is too small."
       | Some rack_width ->
-        let left_padding, _middle_padding, right_padding = calculate_padding ctx ~rack_width ~side_width in
-        let rack_rec = {rack_rec with col1 = left_padding; col2 = left_padding + rack_width } in
-      let side_rec = {row1 = 0; col1 = cols - side_width - right_padding; row2 = rows ; col2 = cols} in
+        let padding = calculate_padding ctx ~rack_width ~side_width in
+        let rack_rec = {rack_rec with col1 = padding; col2 = padding + rack_width } in
+      let side_rec = {row1 = 0; col1 = cols - side_width - padding; row2 = rows ; col2 = cols} in
         (* LTerm_draw.draw_frame ctx rack_rec LTerm_draw.Light; *)
         (* LTerm_draw.draw_frame ctx side_rec LTerm_draw.Light; *)
         rack # draw (LTerm_draw.sub ctx rack_rec) focused_widget;
