@@ -22,14 +22,6 @@ let empty_player_content player =
     seat_wind;
   }
 
-type wall_model =
-  {
-    mutable current_tile: int;
-    (*0 is the upper tile of the rightmost stack before player 0 *)
-    mutable last_tile: int;
-    mutable nb_tiles_in_kong_box: int;
-  }
-
 type wall_content =
   | Wall
   | Kong_box
