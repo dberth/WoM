@@ -155,6 +155,8 @@ class river nb_tiles kind =
   let wall_start = ref 0 in
   let nb_tiles_in_kong_box = ref 0 in
   let last_tile = ref (nb_tiles - 1) in
+  let die_1 = ref (Some 2) in
+  let die_2 = ref (Some 6) in
   object
     inherit t kind
 
@@ -172,7 +174,25 @@ class river nb_tiles kind =
       let center_row = nb_tiles / 16 + 2 in
       draw_side_wind river_ctx center_row 0 river_content.(3).seat_wind;
       draw_side_wind river_ctx center_row (river_rec.col2 - 1) river_content.(1).seat_wind;
-      LTerm_draw.draw_string_aligned river_ctx (nb_tiles / 8 + 3) LTerm_geom.H_align_center (Printf.sprintf "  %s  " river_content.(0).seat_wind)
+      LTerm_draw.draw_string_aligned river_ctx (nb_tiles / 8 + 3) LTerm_geom.H_align_center (Printf.sprintf "  %s  " river_content.(0).seat_wind);
+      let v_die_padding =
+        let space_left = (nb_stacks_per_side + 4) - 10 in
+        match space_left mod 3 with
+        | 2 -> space_left / 3 + 1
+        | _ -> space_left / 3
+      in
+      let h_die_padding =
+        (nb_tiles / 8) / 2
+      in
+      begin match !die_1 with
+      | None -> ()
+      | Some x ->
+        Die.draw_die river_ctx v_die_padding (h_die_padding + 1) x
 
-
+      end;
+      begin match !die_2 with
+      | None -> ()
+      | Some x ->
+        Die.draw_die river_ctx (nb_tiles / 8 - 1 - v_die_padding) (h_die_padding + 1) x
+      end;
   end
