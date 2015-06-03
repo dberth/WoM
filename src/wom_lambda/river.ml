@@ -126,23 +126,39 @@ let draw_horizontal_row ctx pos wall_content nb_tiles_in_game =
       (strings_of_buffer buffer)
   end
   
-let draw_vertical_row _ _ _ = ()
+let string_of_tile_index wall_content tile_index =
+  match wall_content tile_index, wall_content (tile_index + 1) with
+  | Wall, Wall -> "ll", st_wall
+  | Wall, Empty | Empty, Wall -> " l", st_wall
+  | Wall, Kong_box | Kong_box, Wall -> assert false
+  | Kong_box, Kong_box -> "ll", st_kong_box
+  | Kong_box, Empty | Empty, Kong_box -> " l", st_kong_box
+  | Empty, Empty -> "  ", LTerm_style.none
+
+let draw_vertical_row ctx row_index wall_content nb_tiles_in_game =
+  let left_even_tile_index = (nb_tiles_in_game / 2) - 2 * (row_index - 1) in
+  let right_even_tile_index = 3 * (nb_tiles_in_game / 4) + 2 * (row_index - 1) in
+  let s, style = string_of_tile_index wall_content left_even_tile_index in
+  LTerm_draw.draw_string ctx (row_index + 1) 2  ~style s;
+  let s, style = string_of_tile_index wall_content right_even_tile_index in
+  LTerm_draw.draw_string ctx (row_index + 1) (4 + nb_tiles_in_game / 8) ~style s 
+  
 
 let draw_wall_line ctx row_index wall_content nb_tiles_in_games =
   if row_index = 0 then
     draw_horizontal_row ctx `Top wall_content nb_tiles_in_games
-  else if row_index = (nb_tiles_in_games / 4) + 1 then
+  else if row_index = (nb_tiles_in_games / 8) + 1 then
     draw_horizontal_row ctx `Bottom wall_content nb_tiles_in_games
   else
-    draw_vertical_row row_index wall_content nb_tiles_in_games
+    draw_vertical_row ctx row_index wall_content nb_tiles_in_games
     
 
 class river nb_tiles kind =
   let river_content = Array.init 4 (fun i -> empty_player_content i) in
   let nb_stacks_per_side = nb_tiles / 8 in
-  let wall_start = ref 71 in
-  let nb_tiles_in_kong_box = ref 14 in
-  let last_tile = ref (*(nb_tiles - 1)*) 21 in
+  let wall_start = ref 41 in
+  let nb_tiles_in_kong_box = ref 13 in
+  let last_tile = ref (*(nb_tiles - 1)*) 120 in
   object
     inherit t kind
 
@@ -154,7 +170,7 @@ class river nb_tiles kind =
       let river_ctx = LTerm_draw.sub ctx river_rec in
       LTerm_draw.draw_string_aligned river_ctx 0 LTerm_geom.H_align_center (Printf.sprintf "  %s  " river_content.(2).seat_wind);
       let wall_content = wall_content_at_index nb_tiles !nb_tiles_in_kong_box !wall_start !last_tile in
-      for i = 0 to (nb_tiles / 4) + 1 do
+      for i = 0 to (nb_tiles / 8) + 1 do
         draw_wall_line ctx i wall_content nb_tiles
       done;
       (* LTerm_draw.draw_string ~style: st_wall_und ctx 1 4 "~~~~~~~~~~~~~~~~~"; *)
