@@ -152,13 +152,17 @@ let draw_wall_line ctx row_index wall_content nb_tiles_in_games =
   else
     draw_vertical_row ctx row_index wall_content nb_tiles_in_games
     
+let draw_side_wind ctx row col wind =
+  LTerm_draw.draw_string ctx (row - 1) col " ";
+  LTerm_draw.draw_string ctx row col wind;
+  LTerm_draw.draw_string ctx (row + 1) col " "
 
 class river nb_tiles kind =
   let river_content = Array.init 4 (fun i -> empty_player_content i) in
   let nb_stacks_per_side = nb_tiles / 8 in
-  let wall_start = ref 41 in
-  let nb_tiles_in_kong_box = ref 13 in
-  let last_tile = ref (*(nb_tiles - 1)*) 120 in
+  let wall_start = ref 0 in
+  let nb_tiles_in_kong_box = ref 0 in
+  let last_tile = ref (nb_tiles - 1) in
   object
     inherit t kind
 
@@ -173,27 +177,10 @@ class river nb_tiles kind =
       for i = 0 to (nb_tiles / 8) + 1 do
         draw_wall_line ctx i wall_content nb_tiles
       done;
-      (* LTerm_draw.draw_string ~style: st_wall_und ctx 1 4 "~~~~~~~~~~~~~~~~~"; *)
-      (* LTerm_draw.draw_string ctx 2 2 "ll                 ll"; *)
-      (* LTerm_draw.draw_string ctx 3 2 "ll                 ll"; *)
-      (* LTerm_draw.draw_string ctx 4 2 "ll                 ll"; *)
-      (* LTerm_draw.draw_string ctx 5 2 "ll                 ll"; *)
-      (* LTerm_draw.draw_string ctx 6 2 "ll                 ll"; *)
-      (* LTerm_draw.draw_string ctx 7 2 "ll                 ll"; *)
-      (* LTerm_draw.draw_string ctx 8 2 "ll                 ll"; *)
-      (* LTerm_draw.draw_string ctx 9 0 "  ll                 ll  "; *)
-      (* LTerm_draw.draw_string ctx 10 0 *)
-      (*   (Printf.sprintf "%s ll                 ll %s" river_content.(3).seat_wind river_content.(1).seat_wind); *)
-      (* LTerm_draw.draw_string ctx 11 0 "  ll                 ll  "; *)
-      (* LTerm_draw.draw_string ctx 12 2 "ll                 ll"; *)
-      (* LTerm_draw.draw_string ctx 13 2 "ll                 ll"; *)
-      (* LTerm_draw.draw_string ctx 14 2 "ll                 ll"; *)
-      (* LTerm_draw.draw_string ctx 15 2 "ll                 ll"; *)
-      (* LTerm_draw.draw_string ctx 16 2 "ll                 ll"; *)
-      (* LTerm_draw.draw_string ctx 17 2 "ll                 ll"; *)
-      (* LTerm_draw.draw_string ctx 18 2 "ll                 ll"; *)
-      (* LTerm_draw.draw_string ~style: st_wall_und ctx 19 4 "~~~~~~~~~~~~~~~~~~"; *)
-      LTerm_draw.draw_string_aligned river_ctx 20 LTerm_geom.H_align_center (Printf.sprintf "  %s  " river_content.(0).seat_wind)
+      let center_row = nb_tiles / 16 + 2 in
+      draw_side_wind river_ctx center_row 0 river_content.(3).seat_wind;
+      draw_side_wind river_ctx center_row (river_rec.col2 - 1) river_content.(1).seat_wind;
+      LTerm_draw.draw_string_aligned river_ctx (nb_tiles / 8 + 3) LTerm_geom.H_align_center (Printf.sprintf "  %s  " river_content.(0).seat_wind)
 
 
   end
