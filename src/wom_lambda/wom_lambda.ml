@@ -84,6 +84,12 @@ let gui =
     rack # set_name i (Printf.sprintf " Player %i " i)
   done;
 
+  river # set_wall_start 20;
+  river # set_last_tile 100;
+  river # set_nb_tiles_in_kong_box 14;
+  river # set_die_1 (Some 5);
+  river # set_die_2 (Some 6);
+
   LTerm_widget.run term ~save_state: true playground waiter
   
 let () = Lwt_main.run gui

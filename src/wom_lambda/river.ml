@@ -155,12 +155,22 @@ class river nb_tiles kind =
   let wall_start = ref 0 in
   let nb_tiles_in_kong_box = ref 0 in
   let last_tile = ref (nb_tiles - 1) in
-  let die_1 = ref (Some 2) in
-  let die_2 = ref (Some 6) in
+  let die_1 = ref None in
+  let die_2 = ref None in
   object
     inherit t kind
 
     method width = nb_stacks_per_side + 8
+
+    method set_wall_start x = wall_start := x
+
+    method set_nb_tiles_in_kong_box x = nb_tiles_in_kong_box := x
+
+    method set_last_tile x = last_tile := x
+
+    method set_die_1 x = die_1 := x
+
+    method set_die_2 x = die_2 := x
 
     method! draw ctx _focused_widget =
       let river_rec = {row1 = 0; col1 = 0; row2 = nb_stacks_per_side + 4; col2 = nb_stacks_per_side + 8} in

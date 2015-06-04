@@ -21,7 +21,7 @@ let row_3 = function
   | _ -> assert false
 
 let draw_die ctx row col x =
-  LTerm_draw.draw_string ctx row col " _____ ";
+  LTerm_draw.draw_string ctx row col ".-----.";
   LTerm_draw.draw_string ctx (row + 1) col "|     |";
   LTerm_draw.draw_string ctx (row + 2) col "|     |";
   LTerm_draw.draw_string ctx (row + 3) col "|     |";
