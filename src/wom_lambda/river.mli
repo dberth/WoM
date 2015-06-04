@@ -6,6 +6,8 @@ class river: int -> string ->
 
     method width: int
 
+    method height: int
+
     method set_wall_start: int -> unit
 
     method set_nb_tiles_in_kong_box: int -> unit
@@ -15,4 +17,6 @@ class river: int -> string ->
     method set_die_1: int option -> unit
 
     method set_die_2: int option -> unit
+
+    method set_tile: (int * int) option -> unit
   end
