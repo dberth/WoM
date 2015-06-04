@@ -149,6 +149,23 @@ let draw_side_wind ctx row col wind =
   LTerm_draw.draw_string ctx row col wind;
   LTerm_draw.draw_string ctx (row + 1) col " "
 
+let draw_tile ctx width height player tile_size tile =
+  let v_padding = (height - tile_size) / 2 in
+  let h_padding = (width - tile_size) / 2 in
+  let v_offset = 2 in
+  let h_offset = 5 in
+  let row, col =
+    match player with
+    | 0 -> height - v_offset - tile_size, h_padding
+    | 1 -> v_padding, width - h_offset - tile_size
+    | 2 -> v_offset, h_padding
+    | 3 -> v_padding, h_offset
+    | _ -> assert false
+  in
+  Tile_repr.draw_tileset ctx row col tile_size [Some tile]
+
+
+
 class river nb_tiles kind =
   let river_content = Array.init 4 (fun i -> empty_player_content i) in
   let nb_stacks_per_side = nb_tiles / 8 in
@@ -160,6 +177,7 @@ class river nb_tiles kind =
   let tile = ref None in
   let width = nb_stacks_per_side + 8 in
   let height = nb_stacks_per_side + 4 in
+  let tile_size = ref 7 in
   object
     inherit t kind
 
@@ -177,7 +195,7 @@ class river nb_tiles kind =
 
     method set_die_2 x = die_2 := x
 
-    method set_tile (x: (int * int) option) = tile := x
+    method set_tile (x: (int * Tileset.tile) option) = tile := x
 
     method! draw ctx _focused_widget =
       let river_rec = {row1 = 0; col1 = 0; row2 = height; col2 = width} in
@@ -199,17 +217,20 @@ class river nb_tiles kind =
         | _ -> space_left / 3
       in
       let h_die_padding =
-        (width - 8) / 2
+        (width - 7) / 2
       in
       begin match !die_1 with
       | None -> ()
       | Some x ->
-        Die.draw_die river_ctx v_die_padding (h_die_padding + 1) x
+        Die.draw_die river_ctx v_die_padding h_die_padding x
 
       end;
       begin match !die_2 with
       | None -> ()
       | Some x ->
-        Die.draw_die river_ctx (nb_tiles / 8 - 1 - v_die_padding) (h_die_padding + 1) x
-      end
+        Die.draw_die river_ctx (height - 5 - v_die_padding) h_die_padding x
+      end;
+      match !tile with
+      | None -> ()
+      | Some (player, tile) -> draw_tile river_ctx width height player !tile_size tile 
   end

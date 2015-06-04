@@ -18,5 +18,5 @@ class river: int -> string ->
 
     method set_die_2: int option -> unit
 
-    method set_tile: (int * int) option -> unit
+    method set_tile: (int * Tileset.tile) option -> unit
   end
