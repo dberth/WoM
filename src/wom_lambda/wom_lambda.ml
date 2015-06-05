@@ -13,6 +13,14 @@ let event_handler wakener rack playground event =
     rack # set_reverse_mode (not (rack # reverse_mode));
     playground # queue_draw;
     true
+  | Key {code = Left; _} ->
+    rack # select_prev_tile;
+    playground # queue_draw;
+    true
+  | Key {code = Right; _} ->
+    rack # select_next_tile;
+    playground # queue_draw;
+    true
   | _ -> false
 
 let calculate_padding ctx ~rack_width ~side_width =

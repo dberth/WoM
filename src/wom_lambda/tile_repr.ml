@@ -192,13 +192,21 @@ let draw_tile_content ctx row col size tile_descr =
     draw_tile_7_5 (put 4) tile_descr
   | _ -> assert false     
   
-let draw_tileset ctx row col tile_size tiles =
+let draw_tileset ?selected_tile ctx row col tile_size tiles =
   let open LTerm_draw in
   let nb = List.length tiles in
+  let is_selected i =
+    match selected_tile with
+    | None -> false
+    | Some selected -> selected = i
+  in
   if nb <> 0 then begin
-    let draw_row offset sep inner =
+    let draw_row ?(bottom = false) offset sep inner =
       draw_string ctx (row + offset) col sep;
       for i = 0 to nb - 1 do
+          if bottom && is_selected i then
+            draw_string ctx ~style: st_underline (row + offset) (col + i * (tile_size - 1)) (sep ^ String.make (tile_size - 2) inner ^ sep)
+          else
         draw_string ctx (row + offset) (col + i * (tile_size - 1) + 1) (String.make (tile_size - 2) inner ^ sep)
       done
     in
@@ -206,7 +214,7 @@ let draw_tileset ctx row col tile_size tiles =
     for i = 1 to tile_size - 2 do
       draw_row i "|" ' '
     done;
-    draw_row (tile_size - 1) "'" '-';
+    draw_row ~bottom: true (tile_size - 1) "'" '-';
     List.iteri
       (fun i tile ->
          match tile with

@@ -39,6 +39,7 @@ let draw_rack
     ~height
     ~discard
     ~reverse
+    ~selected_tile
     ctx
     {hand; exposed; discard = discard_tiles; name; seat_wind}
   =
@@ -54,7 +55,7 @@ let draw_rack
     if draw_discard then
       Tile_repr.draw_tileset ctx row (left + border) height discard_tiles
     else begin
-      Tile_repr.draw_tileset ctx row (left + border) height hand;
+      Tile_repr.draw_tileset ?selected_tile ctx row (left + border) height hand;
       match exposed with
       | [] -> ()
       | _ ->
@@ -223,6 +224,7 @@ class rack kind =
       let {cols; rows} as size = LTerm_draw.size ctx in
       config_of_size size
   in
+  let selected_tile = ref (Some 3) in
   object
     inherit t kind
 
@@ -241,6 +243,22 @@ class rack kind =
     method set_reverse_mode mode = reverse <- mode
 
     method reverse_mode = reverse
+
+    method set_selected_tile_index x = selected_tile := Some x
+
+    method clear_selection = selected_tile := None
+
+    method select_next_tile =
+      match !selected_tile with
+      | None -> ()
+      | Some selected_index ->
+        selected_tile := Some (min (selected_index + 1) (List.length rack_content.(0).hand - 1))
+
+    method select_prev_tile =
+      match !selected_tile with
+      | None -> ()
+      | Some selected_index ->
+        selected_tile := Some (max (selected_index -1) 0)
       
     method width ctx =
       match config ctx with
@@ -251,7 +269,7 @@ class rack kind =
     method! draw ctx _focused_widget =
       match config ctx with
       | None -> ()
-      | Some 
+      | Some
           {
             padding_left;
             padding_top;
@@ -262,12 +280,12 @@ class rack kind =
             border;
             separator;
           } ->
-        let draw_rack ~top ~height  player =
-          draw_rack ~top ~left: padding_left ~separator ~border ~width ~height ~discard: discard_size ~reverse ctx rack_content.(player)
+        let draw_rack ?selected_tile ~top ~height  player =
+          draw_rack ~top ~left: padding_left ~separator ~border ~width ~height ~discard: discard_size ~reverse ~selected_tile ctx rack_content.(player)
         in
         let top = draw_rack ~top: padding_top ~height: other_size 1 in
         let top = draw_rack ~top ~height: other_size 2 in
         let top = draw_rack ~top ~height: other_size 3 in
-        ignore (draw_rack ~top ~height: main_size 0)
+        ignore (draw_rack ?selected_tile: !selected_tile ~top ~height: main_size 0)
       
   end

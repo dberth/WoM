@@ -21,4 +21,12 @@ class rack: string ->
     method width: LTerm_draw.context -> int option
 
     method reverse_mode: bool
+
+    method set_selected_tile_index: int -> unit
+
+    method clear_selection: unit
+
+    method select_prev_tile: unit
+
+    method select_next_tile: unit
   end
