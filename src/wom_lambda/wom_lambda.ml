@@ -87,9 +87,9 @@ let gui =
   river # set_wall_start 20;
   river # set_last_tile 10;
   river # set_nb_tiles_in_kong_box 14;
-  river # set_die_1 (None);
+  river # set_die_1 (Some 1);
   river # set_die_2 (None);
-  river # set_tile (Some (3, rd));
+  river # set_tile (None);
 
   LTerm_widget.run term ~save_state: true playground waiter
   
