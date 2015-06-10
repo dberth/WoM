@@ -62,3 +62,7 @@ type game =
 val dump: ?json: bool -> game -> string -> unit
 
 val restore: string -> game
+
+val string_of_round_event: round_event -> string
+
+val string_of_game_event: game_event -> string

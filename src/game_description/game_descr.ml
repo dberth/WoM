@@ -58,7 +58,7 @@ type game = Game_descr_t.game =
   {
     game_events: game_event list;
     current_round: round_event list;
-  }
+ }
 
 let dump ?(json = false) game path =
   let oc = open_out path in
@@ -83,3 +83,7 @@ let restore path =
     match Game_descr_j.read_game lexer_state lexbuf with
     | game -> close_in ic; game
     | exception _ -> close_in ic; raise exn
+
+let string_of_round_event event = Game_descr_j.string_of_round_event event
+
+let string_of_game_event event = Game_descr_j.string_of_game_event event

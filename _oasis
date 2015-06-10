@@ -30,7 +30,7 @@ Library mahjong_engine
   BuildTools:      ocamlbuild
   CompiledObject:  best
   Build:           true
-  BuildDepends:    game_description
+  BuildDepends:    game_description, lwt, lwt.ppx
   Modules:         Fsm, Rule_manager, Engine, Mahjong_ai, Game_engine
   Findlibname:     mahjong_engine
   NativeOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
@@ -60,7 +60,7 @@ Executable wom_nox
 Executable "wom_lambda"
   Path:           src/wom_lambda
   BuildTools:     ocamlbuild
-  BuildDepends:   lambda-term, lwt, lwt.ppx, mahjong_engine
+  BuildDepends:   lambda-term, lwt, lwt.ppx, mahjong_engine, rules
   MainIs:         wom_lambda.ml
   build:          true
   CompiledObject: best

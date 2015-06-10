@@ -31,7 +31,7 @@ let dummy_player =
   {
     name = "";
     kind = Human;
-    score = 0.;
+    score = -1.;
   }
 
 let init_game =
@@ -43,7 +43,6 @@ let init_game =
     round_finished = false;
     nb_rounds = 0;
   }
-
 
 exception Irrelevant_event of (Game_descr.game_event * string)
 
@@ -236,13 +235,13 @@ let build_game_engine game_events =
     lazy (new_state
            (function event -> raise (Irrelevant_event (event, "end_game"))))
   in
-  let action_handler =
+  let (action_handler: (Game_descr.game_event, game) Fsm.action_handler) =
     empty_action_handler |>
     on_exit game_start on_game_start_exit |>
     on_exit wait_for_player_0 (on_wait_for_player_exit 0) |>
-    on_exit wait_for_player_0 (on_wait_for_player_exit 1) |>
-    on_exit wait_for_player_0 (on_wait_for_player_exit 2) |>
-    on_exit wait_for_player_0 (on_wait_for_player_exit 3) |>
+    on_exit wait_for_player_1 (on_wait_for_player_exit 1) |>
+    on_exit wait_for_player_2 (on_wait_for_player_exit 2) |>
+    on_exit wait_for_player_3 (on_wait_for_player_exit 3) |>
     on_exit wait_for_score_init on_wait_for_score_init_exit |>
     on_exit wait_for_east_seat on_wait_for_east_seat_exit |>
     on_entry round on_round_entry |>
@@ -254,14 +253,15 @@ let build_game_engine game_events =
 
 type game_loop_callbacks =
   {
-    get_rule: unit -> rule_descr;
-    get_player_name: unit -> string;
-    get_ai_player: unit -> player_descr;
-    get_initial_east_seat: unit -> int;
-    human_move: Engine.round -> round_event list -> round_event;
-    end_round: game -> unit;
-    new_round: game -> unit;
-    end_game: game -> unit
+    get_rule: unit -> rule_descr Lwt.t;
+    get_player_name: unit -> string Lwt.t;
+    get_ai_player: unit -> player_descr Lwt.t;
+    get_initial_east_seat: unit -> int Lwt.t;
+    human_move: Engine.round -> round_event list -> round_event Lwt.t;
+    end_round: game -> unit Lwt.t;
+    new_round: game -> unit Lwt.t;
+    end_game: game -> unit Lwt.t;
+    on_game_event: game_event -> game -> unit;
   }
 
 let mk_player_events {current_round; _} =
@@ -303,28 +303,28 @@ let one_player_game_loop events callbacks =
     match Fsm.accepted_events game state with
     | [] -> callbacks.end_game game
     | [Set_rule _] ->
-      let rule_descr = callbacks.get_rule () in
+      let%lwt rule_descr = callbacks.get_rule () in
       run (Set_rule rule_descr)
     | [Player _] ->
-      let player_descr =
+      let%lwt player_descr =
         if game.players.(0) = dummy_player then
-          let name = callbacks.get_player_name () in
-          {name; kind = Human}
+          let%lwt name = callbacks.get_player_name () in
+          Lwt.return {name; kind = Human}
         else
           callbacks.get_ai_player ()
       in
       run (Player player_descr)
     | [East_seat _] ->
-      let player_idx = callbacks.get_initial_east_seat () in
+      let%lwt player_idx = callbacks.get_initial_east_seat () in
       run (East_seat player_idx)
     | [Init_score _] ->
       (*TODO: use rule setting or maybe remove this event.*)
       run (Init_score 0.)
     | [End_round] ->
-      callbacks.end_round game;
+      let%lwt () = callbacks.end_round game in
       run End_round
     | [New_round] ->
-      callbacks.new_round game;
+      let%lwt () = callbacks.new_round game in
       run New_round
     | accepted_events ->
       assert (List.for_all (function Round_event _ -> true | _ -> false) accepted_events);
@@ -340,17 +340,18 @@ let one_player_game_loop events callbacks =
             ~irregular_hands
             player_events
         in
-        let round_event =
+        let%lwt round_event =
           match current_player_kind game with
           | Human ->
             let accepted_events = Fsm.accepted_events player_round player_state in
             callbacks.human_move player_round accepted_events
           | AI {name; force}  ->
             let evaluate_round = Rule_manager.evaluate_round rule in
-            apply_ai ~irregular_hands ~seven_pairs ~evaluate_round player_events name force
+            Lwt.return (apply_ai ~irregular_hands ~seven_pairs ~evaluate_round player_events name force)
         in
         run (Round_event round_event)
   in
   let action_handler, game, state = build_game_engine events in
+  let action_handler = add_exit_state_hook callbacks.on_game_event action_handler in
   loop action_handler game state
   

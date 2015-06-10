@@ -24,7 +24,7 @@ let draw_row_2 ctx row col x =
   | _ -> assert false
 
 let draw_row_3 ctx row col x =
-  let put ?style s = put ctx (row + 2) (col + 1) s in
+  let put ?style s = put ctx (row + 3) (col + 1) s in
   match x with
   | 1 -> ()
   | 2 | 3 -> put "   o "
