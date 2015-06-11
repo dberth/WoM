@@ -2,6 +2,8 @@
 
 type game
 
+val east_seat: game -> int
+
 val build_game_engine:
   Game_descr.game_event list ->
   (Game_descr.game_event, game) Fsm.action_handler *

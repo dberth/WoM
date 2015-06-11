@@ -2,20 +2,21 @@
 
 open LTerm_widget
 open LTerm_geom
+open Common
 
 
 type player_river_content =
   {
-    mutable seat_wind: string;
+    mutable seat_wind: wind;
   }
 
 let empty_player_content player =
   let seat_wind =
     match player with
-    | 0 -> "E"
-    | 1 -> "S"
-    | 2 -> "W"
-    | 3 -> "N"
+    | 0 -> East
+    | 1 -> South
+    | 2 -> West
+    | 3 -> North
     | _ -> assert false
   in
   {
@@ -197,19 +198,22 @@ class river nb_tiles kind =
 
     method set_tile (x: (int * Tileset.tile) option) = tile := x
 
+    method set_seat_wind player wind =
+      river_content.(player).seat_wind <- wind
+
     method! draw ctx _focused_widget =
       let river_rec = {row1 = 0; col1 = 0; row2 = height; col2 = width} in
       LTerm_draw.draw_frame ctx river_rec LTerm_draw.Heavy;
       let river_ctx = LTerm_draw.sub ctx river_rec in
-      LTerm_draw.draw_string_aligned river_ctx 0 LTerm_geom.H_align_center (Printf.sprintf "  %s  " river_content.(2).seat_wind);
+      LTerm_draw.draw_string_aligned river_ctx 0 LTerm_geom.H_align_center (Printf.sprintf "  %s  " (string_of_wind river_content.(2).seat_wind));
       let wall_content = wall_content_at_index nb_tiles !nb_tiles_in_kong_box !wall_start !last_tile in
       for i = 0 to height - 3 do
         draw_wall_line ctx i wall_content nb_tiles
       done;
       let center_row = height / 2 in
-      draw_side_wind river_ctx center_row 0 river_content.(3).seat_wind;
-      draw_side_wind river_ctx center_row (river_rec.col2 - 1) river_content.(1).seat_wind;
-      LTerm_draw.draw_string_aligned river_ctx (height - 1) LTerm_geom.H_align_center (Printf.sprintf "  %s  " river_content.(0).seat_wind);
+      draw_side_wind river_ctx center_row 0 (string_of_wind river_content.(3).seat_wind);
+      draw_side_wind river_ctx center_row (river_rec.col2 - 1) (string_of_wind river_content.(1).seat_wind);
+      LTerm_draw.draw_string_aligned river_ctx (height - 1) LTerm_geom.H_align_center (Printf.sprintf "  %s  " (string_of_wind river_content.(0).seat_wind));
       let v_die_padding =
         let space_left = height - 10 in
         match space_left mod 3 with

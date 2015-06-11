@@ -77,18 +77,22 @@ let end_game _ = Lwt.return ()
 
 let throw_2_dice playground river =
   let open Lwt in
-  let res1 = Random.int 6 + 1 in
-  let res2 = Random.int 6 + 1 in
-  river # set_die_1 (Some res1);
-  river # set_die_2 (Some res2);
-  Lwt_io.printf "%i %i\n" res1 res2 >>
-  Lwt_unix.sleep 1. >>
-  (* Lwt_io.printf "End sleep\n" >> *)
-  return (river # set_die_1 None) >>
-  (* Lwt_io.printf "Die 1 reseted.\n" >> *)
-  return (river # set_die_2 None) >>
-  (* Lwt_io.printf "Die 2 reseted.\n" >> *)
-  return (playground # queue_draw) >>
+  let%lwt res1 = return (Random.int 6 + 1) in
+  let%lwt res2 = return (Random.int 6 + 1) in
+  return begin
+    let res1 = Random.int 6 + 1 in
+    let res2 = Random.int 6 + 1 in
+    river # set_die_1 (Some res1);
+    river # set_die_2 (Some res2);
+    playground # queue_draw
+  end >>
+  Lwt_unix.sleep 1.5 >>
+  return begin
+    river # set_die_1 None;
+    river # set_die_2 None;
+    playground # queue_draw
+  end >>
+  Lwt_unix.sleep 0.2 >>
   Lwt.return (res1 + res2)
 
 let human_move playground river _ events =
@@ -99,17 +103,42 @@ let human_move playground river _ events =
     | [Init [||]] -> Lwt.return [Init random_game]
     | [Wall_breaker_roll 0] ->
       let%lwt result = throw_2_dice playground river in
-      Lwt.return [Wall_breaker_roll result] 
+      Lwt.return [Wall_breaker_roll result]
+    | [Break_wall_roll 0] ->
+      let%lwt result = throw_2_dice playground river in
+      Lwt.return [Break_wall_roll result]
     | events -> Lwt.return events
   in
   let event = List.hd events in
-  (* print_endline (Game_descr.string_of_round_event (event: Game_descr.round_event)); *)
   Lwt.return event
 
-let on_game_event event _ = ()
-(*print_endline (Game_descr.string_of_game_event event)*)
+let player_wind game player =
+  let open Common in
+  let east_seat = Game_engine.east_seat game in
+  match (east_seat - player + 4) mod 4 with
+  | 0 -> East
+  | 1 -> South
+  | 2 -> West
+  | 3 -> North
+  | _ -> assert false
+  
 
-let init playground river =
+let set_river_winds river game =
+  for player = 0 to 3 do
+    river # set_seat_wind player (player_wind game player)
+  done 
+
+
+let set_river river game =
+  set_river_winds river game
+
+let on_game_event playground _rack river event game =
+  Printf.eprintf "%s\n" (Game_descr.string_of_game_event event);
+  (*set_rack rack game;*)
+  set_river river game;
+  playground # queue_draw
+
+let init playground rack river =
     let callbacks =
       {
         Game_engine.get_rule;
@@ -120,7 +149,7 @@ let init playground river =
         end_round;
         new_round;
         end_game;
-        on_game_event;
+        on_game_event = on_game_event playground rack river;
       }
     in
     Random.self_init ();
@@ -184,7 +213,7 @@ let gui =
   (* river # set_die_2 (None); *)
   (* river # set_tile (None); *)
   let%lwt () = LTerm_widget.run term ~save_state: true playground waiter
-  and () = init playground river in
+  and () = init playground rack river in
   Lwt.return ()
   
 let () = Lwt_main.run gui

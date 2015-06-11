@@ -354,4 +354,5 @@ let one_player_game_loop events callbacks =
   let action_handler, game, state = build_game_engine events in
   let action_handler = add_exit_state_hook callbacks.on_game_event action_handler in
   loop action_handler game state
-  
+
+let east_seat {east_seat; _} = east_seat  
