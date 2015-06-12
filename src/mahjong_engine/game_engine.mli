@@ -16,6 +16,8 @@ type game_loop_callbacks =
     get_player_name: unit -> string Lwt.t;
     get_ai_player: unit -> Game_descr.player_descr Lwt.t;
     get_initial_east_seat: unit -> int Lwt.t;
+    wall_breaker_roll: unit -> int Lwt.t;
+    break_wall_roll: unit -> int Lwt.t;
     human_move: Engine.round -> Game_descr.round_event list -> Game_descr.round_event Lwt.t;
     end_round: game -> unit Lwt.t;
     new_round: game -> unit Lwt.t;

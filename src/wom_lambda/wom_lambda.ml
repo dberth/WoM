@@ -67,7 +67,7 @@ let get_ai_player =
         kind = AI {name = ""; force = 0};
       }
 
-let get_initial_east_seat () = Lwt.return 0
+let get_initial_east_seat () = Lwt.return 1
 
 let end_round _ = Lwt.return ()
 
@@ -96,21 +96,7 @@ let throw_2_dice playground river =
   Lwt.return (res1 + res2)
 
 let human_move playground river _ events =
-  let open Engine in
-  let open Game_descr in
-  let%lwt events =
-    match events with
-    | [Init [||]] -> Lwt.return [Init random_game]
-    | [Wall_breaker_roll 0] ->
-      let%lwt result = throw_2_dice playground river in
-      Lwt.return [Wall_breaker_roll result]
-    | [Break_wall_roll 0] ->
-      let%lwt result = throw_2_dice playground river in
-      Lwt.return [Break_wall_roll result]
-    | events -> Lwt.return events
-  in
-  let event = List.hd events in
-  Lwt.return event
+  Lwt.return (List.hd events)
 
 let player_wind game player =
   let open Common in
@@ -139,21 +125,26 @@ let on_game_event playground _rack river event game =
   playground # queue_draw
 
 let init playground rack river =
-    let callbacks =
-      {
-        Game_engine.get_rule;
-        get_player_name;
-        get_ai_player;
-        get_initial_east_seat;
-        human_move = human_move playground river;
-        end_round;
-        new_round;
-        end_game;
-        on_game_event = on_game_event playground rack river;
-      }
-    in
-    Random.self_init ();
-    Game_engine.one_player_game_loop [] callbacks
+  let roll () =
+    throw_2_dice playground river
+  in
+  let callbacks =
+    {
+      Game_engine.get_rule;
+      get_player_name;
+      get_ai_player;
+      get_initial_east_seat;
+      wall_breaker_roll = roll;
+      break_wall_roll = roll;
+      human_move = human_move playground river;
+      end_round;
+      new_round;
+      end_game;
+      on_game_event = on_game_event playground rack river;
+    }
+  in
+  Random.self_init ();
+  Game_engine.one_player_game_loop [] callbacks
 
   
 

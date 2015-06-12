@@ -133,7 +133,7 @@ let on_round_exit event ({current_round; players; east_seat; rule; _} as game) =
           let player = players.(i) in
           let round_player = (i + (4 - east_seat)) mod 4 in
           let score = player.score +. Rule_manager.evaluate_round rule round_player round in
-          players.(i) <- {player with score} 
+          players.(i) <- {player with score}
         done;
         {game with round_finished = true; nb_rounds = game.nb_rounds + 1}
       end
@@ -257,6 +257,8 @@ type game_loop_callbacks =
     get_player_name: unit -> string Lwt.t;
     get_ai_player: unit -> player_descr Lwt.t;
     get_initial_east_seat: unit -> int Lwt.t;
+    wall_breaker_roll: unit -> int Lwt.t;
+    break_wall_roll: unit -> int Lwt.t;
     human_move: Engine.round -> round_event list -> round_event Lwt.t;
     end_round: game -> unit Lwt.t;
     new_round: game -> unit Lwt.t;
@@ -326,6 +328,14 @@ let one_player_game_loop events callbacks =
     | [New_round] ->
       let%lwt () = callbacks.new_round game in
       run New_round
+    | [Round_event(Init [||])] ->
+      run (Round_event(Init Engine.random_game))
+    | [Round_event(Wall_breaker_roll 0)] ->
+      let%lwt result = callbacks.wall_breaker_roll () in
+      run (Round_event(Wall_breaker_roll result))
+    | [Round_event(Break_wall_roll 0)] ->
+      let%lwt result = callbacks.break_wall_roll () in
+      run (Round_event (Break_wall_roll result))
     | accepted_events ->
       assert (List.for_all (function Round_event _ -> true | _ -> false) accepted_events);
       match game.rule with
