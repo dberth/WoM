@@ -4,6 +4,10 @@ type game
 
 val east_seat: game -> int
 
+val wall_start: game -> int option
+
+val last_tile: game -> int option
+
 val build_game_engine:
   Game_descr.game_event list ->
   (Game_descr.game_event, game) Fsm.action_handler *
@@ -22,7 +26,7 @@ type game_loop_callbacks =
     end_round: game -> unit Lwt.t;
     new_round: game -> unit Lwt.t;
     end_game: game -> unit Lwt.t;
-    on_game_event: Game_descr.game_event -> game -> unit;
+    on_game_event: Game_descr.game_event -> game -> unit Lwt.t;
   }
 
 val one_player_game_loop: Game_descr.game_event list -> game_loop_callbacks -> unit Lwt.t

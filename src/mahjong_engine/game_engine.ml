@@ -263,7 +263,7 @@ type game_loop_callbacks =
     end_round: game -> unit Lwt.t;
     new_round: game -> unit Lwt.t;
     end_game: game -> unit Lwt.t;
-    on_game_event: game_event -> game -> unit;
+    on_game_event: game_event -> game -> unit Lwt.t;
   }
 
 let mk_player_events {current_round; _} =
@@ -300,7 +300,9 @@ let one_player_game_loop events callbacks =
   let rec loop action_handler game state =
     let run event = 
       let new_game, new_state = Fsm.run ~with_history: true action_handler game (lazy state) [event] in
-      loop action_handler new_game new_state
+      callbacks.on_game_event event new_game >> 
+      loop action_handler new_game new_state >>
+      Lwt.pause ()
     in
     match Fsm.accepted_events game state with
     | [] -> callbacks.end_game game
@@ -341,16 +343,16 @@ let one_player_game_loop events callbacks =
       match game.rule with
       | None -> assert false
       | Some rule ->
-        let seven_pairs = Rule_manager.seven_pairs rule in
-        let irregular_hands = Rule_manager.irregular_hands rule in
-        let player_events = mk_player_events game in
-        let _, player_round, player_state =
-          Engine.build_engine
-            ~seven_pairs
-            ~irregular_hands
-            player_events
-        in
         let%lwt round_event =
+          let seven_pairs = Rule_manager.seven_pairs rule in
+          let irregular_hands = Rule_manager.irregular_hands rule in
+          let player_events = mk_player_events game in
+          let _, player_round, player_state =
+            Engine.build_engine
+              ~seven_pairs
+              ~irregular_hands
+              player_events
+          in
           match current_player_kind game with
           | Human ->
             let accepted_events = Fsm.accepted_events player_round player_state in
@@ -362,7 +364,21 @@ let one_player_game_loop events callbacks =
         run (Round_event round_event)
   in
   let action_handler, game, state = build_game_engine events in
-  let action_handler = add_exit_state_hook callbacks.on_game_event action_handler in
   loop action_handler game state
 
 let east_seat {east_seat; _} = east_seat  
+
+let round {current_round; _} =
+  match current_round with
+  | None -> None
+  | Some {round; _} -> Some round
+
+let wall_start game =
+  match round game with
+  | None -> None
+  | Some round -> Some (Engine.current_wall_tile round)
+
+let last_tile game =
+  match round game with
+  | None -> None
+  | Some round -> Some (Engine.last_wall_tile round)

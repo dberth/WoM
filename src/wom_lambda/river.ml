@@ -198,6 +198,10 @@ class river nb_tiles kind =
 
     method set_tile (x: (int * Tileset.tile) option) = tile := x
 
+    method init_wall =
+      wall_start := 0;
+      last_tile := nb_tiles - 1
+
     method set_seat_wind player wind =
       river_content.(player).seat_wind <- wind
 

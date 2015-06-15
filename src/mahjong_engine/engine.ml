@@ -1404,3 +1404,7 @@ let set_real_init_tiles events {tiles; _} =
   for i = 0 to n - 1 do init_tiles.(i) <- Some tiles.(i) done;
   let new_init = Init init_tiles in
   replace_init_event new_init events
+
+let current_wall_tile {current_tile; _} = current_tile
+
+let last_wall_tile {last_tile; _} = last_tile

@@ -101,7 +101,7 @@ let human_move playground river _ events =
 let player_wind game player =
   let open Common in
   let east_seat = Game_engine.east_seat game in
-  match (east_seat - player + 4) mod 4 with
+  match (player - east_seat + 4) mod 4 with
   | 0 -> East
   | 1 -> South
   | 2 -> West
@@ -112,17 +112,31 @@ let player_wind game player =
 let set_river_winds river game =
   for player = 0 to 3 do
     river # set_seat_wind player (player_wind game player)
-  done 
+  done
 
+
+let set_river_walls river game =
+  river # set_nb_tiles_in_kong_box 14;
+  let start = Game_engine.wall_start game in
+  let last = Game_engine.last_tile game in
+  match start, last with
+  | None, _ | _, None -> ()
+  | Some 0, Some 0 -> river # init_wall
+  | Some start, Some last ->
+    river # set_wall_start start;
+    river # set_last_tile last
 
 let set_river river game =
-  set_river_winds river game
+  let open Lwt in
+  return (set_river_winds river game) >>
+  return (set_river_walls river game)
 
 let on_game_event playground _rack river event game =
-  Printf.eprintf "%s\n" (Game_descr.string_of_game_event event);
+  let open Lwt in
   (*set_rack rack game;*)
-  set_river river game;
-  playground # queue_draw
+  set_river river game >>
+  return (playground # queue_draw) >>
+  Lwt.pause ()
 
 let init playground rack river =
   let roll () =

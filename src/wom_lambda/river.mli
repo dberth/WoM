@@ -21,4 +21,7 @@ class river: int -> string ->
     method set_seat_wind: int (*player*) -> Common.wind -> unit
 
     method set_tile: (int * Tileset.tile) option -> unit
+
+    method init_wall: unit
+
   end
