@@ -115,8 +115,8 @@ let set_river_winds river game =
 
 let set_river_walls nb_tiles river game =
   river # set_nb_tiles_in_kong_box 14;
-  let _east_seat = Game_engine.east_seat game in
-  let rotate x = x (*(x - (east_seat * nb_tiles / 4) + nb_tiles) mod nb_tiles*) in
+  let east_seat = Game_engine.east_seat game in
+  let rotate x = (x - (east_seat * nb_tiles / 4) + nb_tiles) mod nb_tiles in
   let start = Game_engine.wall_start game in
   let last = Game_engine.last_tile game in
   match start, last with
