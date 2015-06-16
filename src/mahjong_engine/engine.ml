@@ -288,9 +288,9 @@ let shuffle known_positions =
   result
 
 let first_tile_index wall_breaker_roll break_wall_roll =
-  let wall_breaker = (break_wall_roll - 1) mod 4 in
+  let wall_breaker = (wall_breaker_roll - 1) mod 4 in
   let nb_tile_by_side = nb_tiles / 4 in
-  let count_start_index = wall_breaker * nb_tile_by_side in
+  let count_start_index = nb_tiles - wall_breaker * nb_tile_by_side in
   (count_start_index + 2 * (wall_breaker_roll + break_wall_roll)) mod nb_tiles
 
 let incr_current_tile round =

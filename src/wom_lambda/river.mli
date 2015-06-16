@@ -22,6 +22,4 @@ class river: int -> string ->
 
     method set_tile: (int * Tileset.tile) option -> unit
 
-    method init_wall: unit
-
   end

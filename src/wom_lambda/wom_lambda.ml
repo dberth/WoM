@@ -80,8 +80,6 @@ let throw_2_dice playground river =
   let%lwt res1 = return (Random.int 6 + 1) in
   let%lwt res2 = return (Random.int 6 + 1) in
   return begin
-    let res1 = Random.int 6 + 1 in
-    let res2 = Random.int 6 + 1 in
     river # set_die_1 (Some res1);
     river # set_die_2 (Some res2);
     playground # queue_draw
@@ -115,30 +113,31 @@ let set_river_winds river game =
   done
 
 
-let set_river_walls river game =
+let set_river_walls nb_tiles river game =
   river # set_nb_tiles_in_kong_box 14;
+  let _east_seat = Game_engine.east_seat game in
+  let rotate x = x (*(x - (east_seat * nb_tiles / 4) + nb_tiles) mod nb_tiles*) in
   let start = Game_engine.wall_start game in
   let last = Game_engine.last_tile game in
   match start, last with
   | None, _ | _, None -> ()
-  | Some 0, Some 0 -> river # init_wall
   | Some start, Some last ->
-    river # set_wall_start start;
-    river # set_last_tile last
+    river # set_wall_start (rotate start);
+    river # set_last_tile (rotate last)
 
-let set_river river game =
+let set_river nb_tiles river game =
   let open Lwt in
   return (set_river_winds river game) >>
-  return (set_river_walls river game)
+  return (set_river_walls nb_tiles river game) >> Lwt_unix.sleep 2.
 
-let on_game_event playground _rack river event game =
+let on_game_event nb_tiles playground _rack river event game =
   let open Lwt in
   (*set_rack rack game;*)
-  set_river river game >>
+  set_river nb_tiles river game >>
   return (playground # queue_draw) >>
   Lwt.pause ()
 
-let init playground rack river =
+let init nb_tiles playground rack river =
   let roll () =
     throw_2_dice playground river
   in
@@ -154,7 +153,7 @@ let init playground rack river =
       end_round;
       new_round;
       end_game;
-      on_game_event = on_game_event playground rack river;
+      on_game_event = on_game_event nb_tiles playground rack river;
     }
   in
   Random.self_init ();
@@ -188,9 +187,11 @@ let gui =
   let%lwt term = Lazy.force LTerm.stdout in
   let waiter, wakener = Lwt.wait () in
   
+  let nb_tiles = 136 in
+
   let rack = new Rack.rack "rack" in
 
-  let river = new River.river 136 "river" in
+  let river = new River.river nb_tiles "river" in
   
   let playground = new playground rack river in
 
@@ -218,7 +219,7 @@ let gui =
   (* river # set_die_2 (None); *)
   (* river # set_tile (None); *)
   let%lwt () = LTerm_widget.run term ~save_state: true playground waiter
-  and () = init playground rack river in
+  and () = init nb_tiles playground rack river in
   Lwt.return ()
   
 let () = Lwt_main.run gui

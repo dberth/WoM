@@ -41,13 +41,16 @@ let wall_content_at_index nb_tiles_in_game nb_tile_in_kong_box wall_start last_t
       wall_end + 3, last_tile + 2
   in
   (fun x ->
-    let x = rotate x in
-    if wall_start <= x && x <= wall_end then
-      Wall
-    else if kong_start <= x && x <= kong_end then
-      Kong_box
-    else
-      Empty
+     if wall_start = 0 && last_tile = 0 then
+       Wall
+     else
+       let x = rotate x in
+       if wall_start <= x && x <= wall_end then
+         Wall
+       else if kong_start <= x && x <= kong_end then
+         Kong_box
+       else
+         Empty
   )
 
 let st_kong_box = LTerm_style.({none with foreground = Some cyan})
@@ -172,7 +175,7 @@ class river nb_tiles kind =
   let nb_stacks_per_side = nb_tiles / 8 in
   let wall_start = ref 0 in
   let nb_tiles_in_kong_box = ref 0 in
-  let last_tile = ref (nb_tiles - 1) in
+  let last_tile = ref 0 in
   let die_1 = ref None in
   let die_2 = ref None in
   let tile = ref None in
@@ -197,10 +200,6 @@ class river nb_tiles kind =
     method set_die_2 x = die_2 := x
 
     method set_tile (x: (int * Tileset.tile) option) = tile := x
-
-    method init_wall =
-      wall_start := 0;
-      last_tile := nb_tiles - 1
 
     method set_seat_wind player wind =
       river_content.(player).seat_wind <- wind
