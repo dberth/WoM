@@ -128,7 +128,7 @@ let set_river_walls nb_tiles river game =
 let set_river nb_tiles river game =
   let open Lwt in
   return (set_river_winds river game) >>
-  return (set_river_walls nb_tiles river game) >> Lwt_unix.sleep 2.
+  return (set_river_walls nb_tiles river game)
 
 let on_game_event nb_tiles playground _rack river event game =
   let open Lwt in

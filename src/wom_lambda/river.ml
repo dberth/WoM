@@ -94,7 +94,7 @@ let draw_horizontal_row ctx pos wall_content nb_tiles_in_game =
     let even_tile_index =
       match pos with
       | `Top -> nb_tiles_in_game / 2 + char_index * 2
-      | `Bottom -> nb_tiles_in_game / 4 - char_index * 2
+      | `Bottom -> nb_tiles_in_game / 4 - 2 - char_index * 2
     in
     let x =
       match wall_content even_tile_index, wall_content (even_tile_index + 1) with
