@@ -90,14 +90,14 @@ let draw_rack
     match name with
     | None -> ()
     | Some name ->
-      let max_size = width - 6 - String.length seat_wind in
+      let max_size = width - 8 - String.length seat_wind in
       let name =
         if max_size < String.length name then
           String.sub name 0 max_size
         else
           name
       in
-      LTerm_draw.draw_string ctx top (left + 1) (Printf.sprintf "<%s>" name)
+      LTerm_draw.draw_string ctx top (left + 1) (Printf.sprintf "< %s >" name)
   end;
   LTerm_draw.draw_string ctx top (left + width - 3 - String.length seat_wind) (Printf.sprintf "<%s>" seat_wind);
   new_top
