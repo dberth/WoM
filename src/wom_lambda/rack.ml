@@ -21,7 +21,7 @@ type player_rack_content =
     mutable exposed: tile option list list;
     mutable discard: tile option list;
     mutable name: string option;
-    mutable seat_wind: string;
+    mutable seat_wind: Common.wind;
   }
 
 let exposed_size exposed tile_size =
@@ -85,6 +85,7 @@ let draw_rack
       top + inner_height + 1
     end
   in
+  let seat_wind = Printf.sprintf " %s " (Common.string_of_wind seat_wind) in
   begin
     match name with
     | None -> ()
@@ -199,12 +200,13 @@ let config_of_size {LTerm_geom.cols; rows} =
   
 
 let empty_player_rack player =
+  let open Common in
   let seat_wind =
     match player with
-    | 0 -> " E "
-    | 1 -> " S "
-    | 2 -> " W "
-    | 3 -> " N "
+    | 0 -> East
+    | 1 -> South
+    | 2 -> West
+    | 3 -> North
     | _ -> assert false
   in
   {

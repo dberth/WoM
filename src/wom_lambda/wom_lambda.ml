@@ -67,7 +67,7 @@ let get_ai_player =
         kind = AI {name = ""; force = 0};
       }
 
-let get_initial_east_seat () = Lwt.return 3
+let get_initial_east_seat () = Lwt.return 0
 
 let end_round _ = Lwt.return ()
 
@@ -119,7 +119,6 @@ let set_river_winds river game =
     river # set_seat_wind player (player_wind game player)
   done
 
-
 let set_river_walls nb_tiles river game =
   river # set_nb_tiles_in_kong_box 14;
   let east_seat = Game_engine.east_seat game in
@@ -149,9 +148,18 @@ let set_river nb_tiles river game =
   return (set_river_walls nb_tiles river game) >>
   return (set_river_tile river game)
 
-let on_game_event nb_tiles playground _rack river event game =
+let set_rack_winds rack game =
+  for player = 0 to 3 do
+    rack # set_seat_wind player (player_wind game player)
+  done
+
+let set_rack rack game =
   let open Lwt in
-  (*set_rack rack game;*)
+  return (set_rack_winds rack game)
+
+let on_game_event nb_tiles playground rack river event game =
+  let open Lwt in
+  set_rack rack game >>
   set_river nb_tiles river game >>
   return (playground # queue_draw) >>
   Lwt.pause ()

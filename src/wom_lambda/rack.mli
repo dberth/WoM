@@ -14,7 +14,7 @@ class rack: string ->
 
     method set_name: player -> string -> unit
 
-    method set_seat_wind: player -> string -> unit
+    method set_seat_wind: player -> Common.wind -> unit
 
     method set_reverse_mode: bool -> unit
 
