@@ -382,3 +382,13 @@ let last_tile game =
   match round game with
   | None -> None
   | Some round -> Some (Engine.last_wall_tile round)
+
+let discarded_tile game =
+  match round game with
+  | None -> None
+  | Some round -> Engine.discarded_tile round
+
+let discard_player game =
+  match round game with
+  | None -> None
+  | Some round -> Engine.discard_player round

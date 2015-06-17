@@ -132,7 +132,7 @@ let string_of_tile_index wall_content tile_index =
   | Empty, Empty -> "  ", LTerm_style.none
 
 let draw_vertical_row ctx row_index wall_content nb_tiles_in_game =
-  let left_even_tile_index = (nb_tiles_in_game / 2) - 2 * (row_index - 1) in
+  let left_even_tile_index = (nb_tiles_in_game / 2) - 2 * row_index in
   let right_even_tile_index = 3 * (nb_tiles_in_game / 4) + 2 * (row_index - 1) in
   let s, style = string_of_tile_index wall_content left_even_tile_index in
   LTerm_draw.draw_string ctx (row_index + 1) 2  ~style s;

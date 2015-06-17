@@ -8,6 +8,10 @@ val wall_start: game -> int option
 
 val last_tile: game -> int option
 
+val discarded_tile: game -> Tileset.tile option
+
+val discard_player: game -> int option
+
 val build_game_engine:
   Game_descr.game_event list ->
   (Game_descr.game_event, game) Fsm.action_handler *

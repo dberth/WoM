@@ -67,7 +67,7 @@ let get_ai_player =
         kind = AI {name = ""; force = 0};
       }
 
-let get_initial_east_seat () = Lwt.return 1
+let get_initial_east_seat () = Lwt.return 3
 
 let end_round _ = Lwt.return ()
 
@@ -96,10 +96,17 @@ let throw_2_dice playground river =
 let human_move playground river _ events =
   Lwt.return (List.hd events)
 
+let player_of_gui_player game player =
+  let east_seat = Game_engine.east_seat game in
+  (player - east_seat + 4) mod 4
+
+let gui_player_of_player game player =
+  let east_seat = Game_engine.east_seat game in
+  (player + east_seat) mod 4
+
 let player_wind game player =
   let open Common in
-  let east_seat = Game_engine.east_seat game in
-  match (player - east_seat + 4) mod 4 with
+  match player_of_gui_player game player with
   | 0 -> East
   | 1 -> South
   | 2 -> West
@@ -125,10 +132,22 @@ let set_river_walls nb_tiles river game =
     river # set_wall_start (rotate start);
     river # set_last_tile (rotate last)
 
+let set_river_tile river game =
+  let discarded_tile = Game_engine.discarded_tile game in
+  let discard_player = Game_engine.discard_player game in
+  let tile =
+    match discard_player, discarded_tile with
+    | None, None -> None
+    | Some player, Some tile -> Some (gui_player_of_player game player, tile)
+    | _ -> assert false
+  in
+  river # set_tile tile
+
 let set_river nb_tiles river game =
   let open Lwt in
   return (set_river_winds river game) >>
-  return (set_river_walls nb_tiles river game)
+  return (set_river_walls nb_tiles river game) >>
+  return (set_river_tile river game)
 
 let on_game_event nb_tiles playground _rack river event game =
   let open Lwt in
