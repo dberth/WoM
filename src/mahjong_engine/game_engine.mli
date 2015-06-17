@@ -12,6 +12,8 @@ val discarded_tile: game -> Tileset.tile option
 
 val discard_player: game -> int option
 
+val player_name: game -> int -> string
+
 val build_game_engine:
   Game_descr.game_event list ->
   (Game_descr.game_event, game) Fsm.action_handler *

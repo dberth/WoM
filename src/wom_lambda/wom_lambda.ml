@@ -153,9 +153,16 @@ let set_rack_winds rack game =
     rack # set_seat_wind player (player_wind game player)
   done
 
+let set_rack_names rack game =
+  for player = 0 to 3 do
+    let player_name = Game_engine.player_name game player in
+    rack # set_name player ( " " ^ player_name ^ " ") 
+  done
+
 let set_rack rack game =
   let open Lwt in
-  return (set_rack_winds rack game)
+  return (set_rack_winds rack game) >>
+  return (set_rack_names rack game)
 
 let on_game_event nb_tiles playground rack river event game =
   let open Lwt in
