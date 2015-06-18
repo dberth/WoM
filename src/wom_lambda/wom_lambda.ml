@@ -159,7 +159,7 @@ let set_rack_names rack game =
     rack # set_name player player_name
   done
 
-let hand_of_tileset player show_all tileset =
+let tiles_of_tileset player show_all tileset =
   List.map
     (fun tile ->
        if player = 0 || show_all then
@@ -173,14 +173,38 @@ let set_hand rack game show_all =
   for player = 0 to 3 do
     match Game_engine.hand game (player_of_gui_player game player) with
     | None -> rack # set_hand player []
-    | Some tileset -> rack # set_hand player (hand_of_tileset player show_all tileset)
+    | Some tileset -> rack # set_hand player (tiles_of_tileset player show_all tileset)
+  done
+
+let mk_concealed = function
+  | [_; t; _; _] -> [None; t; t; None]
+  | _ -> assert false
+
+let exposed_of_tilesets tilesets =
+  List.map
+    (fun (tileset, concealed) ->
+       let tiles = tiles_of_tileset 0 true tileset in
+       if concealed then
+         mk_concealed tiles
+       else
+         tiles
+    )
+    tilesets
+
+let set_exposed rack game =
+  for player = 0 to 3 do
+    let tilesets =
+      Game_engine.exposed game (player_of_gui_player game player)
+    in
+    rack # set_exposed player (exposed_of_tilesets tilesets)
   done
 
 let set_rack rack game show_all_hands =
   let open Lwt in
   return (set_rack_winds rack game) >>
   return (set_rack_names rack game) >>
-  return (set_hand rack game show_all_hands)
+  return (set_hand rack game show_all_hands) >>
+  return (set_exposed rack game)
 
 let on_game_event nb_tiles playground rack river event game =
   let open Lwt in
