@@ -394,3 +394,9 @@ let discard_player game =
   | Some round -> Engine.discard_player round
 
 let player_name {players; _} player = players.(player).name
+
+let hand game player =
+  match round game with
+  | None -> None
+  | Some round -> Some (Engine.player_hand player round)
+  

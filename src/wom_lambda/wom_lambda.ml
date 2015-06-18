@@ -64,7 +64,7 @@ let get_ai_player =
     Lwt.return
       {
         name = Printf.sprintf "CPU %i" !i;
-        kind = AI {name = ""; force = 0};
+        kind = AI {name = ""; force = 2};
       }
 
 let get_initial_east_seat () = Lwt.return 0
@@ -159,14 +159,32 @@ let set_rack_names rack game =
     rack # set_name player player_name
   done
 
-let set_rack rack game =
+let hand_of_tileset player show_all tileset =
+  List.map
+    (fun tile ->
+       if player = 0 || show_all then
+         Some tile
+       else
+         None
+    )
+    (Tileset.tiles_of_tileset tileset)
+
+let set_hand rack game show_all =
+  for player = 0 to 3 do
+    match Game_engine.hand game (player_of_gui_player game player) with
+    | None -> rack # set_hand player []
+    | Some tileset -> rack # set_hand player (hand_of_tileset player show_all tileset)
+  done
+
+let set_rack rack game show_all_hands =
   let open Lwt in
   return (set_rack_winds rack game) >>
-  return (set_rack_names rack game)
+  return (set_rack_names rack game) >>
+  return (set_hand rack game show_all_hands)
 
 let on_game_event nb_tiles playground rack river event game =
   let open Lwt in
-  set_rack rack game >>
+  set_rack rack game false >>
   set_river nb_tiles river game >>
   return (playground # queue_draw) >>
   Lwt.pause ()
@@ -191,9 +209,7 @@ let init nb_tiles playground rack river =
     }
   in
   Random.self_init ();
-  Game_engine.one_player_game_loop [] callbacks
-
-  
+  Game_engine.one_player_game_loop [] callbacks  
 
 let event_handler wakener rack playground event =
   let open LTerm_event in
