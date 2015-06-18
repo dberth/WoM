@@ -199,12 +199,20 @@ let set_exposed rack game =
     rack # set_exposed player (exposed_of_tilesets tilesets)
   done
 
+let set_discarded rack game =
+  for player = 0 to 3 do
+    let tileset = Game_engine.discarded game (player_of_gui_player game player) in
+    let tiles = List.rev_map (fun x -> Some x) tileset in
+    rack # set_discard player tiles
+  done
+
 let set_rack rack game show_all_hands =
   let open Lwt in
   return (set_rack_winds rack game) >>
   return (set_rack_names rack game) >>
   return (set_hand rack game show_all_hands) >>
-  return (set_exposed rack game)
+  return (set_exposed rack game) >>
+  return (set_discarded rack game)
 
 let on_game_event nb_tiles playground rack river event game =
   let open Lwt in

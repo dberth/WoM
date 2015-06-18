@@ -405,3 +405,8 @@ let exposed game player =
   match round game with
   | None -> []
   | Some round -> List.map (fun (x, _, y) -> x, y) (Engine.player_declared_sets player round)
+
+let discarded game player =
+  match round game with
+  | None -> []
+  | Some round -> Engine.player_discarded_tiles player round
