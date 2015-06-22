@@ -29,4 +29,6 @@ class rack: string ->
     method select_prev_tile: unit
 
     method select_next_tile: unit
+
+    method selected_tile: Tileset.tile option
   end

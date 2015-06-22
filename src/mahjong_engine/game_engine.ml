@@ -410,3 +410,8 @@ let discarded game player =
   match round game with
   | None -> []
   | Some round -> Engine.player_discarded_tiles player round
+
+let tile_of_tile_pos game tile_pos =
+  match round game with
+  | None -> None
+  | Some round -> Some (Engine.tile_of_tile_pos round tile_pos)

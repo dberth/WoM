@@ -17,8 +17,19 @@ let calculate_padding ctx ~rack_width ~side_width =
       base
   
 class playground (rack: Rack.rack) (river: River.river) =
+  let event_listeners = ref [] in
   object (this)
     inherit t "playground"
+
+    method wait_event =
+      let waiter, wakener = Lwt.wait () in
+      event_listeners := wakener :: !event_listeners;
+      waiter
+
+    method notify_event (event: LTerm_event.t) =
+      let events = !event_listeners in
+      event_listeners := [];
+      List.iter (fun wakener -> Lwt.wakeup wakener event) events
 
     method! draw ctx focused_widget =
       let open LTerm_geom in
@@ -93,8 +104,62 @@ let throw_2_dice playground river =
   Lwt_unix.sleep 0.2 >>
   Lwt.return (res1 + res2)
 
-let human_move playground river _ events =
-  Lwt.return (List.hd events)
+let discard_event_of_tile round events tile =
+  let open Game_descr in
+  try
+    List.find
+      (function
+        | Discard (_, tile_pos) ->
+          Engine.tile_of_tile_pos round tile_pos = tile
+        | _ -> false
+      )
+      events
+  with
+  | Not_found -> assert false
+
+let rec human_discard_mode game events playground rack =
+  let open Lwt in
+  let open LTerm_event in
+  let open LTerm_key in
+  let open CamomileLibrary in
+  playground # wait_event >>= function
+    | Key {code = Left; _} ->
+      return begin
+        rack # select_prev_tile;
+        playground # queue_draw
+      end >>
+      human_discard_mode game events playground rack    
+    | Key {code = Right; _} ->
+      return begin
+        rack # select_next_tile;
+        playground # queue_draw;
+      end >>
+      human_discard_mode game events playground rack
+    | Key {code = Char c; _} ->
+      begin match UChar.char_of c with
+      | exception UChar.Out_of_range ->
+        human_discard_mode game events playground rack
+      | ' ' ->
+        return begin
+          match rack # selected_tile with
+          | None -> assert false
+          | Some tile -> discard_event_of_tile game events tile
+        end
+      | _ -> human_discard_mode game events playground rack
+      end
+    | _ -> human_discard_mode game events playground rack
+      
+
+
+let human_move playground rack river round events =
+  let open Game_descr in
+  let discard_mode =
+    List.exists (function Discard _ -> true | _ -> false) events
+  in
+  if discard_mode then
+    human_discard_mode round events playground rack
+  else
+    Lwt.return (List.hd events)
 
 let player_of_gui_player game player =
   let east_seat = Game_engine.east_seat game in
@@ -233,7 +298,7 @@ let init nb_tiles playground rack river =
       get_initial_east_seat;
       wall_breaker_roll = roll;
       break_wall_roll = roll;
-      human_move = human_move playground river;
+      human_move = human_move playground rack river;
       end_round;
       new_round;
       end_game;
@@ -253,15 +318,16 @@ let event_handler wakener rack playground event =
     rack # set_reverse_mode (not (rack # reverse_mode));
     playground # queue_draw;
     true
-  | Key {code = Left; _} ->
-    rack # select_prev_tile;
-    playground # queue_draw;
-    true
-  | Key {code = Right; _} ->
-    rack # select_next_tile;
-    playground # queue_draw;
-    true
-  | _ -> false
+  | event -> playground # notify_event event; true
+  (* | Key {code = Left; _} -> *)
+  (*   rack # select_prev_tile; *)
+  (*   playground # queue_draw; *)
+  (*   true *)
+  (* | Key {code = Right; _} -> *)
+  (*   rack # select_next_tile; *)
+  (*   playground # queue_draw; *)
+  (*   true *)
+  (* | _ -> false *)
 
 
 

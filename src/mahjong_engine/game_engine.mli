@@ -20,6 +20,8 @@ val exposed: game -> int -> (Tileset.tileset * bool (*is_concealed*)) list
 
 val discarded: game -> int -> Tileset.tile list
 
+val tile_of_tile_pos: game -> int -> Tileset.tile option
+
 val build_game_engine:
   Game_descr.game_event list ->
   (Game_descr.game_event, game) Fsm.action_handler *

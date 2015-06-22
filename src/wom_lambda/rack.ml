@@ -262,6 +262,14 @@ class rack kind =
       | Some selected_index ->
         selected_tile := Some (max (selected_index -1) 0)
       
+    method selected_tile =
+      match !selected_tile with
+      | None -> None
+      | Some selected_index ->
+        match List.nth rack_content.(0).hand selected_index with
+        | exception Failure _ -> assert false
+        | tile -> tile
+
     method width ctx =
       match config ctx with
       | None -> None
