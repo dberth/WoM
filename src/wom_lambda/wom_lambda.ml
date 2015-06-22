@@ -153,13 +153,18 @@ let rec human_discard_mode game events playground rack =
 
 let human_move playground rack river round events =
   let open Game_descr in
+  let open Lwt in
   let discard_mode =
     List.exists (function Discard _ -> true | _ -> false) events
   in
-  if discard_mode then
+  if discard_mode then begin
+    return begin match Engine.last_drawn_tile 0 round with
+    | None -> ()
+    | Some tile -> rack # set_selected_tile tile
+    end >>
     human_discard_mode round events playground rack
-  else
-    Lwt.return (List.hd events)
+  end else
+    return (List.hd events)
 
 let player_of_gui_player game player =
   let east_seat = Game_engine.east_seat game in

@@ -270,6 +270,14 @@ class rack kind =
         | exception Failure _ -> assert false
         | tile -> tile
 
+    method set_selected_tile tile =
+      List.iteri
+        (fun i hand_tile ->
+           if Some tile = hand_tile then
+             selected_tile := Some i
+        )
+        rack_content.(0).hand
+
     method width ctx =
       match config ctx with
       | None -> None
