@@ -143,7 +143,9 @@ let rec human_discard_mode game events playground rack =
         return begin
           match rack # selected_tile with
           | None -> assert false
-          | Some tile -> discard_event_of_tile game events tile
+          | Some tile ->
+            rack # clear_selection;
+            discard_event_of_tile game events tile
         end
       | _ -> human_discard_mode game events playground rack
       end
