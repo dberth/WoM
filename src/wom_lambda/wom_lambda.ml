@@ -16,7 +16,7 @@ let calculate_padding ctx ~rack_width ~side_width =
     else
       base
   
-class playground (rack: Rack.rack) (river: River.river) =
+class playground (rack: Rack.rack) (river: River.river) (_console: Console.console) =
   let event_listeners = ref [] in
   object (this)
     inherit t "playground"
@@ -347,7 +347,9 @@ let gui =
 
   let river = new River.river nb_tiles "river" in
   
-  let playground = new playground rack river in
+  let console = new Console.console "console" in
+  
+  let playground = new playground rack river console in
 
   playground # on_event (event_handler wakener rack playground);
 
