@@ -87,3 +87,5 @@ let restore path =
 let string_of_round_event event = Game_descr_j.string_of_round_event event
 
 let string_of_game_event event = Game_descr_j.string_of_game_event event
+
+let string_of_tile tile = Game_descr_j.string_of_tile tile

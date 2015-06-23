@@ -22,6 +22,8 @@ val discarded: game -> int -> Tileset.tile list
 
 val tile_of_tile_pos: game -> int -> Tileset.tile option
 
+val last_drawn_tile: game -> int -> Tileset.tile option
+
 val build_game_engine:
   Game_descr.game_event list ->
   (Game_descr.game_event, game) Fsm.action_handler *
@@ -36,7 +38,7 @@ type game_loop_callbacks =
     get_initial_east_seat: unit -> int Lwt.t;
     wall_breaker_roll: unit -> int Lwt.t;
     break_wall_roll: unit -> int Lwt.t;
-    human_move: Engine.round -> Game_descr.round_event list -> Game_descr.round_event Lwt.t;
+    human_move: game -> Game_descr.round_event list -> Game_descr.round_event Lwt.t;
     end_round: game -> unit Lwt.t;
     new_round: game -> unit Lwt.t;
     end_game: game -> unit Lwt.t;

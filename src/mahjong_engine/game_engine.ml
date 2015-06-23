@@ -259,7 +259,7 @@ type game_loop_callbacks =
     get_initial_east_seat: unit -> int Lwt.t;
     wall_breaker_roll: unit -> int Lwt.t;
     break_wall_roll: unit -> int Lwt.t;
-    human_move: Engine.round -> round_event list -> round_event Lwt.t;
+    human_move: game -> round_event list -> round_event Lwt.t;
     end_round: game -> unit Lwt.t;
     new_round: game -> unit Lwt.t;
     end_game: game -> unit Lwt.t;
@@ -347,16 +347,27 @@ let one_player_game_loop events callbacks =
           let seven_pairs = Rule_manager.seven_pairs rule in
           let irregular_hands = Rule_manager.irregular_hands rule in
           let player_events = mk_player_events game in
-          let _, player_round, player_state =
+          let player_action_handler, player_round, player_state =
             Engine.build_engine
               ~seven_pairs
               ~irregular_hands
               player_events
           in
+          let player_game =
+            {game with
+             current_round =
+               Some
+                 {
+                   action_handler = player_action_handler;
+                   round = player_round;
+                   state = player_state;
+                 }
+            }
+          in
           match current_player_kind game with
           | Human ->
             let accepted_events = Fsm.accepted_events player_round player_state in
-            callbacks.human_move player_round accepted_events
+            callbacks.human_move player_game accepted_events
           | AI {name; force}  ->
             let evaluate_round = Rule_manager.evaluate_round rule in
             Lwt.return (apply_ai ~irregular_hands ~seven_pairs ~evaluate_round player_events name force)
@@ -415,3 +426,8 @@ let tile_of_tile_pos game tile_pos =
   match round game with
   | None -> None
   | Some round -> Some (Engine.tile_of_tile_pos round tile_pos)
+
+let last_drawn_tile game player =
+  match round game with
+  | None -> None
+  | Some round -> Engine.last_drawn_tile player round

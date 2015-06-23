@@ -110,7 +110,7 @@ let discard_event_of_tile round events tile =
     List.find
       (function
         | Discard (_, tile_pos) ->
-          Engine.tile_of_tile_pos round tile_pos = tile
+          Game_engine.tile_of_tile_pos round tile_pos = Some tile
         | _ -> false
       )
       events
@@ -149,23 +149,6 @@ let rec human_discard_mode game events playground rack =
       end
     | _ -> human_discard_mode game events playground rack
       
-
-
-let human_move playground rack river round events =
-  let open Game_descr in
-  let open Lwt in
-  let discard_mode =
-    List.exists (function Discard _ -> true | _ -> false) events
-  in
-  if discard_mode then begin
-    return begin match Engine.last_drawn_tile 0 round with
-    | None -> ()
-    | Some tile -> rack # set_selected_tile tile
-    end >>
-    human_discard_mode round events playground rack
-  end else
-    return (List.hd events)
-
 let player_of_gui_player game player =
   let east_seat = Game_engine.east_seat game in
   (player - east_seat + 4) mod 4
@@ -173,6 +156,22 @@ let player_of_gui_player game player =
 let gui_player_of_player game player =
   let east_seat = Game_engine.east_seat game in
   (player + east_seat) mod 4
+
+
+let human_move playground rack river game events =
+  let open Game_descr in
+  let open Lwt in
+  let discard_mode =
+    List.exists (function Discard _ -> true | _ -> false) events
+  in
+  if discard_mode then begin
+    return begin match Game_engine.last_drawn_tile game (player_of_gui_player game 0) with
+    | None -> ()
+    | Some tile -> rack # set_selected_tile tile
+    end >>
+    human_discard_mode game events playground rack
+  end else
+    return (List.hd events)
 
 let player_wind game player =
   let open Common in

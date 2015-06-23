@@ -254,13 +254,15 @@ class rack kind =
       match !selected_tile with
       | None -> ()
       | Some selected_index ->
-        selected_tile := Some (min (selected_index + 1) (List.length rack_content.(0).hand - 1))
+        let l = List.length rack_content.(0).hand in
+        selected_tile := Some ((selected_index + 1) mod l)
 
     method select_prev_tile =
       match !selected_tile with
       | None -> ()
       | Some selected_index ->
-        selected_tile := Some (max (selected_index -1) 0)
+        let l = List.length rack_content.(0).hand in
+        selected_tile := Some (((selected_index - 1)  + l) mod l)
       
     method selected_tile =
       match !selected_tile with
@@ -273,8 +275,9 @@ class rack kind =
     method set_selected_tile tile =
       List.iteri
         (fun i hand_tile ->
-           if Some tile = hand_tile then
+           if Some tile = hand_tile then begin
              selected_tile := Some i
+           end
         )
         rack_content.(0).hand
 
