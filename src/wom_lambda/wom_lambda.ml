@@ -43,7 +43,7 @@ class playground (rack: Rack.rack) (river: River.river) =
       | Some rack_width ->
         let padding = calculate_padding ctx ~rack_width ~side_width in
         let rack_rec = {rack_rec with col1 = padding; col2 = padding + rack_width } in
-      let side_rec = {row1 = 0; col1 = cols - side_width - padding; row2 = rows ; col2 = cols - padding} in
+      let side_rec = {row1 = rows - river # height - 1; col1 = cols - side_width - padding; row2 = rows ; col2 = cols - padding} in
         (* LTerm_draw.draw_frame ctx rack_rec LTerm_draw.Light; *)
         (* LTerm_draw.draw_frame ctx side_rec LTerm_draw.Light; *)
         rack # draw (LTerm_draw.sub ctx rack_rec) focused_widget;
