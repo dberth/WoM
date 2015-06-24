@@ -24,6 +24,14 @@ val tile_of_tile_pos: game -> int -> Tileset.tile option
 
 val last_drawn_tile: game -> int -> Tileset.tile option
 
+val is_draw_game: game -> bool
+
+val explain_hand_score: game -> (string * float) list * float
+
+val explain_player_score: game -> int -> float -> string * float
+
+val current_player_name: game -> string option
+
 val build_game_engine:
   Game_descr.game_event list ->
   (Game_descr.game_event, game) Fsm.action_handler *

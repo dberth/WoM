@@ -4,11 +4,12 @@ open LTerm_widget
 open LTerm_geom
 
 let rec draw_lines ctx lines last_line =
-  match lines with
-  | [] -> ()
-  | hd :: tl ->
-    LTerm_draw.draw_string ctx last_line 0 hd;
-    draw_lines ctx tl (last_line - 1)
+  if 0 <= last_line then
+    match lines with
+    | [] -> ()
+    | hd :: tl ->
+      LTerm_draw.draw_string ctx last_line 0 hd;
+      draw_lines ctx tl (last_line - 1)
 
 class console kind =
   let lines = ref [] in

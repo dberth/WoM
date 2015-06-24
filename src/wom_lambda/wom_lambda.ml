@@ -16,7 +16,7 @@ let calculate_padding ctx ~rack_width ~side_width =
     else
       base
   
-class playground (rack: Rack.rack) (river: River.river) (_console: Console.console) =
+class playground (rack: Rack.rack) (river: River.river) (console: Console.console) =
   let event_listeners = ref [] in
   object (this)
     inherit t "playground"
@@ -43,11 +43,16 @@ class playground (rack: Rack.rack) (river: River.river) (_console: Console.conso
       | Some rack_width ->
         let padding = calculate_padding ctx ~rack_width ~side_width in
         let rack_rec = {rack_rec with col1 = padding; col2 = padding + rack_width } in
-      let side_rec = {row1 = rows - river # height - 1; col1 = cols - side_width - padding; row2 = rows ; col2 = cols - padding} in
+        let side_col1 = cols - side_width - padding in
+        let side_col2 = cols - padding in
+        let river_top = rows - river # height - 1 in
+        let console_rec = {row1 = 0; col1 = side_col1; row2 = river_top - 1; col2 = side_col2} in
+        let river_rec = {row1 = river_top; col1 = side_col1; row2 = rows ; col2 = side_col2} in
         (* LTerm_draw.draw_frame ctx rack_rec LTerm_draw.Light; *)
         (* LTerm_draw.draw_frame ctx side_rec LTerm_draw.Light; *)
         rack # draw (LTerm_draw.sub ctx rack_rec) focused_widget;
-        river # draw (LTerm_draw.sub ctx side_rec) focused_widget;
+        river # draw (LTerm_draw.sub ctx river_rec) focused_widget;
+        console # draw (LTerm_draw.sub ctx console_rec) focused_widget;
         (* for i = 0 to 150 do *)
         (*   LTerm_draw.draw_string ctx 0 i (string_of_int (i mod 10)) *)
         (* done; *)
@@ -80,7 +85,38 @@ let get_ai_player =
 
 let get_initial_east_seat () = Lwt.return 0
 
-let end_round _ = Lwt.return ()
+let print_hand_explanations _console _hand_explanation = Lwt.return_unit
+
+let print_player_explanations _game _console _score = Lwt.return_unit
+
+let print_current_scores _game = Lwt.return_unit
+
+let end_round console game =
+  let open Lwt in
+  if Game_engine.is_draw_game game then
+    return (console # writeln "=== DRAW GAME ===")
+  else begin
+    let hand_explanation, score = Game_engine.explain_hand_score game in
+    let hand_explanation = List.sort (fun (_, x) (_, y) -> compare x y) hand_explanation in
+    return begin
+      let name =
+        match Game_engine.current_player_name game with
+        | None -> assert false
+        | Some name -> name
+      in
+      console # writeln
+        (Printf.sprintf "=== %s WINS WITH %.0f PTS ==="
+           name
+           score
+        )
+    end >>
+    print_hand_explanations console hand_explanation >>
+    print_player_explanations game console score >>
+    return (console # writeln "=== CURRENT SCORES ===") >>
+    print_current_scores game
+    
+  end
+  
 
 let new_round _ = Lwt.return ()
 
@@ -117,39 +153,44 @@ let discard_event_of_tile round events tile =
   with
   | Not_found -> assert false
 
-let rec human_discard_mode game events playground rack =
+let human_discard_mode game events playground rack console =
   let open Lwt in
   let open LTerm_event in
   let open LTerm_key in
   let open CamomileLibrary in
-  playground # wait_event >>= function
+  let rec loop () = 
+    playground # wait_event >>= function
     | Key {code = Left; _} ->
       return begin
         rack # select_prev_tile;
         playground # queue_draw
-      end >>
-      human_discard_mode game events playground rack    
+      end
+      >> loop ()
     | Key {code = Right; _} ->
       return begin
         rack # select_next_tile;
         playground # queue_draw;
-      end >>
-      human_discard_mode game events playground rack
+      end
+      >> loop ()
     | Key {code = Char c; _} ->
       begin match UChar.char_of c with
-      | exception UChar.Out_of_range ->
-        human_discard_mode game events playground rack
+      | exception UChar.Out_of_range -> loop ()
       | ' ' ->
-        return begin
-          match rack # selected_tile with
-          | None -> assert false
+        begin match rack # selected_tile with
+          | None ->
+            return (console # writeln "No selected tiles") >>
+            loop ()
           | Some tile ->
-            rack # clear_selection;
-            discard_event_of_tile game events tile
+            return begin
+              rack # clear_selection;
+              discard_event_of_tile game events tile
+            end
         end
-      | _ -> human_discard_mode game events playground rack
+      | _ -> loop ()
       end
-    | _ -> human_discard_mode game events playground rack
+    | _ -> loop ()
+  in
+  loop ()
       
 let player_of_gui_player game player =
   let east_seat = Game_engine.east_seat game in
@@ -160,7 +201,7 @@ let gui_player_of_player game player =
   (player + east_seat) mod 4
 
 
-let human_move playground rack river game events =
+let human_move playground rack river console game events =
   let open Game_descr in
   let open Lwt in
   let discard_mode =
@@ -171,7 +212,7 @@ let human_move playground rack river game events =
     | None -> ()
     | Some tile -> rack # set_selected_tile tile
     end >>
-    human_discard_mode game events playground rack
+    human_discard_mode game events playground rack console
   end else
     return (List.hd events)
 
@@ -292,7 +333,7 @@ let on_game_event nb_tiles playground rack river event game =
   return (playground # queue_draw) >>
   Lwt.pause ()
 
-let init nb_tiles playground rack river =
+let init nb_tiles playground rack river console =
   let roll () =
     throw_2_dice playground river
   in
@@ -304,8 +345,8 @@ let init nb_tiles playground rack river =
       get_initial_east_seat;
       wall_breaker_roll = roll;
       break_wall_roll = roll;
-      human_move = human_move playground rack river;
-      end_round;
+      human_move = human_move playground rack river console;
+      end_round = end_round console;
       new_round;
       end_game;
       on_game_event = on_game_event nb_tiles playground rack river;
@@ -375,7 +416,7 @@ let gui =
   (* river # set_die_2 (None); *)
   (* river # set_tile (None); *)
   let%lwt () = LTerm_widget.run term ~save_state: true playground waiter
-  and () = init nb_tiles playground rack river in
+  and () = init nb_tiles playground rack river console in
   Lwt.return ()
   
 let () = Lwt_main.run gui

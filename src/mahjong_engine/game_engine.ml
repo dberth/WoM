@@ -294,7 +294,7 @@ let apply_ai ~irregular_hands ~seven_pairs ~evaluate_round events _name force =
     ~evaluate_round
     ~nb_trajectory: (max 100 (force * 500))
     events
-    0.2
+    0.8
 
 let one_player_game_loop events callbacks =
   let rec loop action_handler game state =
@@ -431,3 +431,37 @@ let last_drawn_tile game player =
   match round game with
   | None -> None
   | Some round -> Engine.last_drawn_tile player round
+
+let is_draw_game game =
+  match round game with
+  | None -> failwith "No current round."
+  | Some round ->
+    match Engine.finished round with
+    | None -> failwith "Round not finished."
+    | Some Engine.No_winner -> true
+    | _ -> false
+
+let explain_hand_score game =
+  match round game with
+  | None -> failwith "No current round."
+  | Some round ->
+    match game.rule with
+    | None -> assert false
+    | Some rule ->
+      Rule_manager.explain_hand_score rule round
+
+let explain_player_score game player hand_score =
+  match round game with
+  | None -> failwith "No current round."
+  | Some round ->
+    match game.rule with
+    | None -> assert false
+    | Some rule ->
+      Rule_manager.explain_player_score rule player round ~hand_score
+
+let current_player_name ({players; east_seat; _} as game) =
+  match round game with
+  | None -> None
+  | Some round ->
+    let current_player_idx = Engine.current_player round in
+    Some players.((current_player_idx + east_seat) mod 4).name
