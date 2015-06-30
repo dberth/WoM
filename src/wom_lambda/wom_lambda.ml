@@ -85,11 +85,35 @@ let get_ai_player =
 
 let get_initial_east_seat () = Lwt.return 0
 
-let print_hand_explanations _console _hand_explanation = Lwt.return_unit
+let print_hand_explanations console hand_explanation =
+  let open Lwt in
+  return begin
+    List.iter
+      (fun (s, v) ->
+         console # writeln (Printf.sprintf "%s: %.0f" s v)
+      )
+      hand_explanation
+  end
 
-let print_player_explanations _game _console _score = Lwt.return_unit
+let print_player_explanations game console score =
+  let open Lwt in
+  return begin
+    for player = 0 to 3 do
+      let s, v = Game_engine.explain_player_score game player score in
+      let name = Game_engine.player_name game player in
+      console # writeln (Printf.sprintf "%s: %0.f (%s)" name v s)
+    done
+  end
 
-let print_current_scores _game = Lwt.return_unit
+let print_current_scores game console =
+  let open Lwt in
+  return begin
+    for player = 0 to 3 do
+      let score = Game_engine.player_score game player in
+      let name = Game_engine.player_name game player in
+      console # writeln (Printf.sprintf "%s: %.0f" name score)
+    done
+  end
 
 let end_round console game =
   let open Lwt in
@@ -113,7 +137,7 @@ let end_round console game =
     print_hand_explanations console hand_explanation >>
     print_player_explanations game console score >>
     return (console # writeln "=== CURRENT SCORES ===") >>
-    print_current_scores game
+    print_current_scores game console
     
   end
   

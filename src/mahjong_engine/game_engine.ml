@@ -298,9 +298,10 @@ let apply_ai ~irregular_hands ~seven_pairs ~evaluate_round events _name force =
 
 let one_player_game_loop events callbacks =
   let rec loop action_handler game state =
-    let run event = 
+    let run ?(callback = fun _ -> Lwt.return ()) event =
       let new_game, new_state = Fsm.run ~with_history: true action_handler game (lazy state) [event] in
-      callbacks.on_game_event event new_game >> 
+      callbacks.on_game_event event new_game >>
+      callback new_game >>
       loop action_handler new_game new_state >>
       Lwt.pause ()
     in
@@ -325,8 +326,7 @@ let one_player_game_loop events callbacks =
       (*TODO: use rule setting or maybe remove this event.*)
       run (Init_score 0.)
     | [End_round] ->
-      let%lwt () = callbacks.end_round game in
-      run End_round
+      run ~callback: callbacks.end_round End_round
     | [New_round] ->
       let%lwt () = callbacks.new_round game in
       run New_round
@@ -465,3 +465,6 @@ let current_player_name ({players; east_seat; _} as game) =
   | Some round ->
     let current_player_idx = Engine.current_player round in
     Some players.((current_player_idx + east_seat) mod 4).name
+
+let player_score {players; _} player =
+  players.(player).score

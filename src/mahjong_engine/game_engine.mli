@@ -32,6 +32,8 @@ val explain_player_score: game -> int -> float -> string * float
 
 val current_player_name: game -> string option
 
+val player_score: game -> int -> float
+
 val build_game_engine:
   Game_descr.game_event list ->
   (Game_descr.game_event, game) Fsm.action_handler *
