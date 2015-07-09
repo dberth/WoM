@@ -164,18 +164,37 @@ let throw_2_dice playground river =
   Lwt_unix.sleep 0.2 >>
   Lwt.return (res1 + res2)
 
-let discard_event_of_tile round events tile =
+let discard_event_of_tile game events tile =
   let open Game_descr in
   try
     List.find
       (function
         | Discard (_, tile_pos) ->
-          Game_engine.tile_of_tile_pos round tile_pos = Some tile
+          Game_engine.tile_of_tile_pos game tile_pos = Some tile
         | _ -> false
       )
       events
   with
   | Not_found -> assert false
+
+let mahjong_event events =
+  match List.find (function Game_descr.Mahjong _ -> true | _ -> false) events with
+  | event -> Some event
+  | exception Not_found -> None
+
+let discard_mode_kong_event events =
+  try
+    Some
+      (List.find
+         (function
+           | Game_descr.Concealed_kong _
+           | Game_descr.Small_kong _ -> true
+           | _ -> false
+         )
+         events
+      )
+  with
+  | Not_found -> None
 
 let human_discard_mode game events playground rack console =
   let open Lwt in
@@ -209,6 +228,16 @@ let human_discard_mode game events playground rack console =
               rack # clear_selection;
               discard_event_of_tile game events tile
             end
+        end
+      | 'm' ->
+        begin match mahjong_event events with
+        | None -> loop ()
+        | Some event -> return event
+        end
+      | 'k' ->
+        begin match discard_mode_kong_event events with
+        | None -> loop ()
+        | Some event -> return event
         end
       | _ -> loop ()
       end
