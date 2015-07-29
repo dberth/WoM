@@ -3,9 +3,9 @@ name: "wom"
 version: "0.1.0"
 maintainer: "Denis Berthod <denis.berthod@gmail.com>"
 authors: "Denis Berthod <denis.berthod@gmail.com>"
-homepage: ""
-bug-reports: ""
-license: ""
+homepage: " "
+bug-reports: " "
+dev-repo:"https://github.com/dberth/WoM.git"
 build: [
   ["./configure" "--prefix=%{prefix}%"]
   [make]
