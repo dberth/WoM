@@ -1,0 +1,16 @@
+opam-version: "1.2"
+name: "wom"
+version: "0.1.0"
+maintainer: "Denis Berthod <denis.berthod@gmail.com>"
+authors: "Denis Berthod <denis.berthod@gmail.com>"
+homepage: ""
+bug-reports: ""
+license: ""
+build: [
+  ["./configure" "--prefix=%{prefix}%"]
+  [make]
+]
+install: [make "install"]
+remove: ["ocamlfind" "remove" "wom"]
+available: [ocaml-version >= "4.02"]
+depends: "ocamlfind" {build} | "atdgen" | "lwt" | "ounit" | "js_of_ocaml" | "lambda-term"
