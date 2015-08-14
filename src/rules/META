@@ -1,0 +1,10 @@
+# OASIS_START
+# DO NOT EDIT (digest: 00480e2fab296e46d079e9014e339a09)
+version = "0.1.0"
+description = "Winds of Mahjong. A 4 player mahjong game."
+requires = "mahjong_engine"
+archive(byte) = "rules.cmo"
+archive(native) = "rules.cmx"
+exists_if = "rules.cmo"
+# OASIS_STOP
+

@@ -1,6 +1,6 @@
 OASISFormat:   0.4
 Name:          wom
-Version:       0.0.1
+Version:       0.1.0
 Synopsis:      Winds of Mahjong. A 4 player mahjong game.
 Authors:       Denis Berthod
 License:       BSD-3-clause
