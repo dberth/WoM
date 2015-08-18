@@ -13,4 +13,11 @@ build: [
 install: [make "install"]
 remove: ["ocamlfind" "remove" "wom"]
 available: [ocaml-version >= "4.02"]
-depends: "ocamlfind" {build} | "atdgen" | "lwt" | "ounit" | "js_of_ocaml" | "lambda-term"
+depends: [
+	 "ocamlfind" {build}
+	 "atdgen"
+	 "lwt"
+	 "ounit"
+	 "js_of_ocaml"
+	 "lambda-term"
+	 ]
