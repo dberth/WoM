@@ -1,0 +1,139 @@
+# OASIS_START
+# DO NOT EDIT (digest: 28fcfa14f55b067435d68df879c30ebc)
+# Ignore VCS directories, you can use the same kind of rule outside
+# OASIS_START/STOP if you want to exclude directories that contains
+# useless stuff for the build process
+true: annot, bin_annot
+<**/.svn>: -traverse
+<**/.svn>: not_hygienic
+".bzr": -traverse
+".bzr": not_hygienic
+".hg": -traverse
+".hg": not_hygienic
+".git": -traverse
+".git": not_hygienic
+"_darcs": -traverse
+"_darcs": not_hygienic
+# Library game_description
+"src/game_description/game_description.cmxs": use_game_description
+<src/game_description/game_description.{cma,cmxa}>: oasis_library_game_description_byte
+<src/game_description/*.ml{,i,y}>: oasis_library_game_description_byte
+<src/game_description/game_description.{cma,cmxa}>: oasis_library_game_description_native
+<src/game_description/*.ml{,i,y}>: oasis_library_game_description_native
+<src/game_description/*.ml{,i,y}>: package(atdgen)
+# Library mahjong_engine
+"src/mahjong_engine/mahjong_engine.cmxs": use_mahjong_engine
+<src/mahjong_engine/mahjong_engine.{cma,cmxa}>: oasis_library_mahjong_engine_byte
+<src/mahjong_engine/*.ml{,i,y}>: oasis_library_mahjong_engine_byte
+<src/mahjong_engine/mahjong_engine.{cma,cmxa}>: oasis_library_mahjong_engine_native
+<src/mahjong_engine/*.ml{,i,y}>: oasis_library_mahjong_engine_native
+<src/mahjong_engine/*.ml{,i,y}>: package(atdgen)
+<src/mahjong_engine/*.ml{,i,y}>: package(lwt)
+<src/mahjong_engine/*.ml{,i,y}>: package(lwt.ppx)
+<src/mahjong_engine/*.ml{,i,y}>: use_game_description
+# Object rules
+"src/rules/loader.cmx": for-pack(Rules)
+"src/rules/simple.cmx": for-pack(Rules)
+"src/rules/zung_jung.cmx": for-pack(Rules)
+<src/rules/rules.{cmo,cmx}>: oasis_object_rules_byte
+<src/rules/*.ml{,i,y}>: oasis_object_rules_byte
+<src/rules/rules.{cmo,cmx}>: oasis_object_rules_native
+<src/rules/*.ml{,i,y}>: oasis_object_rules_native
+<src/rules/*.ml{,i,y}>: package(atdgen)
+<src/rules/*.ml{,i,y}>: package(lwt)
+<src/rules/*.ml{,i,y}>: package(lwt.ppx)
+<src/rules/*.ml{,i,y}>: use_game_description
+<src/rules/*.ml{,i,y}>: use_mahjong_engine
+# Executable wom_nox
+<src/nox/wom_nox.{native,byte}>: oasis_executable_wom_nox_byte
+<src/nox/*.ml{,i,y}>: oasis_executable_wom_nox_byte
+<src/nox/wom_nox.{native,byte}>: oasis_executable_wom_nox_native
+<src/nox/*.ml{,i,y}>: oasis_executable_wom_nox_native
+<src/nox/wom_nox.{native,byte}>: package(atdgen)
+<src/nox/wom_nox.{native,byte}>: package(lwt)
+<src/nox/wom_nox.{native,byte}>: package(lwt.ppx)
+<src/nox/wom_nox.{native,byte}>: use_game_description
+<src/nox/wom_nox.{native,byte}>: use_mahjong_engine
+<src/nox/*.ml{,i,y}>: package(atdgen)
+<src/nox/*.ml{,i,y}>: package(lwt)
+<src/nox/*.ml{,i,y}>: package(lwt.ppx)
+<src/nox/*.ml{,i,y}>: use_game_description
+<src/nox/*.ml{,i,y}>: use_mahjong_engine
+# Executable wom_lambda
+<src/wom_lambda/wom_lambda.{native,byte}>: oasis_executable_wom_lambda_byte
+<src/wom_lambda/*.ml{,i,y}>: oasis_executable_wom_lambda_byte
+<src/wom_lambda/wom_lambda.{native,byte}>: oasis_executable_wom_lambda_native
+<src/wom_lambda/*.ml{,i,y}>: oasis_executable_wom_lambda_native
+<src/wom_lambda/wom_lambda.{native,byte}>: package(atdgen)
+<src/wom_lambda/wom_lambda.{native,byte}>: package(lambda-term)
+<src/wom_lambda/wom_lambda.{native,byte}>: package(lwt)
+<src/wom_lambda/wom_lambda.{native,byte}>: package(lwt.ppx)
+<src/wom_lambda/wom_lambda.{native,byte}>: use_game_description
+<src/wom_lambda/wom_lambda.{native,byte}>: use_mahjong_engine
+<src/wom_lambda/*.ml{,i,y}>: package(atdgen)
+<src/wom_lambda/*.ml{,i,y}>: package(lambda-term)
+<src/wom_lambda/*.ml{,i,y}>: package(lwt)
+<src/wom_lambda/*.ml{,i,y}>: package(lwt.ppx)
+<src/wom_lambda/*.ml{,i,y}>: use_game_description
+<src/wom_lambda/*.ml{,i,y}>: use_mahjong_engine
+# Executable mahjong_engine_test
+<test/mahjong_engine.{native,byte}>: oasis_executable_mahjong_engine_test_byte
+<test/*.ml{,i,y}>: oasis_executable_mahjong_engine_test_byte
+<test/mahjong_engine.{native,byte}>: oasis_executable_mahjong_engine_test_native
+<test/*.ml{,i,y}>: oasis_executable_mahjong_engine_test_native
+<test/mahjong_engine.{native,byte}>: package(atdgen)
+<test/mahjong_engine.{native,byte}>: package(lwt)
+<test/mahjong_engine.{native,byte}>: package(lwt.ppx)
+<test/mahjong_engine.{native,byte}>: package(oUnit)
+<test/mahjong_engine.{native,byte}>: use_game_description
+<test/mahjong_engine.{native,byte}>: use_mahjong_engine
+<test/*.ml{,i,y}>: package(oUnit)
+# Executable mahjong_engine_perf_test_js
+"test/mahjong_engine_performance_js.byte": oasis_executable_mahjong_engine_perf_test_js_byte
+<test/*.ml{,i,y}>: oasis_executable_mahjong_engine_perf_test_js_byte
+"test/mahjong_engine_performance_js.byte": oasis_executable_mahjong_engine_perf_test_js_native
+<test/*.ml{,i,y}>: oasis_executable_mahjong_engine_perf_test_js_native
+"test/mahjong_engine_performance_js.byte": package(atdgen)
+"test/mahjong_engine_performance_js.byte": package(js_of_ocaml)
+"test/mahjong_engine_performance_js.byte": package(js_of_ocaml.syntax)
+"test/mahjong_engine_performance_js.byte": package(lwt)
+"test/mahjong_engine_performance_js.byte": package(lwt.ppx)
+"test/mahjong_engine_performance_js.byte": package(unix)
+"test/mahjong_engine_performance_js.byte": use_game_description
+"test/mahjong_engine_performance_js.byte": use_mahjong_engine
+<test/*.ml{,i,y}>: package(js_of_ocaml)
+<test/*.ml{,i,y}>: package(js_of_ocaml.syntax)
+# Executable mahjong_engine_perf_test
+<test/mahjong_engine_performance.{native,byte}>: oasis_executable_mahjong_engine_perf_test_byte
+<test/*.ml{,i,y}>: oasis_executable_mahjong_engine_perf_test_byte
+<test/mahjong_engine_performance.{native,byte}>: oasis_executable_mahjong_engine_perf_test_native
+<test/*.ml{,i,y}>: oasis_executable_mahjong_engine_perf_test_native
+<test/mahjong_engine_performance.{native,byte}>: package(atdgen)
+<test/mahjong_engine_performance.{native,byte}>: package(lwt)
+<test/mahjong_engine_performance.{native,byte}>: package(lwt.ppx)
+<test/mahjong_engine_performance.{native,byte}>: package(unix)
+<test/mahjong_engine_performance.{native,byte}>: use_game_description
+<test/mahjong_engine_performance.{native,byte}>: use_mahjong_engine
+<test/*.ml{,i,y}>: package(atdgen)
+<test/*.ml{,i,y}>: package(lwt)
+<test/*.ml{,i,y}>: package(lwt.ppx)
+<test/*.ml{,i,y}>: package(unix)
+<test/*.ml{,i,y}>: use_game_description
+<test/*.ml{,i,y}>: use_mahjong_engine
+# Executable engine_debugger
+<src/engine_debugger/engine_debugger.{native,byte}>: oasis_executable_engine_debugger_byte
+<src/engine_debugger/*.ml{,i,y}>: oasis_executable_engine_debugger_byte
+<src/engine_debugger/engine_debugger.{native,byte}>: oasis_executable_engine_debugger_native
+<src/engine_debugger/*.ml{,i,y}>: oasis_executable_engine_debugger_native
+<src/engine_debugger/engine_debugger.{native,byte}>: package(atdgen)
+<src/engine_debugger/engine_debugger.{native,byte}>: package(lwt)
+<src/engine_debugger/engine_debugger.{native,byte}>: package(lwt.ppx)
+<src/engine_debugger/engine_debugger.{native,byte}>: use_game_description
+<src/engine_debugger/engine_debugger.{native,byte}>: use_mahjong_engine
+<src/engine_debugger/*.ml{,i,y}>: package(atdgen)
+<src/engine_debugger/*.ml{,i,y}>: package(lwt)
+<src/engine_debugger/*.ml{,i,y}>: package(lwt.ppx)
+<src/engine_debugger/*.ml{,i,y}>: use_game_description
+<src/engine_debugger/*.ml{,i,y}>: use_mahjong_engine
+# OASIS_STOP
+"test/mahjong_engine_performance_js.ml": syntax_camlp3o
