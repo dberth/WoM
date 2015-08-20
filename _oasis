@@ -24,6 +24,7 @@ Library game_description
   Findlibname:     game_description
   NativeOpt: 	   -w +9+33+34+36..39 -warn-error +9+33+34+36..39 -annot -bin-annot
   ByteOpt:	   -w +9+33+34+36..39 -warn-error +9+33+34+32..39 -annot -bin-annot
+  Install: false
 
 Library mahjong_engine
   Path:            src/mahjong_engine
@@ -35,6 +36,7 @@ Library mahjong_engine
   Findlibname:     mahjong_engine
   NativeOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
   ByteOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
+  Install:         false
 
 Object rules
   Path:		   src/rules
@@ -46,6 +48,7 @@ Object rules
   FindlibFullName: rules
   NativeOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
   ByteOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
+  Install:         false
 
 Executable wom_nox
   Path:            src/nox
@@ -56,6 +59,7 @@ Executable wom_nox
   CompiledObject:  best
   NativeOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
   ByteOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
+  Install:         false
 
 Executable "wom_lambda"
   Path:           src/wom_lambda
@@ -66,6 +70,7 @@ Executable "wom_lambda"
   CompiledObject: best
   NativeOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
   ByteOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
+  Install:         true
   
 Executable mahjong_engine_test
   Path:		   test
@@ -76,6 +81,7 @@ Executable mahjong_engine_test
   CompiledObject:  best
   NativeOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
   ByteOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
+  Install:         true
 
 Executable mahjong_engine_perf_test_js
   Path:            test
@@ -86,6 +92,7 @@ Executable mahjong_engine_perf_test_js
   CompiledObject:  byte
   NativeOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
   ByteOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
+  Install:         false
 
 Executable mahjong_engine_perf_test
   Path:            test
@@ -96,6 +103,7 @@ Executable mahjong_engine_perf_test
   CompiledObject:  best
   NativeOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
   ByteOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
+  Install:         false
 
 Executable engine_debugger
   Path:            src/engine_debugger
@@ -108,6 +116,7 @@ Executable engine_debugger
   CompiledObject:  best
   NativeOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
   ByteOpt:	   -w +9+32..39 -warn-error +9+32..39 -annot -bin-annot
+  Install:         false
 
 Test mahjong_engine
   WorkingDirectory: _build/test
