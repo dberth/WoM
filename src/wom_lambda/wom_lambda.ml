@@ -253,7 +253,6 @@ let gui_player_of_player game player =
   let east_seat = Game_engine.east_seat game in
   (player + east_seat) mod 4
 
-
 let human_move playground rack river console game events =
   let open Game_descr in
   let open Lwt in
@@ -262,8 +261,8 @@ let human_move playground rack river console game events =
   in
   if discard_mode then begin
     return begin match Game_engine.last_drawn_tile game (player_of_gui_player game 0) with
-    | None -> ()
-    | Some tile -> rack # set_selected_tile tile
+      | None -> rack # set_selected_tile_index 0
+      | Some tile -> rack # set_selected_tile tile
     end >>
     human_discard_mode game events playground rack console
   end else
