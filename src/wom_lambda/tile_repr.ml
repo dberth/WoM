@@ -209,14 +209,6 @@ let is_selected ~selected_tileset ~tiles i =
   match selected_tileset with
   | None -> false
   | Some tileset ->
-    (* print_endline "==="; *)
-    (* List.iter *)
-    (*   (function *)
-    (*     | None -> print_endline "NONE" *)
-    (*     | Some tile -> print_endline (Game_descr.string_of_tile tile) *)
-    (*   ) *)
-    (*   tileset; *)
-    (* print_endline "==="; *)
     aux i tileset tiles
 
   

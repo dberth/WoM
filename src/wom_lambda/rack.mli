@@ -24,13 +24,13 @@ class rack: string ->
 
     method clear_selection: unit
 
-    method select_prev_tileset: unit
+    method select_prev_event: unit
 
-    method select_next_tileset: unit
+    method select_next_event: unit
 
-    method selected_tileset: Tileset.tile option list option
+    method selected_event: Game_descr.round_event option
 
-    method set_selected_tileset: Tileset.tile option list -> unit
+    method set_selected_tile: Tileset.tile  -> unit
 
-    method set_tilesets: Tileset.tile option list list -> unit
+    method set_events:  (Game_descr.round_event * Tileset.tile list) list -> unit
   end

@@ -164,54 +164,22 @@ let throw_2_dice playground river =
   Lwt_unix.sleep 0.2 >>
   Lwt.return (res1 + res2)
 
-let discard_event_of_tile game events tile =
-  let open Game_descr in
-  try
-    List.find
-      (function
-        | Discard (_, tile_pos) ->
-          Game_engine.tile_of_tile_pos game tile_pos = Some tile
-        | _ -> false
-      )
-      events
-  with
-  | Not_found -> assert false
-
-let mahjong_event events =
-  match List.find (function Game_descr.Mahjong _ -> true | _ -> false) events with
-  | event -> Some event
-  | exception Not_found -> None
-
-let discard_mode_kong_event events =
-  try
-    Some
-      (List.find
-         (function
-           | Game_descr.Concealed_kong _
-           | Game_descr.Small_kong _ -> true
-           | _ -> false
-         )
-         events
-      )
-  with
-  | Not_found -> None
-
-let human_discard_mode game events playground rack console =
+let human_event_loop game events playground rack console =
   let open Lwt in
   let open LTerm_event in
   let open LTerm_key in
   let open CamomileLibrary in
-  let rec loop () = 
+  let rec loop () =
     playground # wait_event >>= function
     | Key {code = Left; _} ->
       return begin
-        rack # select_prev_tileset;
+        rack # select_prev_event;
         playground # queue_draw
       end
       >> loop ()
     | Key {code = Right; _} ->
       return begin
-        rack # select_next_tileset;
+        rack # select_next_event;
         playground # queue_draw;
       end
       >> loop ()
@@ -219,27 +187,11 @@ let human_discard_mode game events playground rack console =
       begin match UChar.char_of c with
       | exception UChar.Out_of_range -> loop ()
       | ' ' ->
-        begin match rack # selected_tileset with
+        begin match rack # selected_event with
           | None ->
-            return (console # writeln "No selected tiles") >>
+            return (console # writeln "No selected event.") >>
             loop ()
-          | Some tileset ->
-            return begin
-              rack # clear_selection;
-              match tileset with (*TODO ANALYSE MODE*)
-              | [Some tile] ->  discard_event_of_tile game events tile
-              | _ -> assert false
-            end
-        end
-      | 'm' ->
-        begin match mahjong_event events with
-        | None -> loop ()
-        | Some event -> return event
-        end
-      | 'k' ->
-        begin match discard_mode_kong_event events with
-        | None -> loop ()
-        | Some event -> return event
+          | Some event -> return event
         end
       | _ -> loop ()
       end
@@ -255,28 +207,75 @@ let gui_player_of_player game player =
   let east_seat = Game_engine.east_seat game in
   (player + east_seat) mod 4
 
+let rec remove_first tile = function
+  | [] -> []
+  | hd :: tl when hd = tile -> tl
+  | hd :: tl -> hd :: remove_first tile tl
+
+let tileset_of_tile_pos_list game tile_pos_list =
+  let open Game_engine in
+  let result =
+    List.map
+      (fun tile_pos ->
+         match tile_of_tile_pos game tile_pos with
+         | None -> assert false
+         | Some tile -> tile
+      )
+      tile_pos_list
+  in
+  match discarded_tile game with
+  | None -> result
+  | Some discarded_tile -> remove_first discarded_tile result 
+
 let human_move playground rack river console game events =
   let open Game_descr in
   let open Lwt in
-  let discard_tilesets =
+  let event_tilesets =
+    List.flatten
       (List.map
-         (function
-           | Discard (_, tile_pos) -> [Game_engine.tile_of_tile_pos game tile_pos]
-           | _ -> []
+         (fun event ->
+            match event with
+            | Init _ | Wall_breaker_roll _ | Break_wall_roll _
+            | Deal | Draw _ -> []
+            | Discard (_, tile_pos)
+            | Small_kong (_, tile_pos) ->
+              begin match Game_engine.tile_of_tile_pos game tile_pos with
+                | None -> assert false
+                | Some tile -> [event, [tile]]
+              end
+            | Mahjong player ->
+              let tiles =
+                match Game_engine.hand game player with
+                | None -> assert false
+                | Some hand -> Tileset.tiles_of_tileset hand 
+              in
+              [event, tiles]
+            | Concealed_kong (_, tile_pos_list)
+            | Chow (_, tile_pos_list)
+            | Pong (_, tile_pos_list)
+            | Kong (_, tile_pos_list) ->
+              [event, tileset_of_tile_pos_list game tile_pos_list]
+            | No_action _ -> [event, []]
+              
          )
          events
-      ) |> List.flatten |> List.map (fun x -> [x])
+      )
   in
-  if discard_tilesets <> [] then begin
+  match event_tilesets with
+  | [] ->
+    begin match events with
+    | [] -> assert false
+    | event :: _ -> return event
+    end
+  (*| [No_action _ as event, []] -> return event*)
+  | _ ->
     return begin
-      rack # set_tilesets discard_tilesets;
+      rack # set_events event_tilesets;
       match Game_engine.last_drawn_tile game (player_of_gui_player game 0) with
-      | None -> ()
-      | Some tile -> rack # set_selected_tileset [Some tile]
+      | None -> console # writeln "NO LAST TILE"; ()
+      | Some tile -> console # writeln "LAST TILE"; rack # set_selected_tile tile
     end >>
-    human_discard_mode game events playground rack console
-  end else
-    return (List.hd events)
+    human_event_loop game events playground rack console
 
 let player_wind game player =
   let open Common in

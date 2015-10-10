@@ -244,11 +244,11 @@ let cs_length (prev, value, next) =
   | None -> 0
   | Some _ -> List.length prev + 1 + List.length next
 
-let cs_select cs elem =
+let cs_select cs f =
   let rec aux limit cs =
     match cs_value cs with
     | None -> cs
-    | Some value when value = elem -> cs
+    | Some value when f value -> cs
     | _ ->
       if limit < 0 then
         raise Not_found
@@ -257,12 +257,12 @@ let cs_select cs elem =
   in
   aux (cs_length cs) cs
 
-let compare_tiles_opt to1 to2 =
-  match to1, to2 with
+let compare_tiles_opt t1 t2 =
+  match t1, t2 with
   | None, None -> 0
   | Some _, None -> 1
   | None, Some _ -> -1
-  | Some tile1, Some tile2 -> Tileset.compare_tiles tile1 tile2 
+  | Some t1, Some t2 -> Tileset.compare_tiles t1 t2
 
 let rec compare_tilesets ts1 ts2 =
   match ts1, ts2 with
@@ -270,8 +270,10 @@ let rec compare_tilesets ts1 ts2 =
   | [], _ -> -1
   | _, [] -> 1
   | hd1 :: tl1, hd2 :: tl2 ->
-    let x = compare_tiles_opt hd1 hd2 in
+    let x = Tileset.compare_tiles hd1 hd2 in
     if x = 0 then compare_tilesets tl1 tl2 else x
+
+let compare_events (_, tileset1) (_, tileset2) = compare_tilesets tileset1 tileset2
 
 class rack kind =
   let rack_content = Array.init 4 (fun i -> empty_player_rack i) in
@@ -302,31 +304,28 @@ class rack kind =
 
     method clear_selection = selected_tileset := cs_empty
 
-    method select_next_tileset = selected_tileset := cs_next !selected_tileset 
+    method select_next_event = selected_tileset := cs_next !selected_tileset 
 
-    method select_prev_tileset = selected_tileset := cs_prev !selected_tileset
+    method select_prev_event = selected_tileset := cs_prev !selected_tileset
       
-    method selected_tileset = cs_value !selected_tileset
+    method selected_event: Game_descr.round_event option =
+      match cs_value !selected_tileset with
+      | None -> None
+      | Some (event, _) -> Some event
 
-    method set_tilesets tilesets =
-      let tilesets = List.map (List.sort compare_tiles_opt) tilesets in
-      let tilesets = List.sort compare_tilesets tilesets in
-      (* print_endline "++++>"; *)
-      (* List.iter *)
-      (*   (fun tileset -> *)
-      (*      print_endline "----"; *)
-      (*      List.iter *)
-      (*        (function None -> print_endline "None" *)
-      (*          | Some tile -> print_endline (Game_descr.string_of_tile tile) *)
-      (*        ) *)
-      (*        tileset; *)
-      (*      print_endline "----"; *)
-      (*   ) *)
-      (*   tilesets; *)
-      (* print_endline "<++++"; *)
-      selected_tileset := cs_of_list tilesets
+    method set_events events =
+      let events = List.sort compare_events events in
+      selected_tileset := cs_of_list events
 
-    method set_selected_tileset tileset = selected_tileset := cs_select !selected_tileset tileset
+    method set_selected_tile tile =
+      let selection = function
+        | (_, []) -> false
+        | (_, hd :: _) -> hd = tile
+      in
+      try
+        selected_tileset := cs_select !selected_tileset selection
+      with
+      | Not_found -> ()
 
     method width ctx =
       match config ctx with
@@ -354,6 +353,11 @@ class rack kind =
         let top = draw_rack ~top: padding_top ~height: other_size 1 in
         let top = draw_rack ~top ~height: other_size 2 in
         let top = draw_rack ~top ~height: other_size 3 in
-        ignore (draw_rack ?selected_tileset: (cs_value !selected_tileset) ~top ~height: main_size 0)
+        let selected_tileset =
+          match cs_value !selected_tileset with
+          | None -> None
+          | Some (_, tileset) -> Some (List.map (fun x -> Some x) tileset)
+        in
+        ignore (draw_rack ?selected_tileset ~top ~height: main_size 0)
       
   end
