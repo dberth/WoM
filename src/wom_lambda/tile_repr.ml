@@ -191,23 +191,46 @@ let draw_tile_content ctx row col size tile_descr =
     draw_tile_7_4 (put 3) tile_descr;
     draw_tile_7_5 (put 4) tile_descr
   | _ -> assert false     
+
+
+let is_selected ~selected_tileset ~tiles i =
+  let rec aux i tileset tiles =
+    if i = 0 then
+      match tileset, tiles with
+      | [], _ | _, []-> false
+      | hd1 :: _, hd2 :: _ -> hd1 = hd2
+    else
+      match tileset, tiles with
+      | [], _ | _, [] -> false
+      | hd1 :: tl1, hd2 :: tl2 ->
+        let tileset = if hd1 = hd2 then tl1 else tileset in
+        aux (i - 1) tileset tl2
+  in
+  match selected_tileset with
+  | None -> false
+  | Some tileset ->
+    (* print_endline "==="; *)
+    (* List.iter *)
+    (*   (function *)
+    (*     | None -> print_endline "NONE" *)
+    (*     | Some tile -> print_endline (Game_descr.string_of_tile tile) *)
+    (*   ) *)
+    (*   tileset; *)
+    (* print_endline "==="; *)
+    aux i tileset tiles
+
   
-let draw_tileset ?selected_tile ctx row col tile_size tiles =
+let draw_tileset ?selected_tileset ctx row col tile_size tiles =
   let open LTerm_draw in
   let nb = List.length tiles in
-  let is_selected i =
-    match selected_tile with
-    | None -> false
-    | Some selected -> selected = i
-  in
   if nb <> 0 then begin
     let draw_row ?(bottom = false) offset sep inner =
       draw_string ctx (row + offset) col sep;
       for i = 0 to nb - 1 do
-          if bottom && is_selected i then
+          if bottom && is_selected ~selected_tileset ~tiles i then
             draw_string ctx ~style: st_underline (row + offset) (col + i * (tile_size - 1)) (sep ^ String.make (tile_size - 2) inner ^ sep)
           else
-        draw_string ctx (row + offset) (col + i * (tile_size - 1) + 1) (String.make (tile_size - 2) inner ^ sep)
+            draw_string ctx (row + offset) (col + i * (tile_size - 1) + 1) (String.make (tile_size - 2) inner ^ sep)
       done
     in
     draw_row 0 " " '_';

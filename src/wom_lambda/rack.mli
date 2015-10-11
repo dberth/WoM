@@ -22,15 +22,15 @@ class rack: string ->
 
     method reverse_mode: bool
 
-    method set_selected_tile_index: int -> unit
-
     method clear_selection: unit
 
-    method select_prev_tile: unit
+    method select_prev_tileset: unit
 
-    method select_next_tile: unit
+    method select_next_tileset: unit
 
-    method selected_tile: Tileset.tile option
+    method selected_tileset: Tileset.tile option list option
 
-    method set_selected_tile: Tileset.tile -> unit
+    method set_selected_tileset: Tileset.tile option list -> unit
+
+    method set_tilesets: Tileset.tile option list list -> unit
   end

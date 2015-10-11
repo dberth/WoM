@@ -9,8 +9,8 @@ type tile_kind =
   | White_dragon
   | East_wind
   | South_wind
-  | North_wind
   | West_wind
+  | North_wind
 
 type basic_tileset =
   | Num of (tile_kind * int array)
@@ -318,23 +318,6 @@ let c7 = new_char 7
 let c8 = new_char 8
 let c9 = new_char 9
 
-let new_dot x =
-  let tile = new_tile () in
-  tiles_rep.(tile) <- Num (Dot, new_num x);
-  set_tile_descr tile (Dot x);
-  set_neibours tile;
-  tile
-
-let d1 = new_dot 1
-let d2 = new_dot 2
-let d3 = new_dot 3
-let d4 = new_dot 4
-let d5 = new_dot 5
-let d6 = new_dot 6
-let d7 = new_dot 7
-let d8 = new_dot 8
-let d9 = new_dot 9
-
 let new_bam x =
   let tile = new_tile () in
   tiles_rep.(tile) <- Num(Bam, new_num x);
@@ -352,6 +335,23 @@ let b7 = new_bam 7
 let b8 = new_bam 8
 let b9 = new_bam 9
 
+let new_dot x =
+  let tile = new_tile () in
+  tiles_rep.(tile) <- Num (Dot, new_num x);
+  set_tile_descr tile (Dot x);
+  set_neibours tile;
+  tile
+
+let d1 = new_dot 1
+let d2 = new_dot 2
+let d3 = new_dot 3
+let d4 = new_dot 4
+let d5 = new_dot 5
+let d6 = new_dot 6
+let d7 = new_dot 7
+let d8 = new_dot 8
+let d9 = new_dot 9
+
 let new_honor kind descr =
   let tile = new_tile () in
   tiles_rep.(tile) <- Honor(kind, 1);
@@ -359,8 +359,9 @@ let new_honor kind descr =
   tile
 
 let rd = new_honor Red_dragon Red_dragon
-let wd = new_honor White_dragon White_dragon
 let gd = new_honor Green_dragon Green_dragon
+let wd = new_honor White_dragon White_dragon
+
 
 let ew = new_honor East_wind East_wind
 let sw = new_honor South_wind South_wind

@@ -205,13 +205,13 @@ let human_discard_mode game events playground rack console =
     playground # wait_event >>= function
     | Key {code = Left; _} ->
       return begin
-        rack # select_prev_tile;
+        rack # select_prev_tileset;
         playground # queue_draw
       end
       >> loop ()
     | Key {code = Right; _} ->
       return begin
-        rack # select_next_tile;
+        rack # select_next_tileset;
         playground # queue_draw;
       end
       >> loop ()
@@ -219,14 +219,16 @@ let human_discard_mode game events playground rack console =
       begin match UChar.char_of c with
       | exception UChar.Out_of_range -> loop ()
       | ' ' ->
-        begin match rack # selected_tile with
+        begin match rack # selected_tileset with
           | None ->
             return (console # writeln "No selected tiles") >>
             loop ()
-          | Some tile ->
+          | Some tileset ->
             return begin
               rack # clear_selection;
-              discard_event_of_tile game events tile
+              match tileset with (*TODO ANALYSE MODE*)
+              | [Some tile] ->  discard_event_of_tile game events tile
+              | _ -> assert false
             end
         end
       | 'm' ->
@@ -256,13 +258,21 @@ let gui_player_of_player game player =
 let human_move playground rack river console game events =
   let open Game_descr in
   let open Lwt in
-  let discard_mode =
-    List.exists (function Discard _ -> true | _ -> false) events
+  let discard_tilesets =
+      (List.map
+         (function
+           | Discard (_, tile_pos) -> [Game_engine.tile_of_tile_pos game tile_pos]
+           | _ -> []
+         )
+         events
+      ) |> List.flatten |> List.map (fun x -> [x])
   in
-  if discard_mode then begin
-    return begin match Game_engine.last_drawn_tile game (player_of_gui_player game 0) with
-      | None -> rack # set_selected_tile_index 0
-      | Some tile -> rack # set_selected_tile tile
+  if discard_tilesets <> [] then begin
+    return begin
+      rack # set_tilesets discard_tilesets;
+      match Game_engine.last_drawn_tile game (player_of_gui_player game 0) with
+      | None -> ()
+      | Some tile -> rack # set_selected_tileset [Some tile]
     end >>
     human_discard_mode game events playground rack console
   end else

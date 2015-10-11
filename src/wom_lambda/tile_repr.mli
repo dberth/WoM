@@ -5,7 +5,7 @@ type tile_size = int
 val tileset_size: Tileset.tile option list -> tile_size -> int
 
 val draw_tileset:
-  ?selected_tile: int ->
+  ?selected_tileset: Tileset.tile option list ->
   LTerm_draw.context ->
   int (*row*) ->
   int (*col*) ->

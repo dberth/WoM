@@ -39,7 +39,7 @@ let draw_rack
     ~height
     ~discard
     ~reverse
-    ~selected_tile
+    ~selected_tileset
     ctx
     {hand; exposed; discard = discard_tiles; name; seat_wind}
   =
@@ -55,7 +55,7 @@ let draw_rack
     if draw_discard then
       Tile_repr.draw_tileset ctx row (left + border) height discard_tiles
     else begin
-      Tile_repr.draw_tileset ?selected_tile ctx row (left + border) height hand;
+      Tile_repr.draw_tileset ?selected_tileset ctx row (left + border) height hand;
       match exposed with
       | [] -> ()
       | _ ->
@@ -219,6 +219,60 @@ let empty_player_rack player =
 
 type player = int
 
+let cs_empty = [], None, []
+
+let cs_of_list = function
+  | [] -> cs_empty
+  | hd :: tl -> [], Some hd, tl
+
+let cs_value (_, value, _) = value
+
+let rec cs_next cs =
+  match cs with
+  | _, None, _ | [], _, [] -> cs
+  | prev, Some value, hd :: tl -> value :: prev, Some hd, tl
+  | prev, Some value, [] -> cs_next ([], Some value, List.rev prev)
+
+let rec cs_prev cs =
+  match cs with
+  | _, None, _ | [], _, [] -> cs
+  | hd :: tl, Some value, next -> tl, Some hd, value :: next
+  | [], Some value, next -> cs_prev (List.rev next, Some value, [])
+
+let cs_length (prev, value, next) =
+  match value with
+  | None -> 0
+  | Some _ -> List.length prev + 1 + List.length next
+
+let cs_select cs elem =
+  let rec aux limit cs =
+    match cs_value cs with
+    | None -> cs
+    | Some value when value = elem -> cs
+    | _ ->
+      if limit < 0 then
+        raise Not_found
+      else
+        aux (limit - 1) (cs_next cs)
+  in
+  aux (cs_length cs) cs
+
+let compare_tiles_opt to1 to2 =
+  match to1, to2 with
+  | None, None -> 0
+  | Some _, None -> 1
+  | None, Some _ -> -1
+  | Some tile1, Some tile2 -> Tileset.compare_tiles tile1 tile2 
+
+let rec compare_tilesets ts1 ts2 =
+  match ts1, ts2 with
+  | [], [] -> 0
+  | [], _ -> -1
+  | _, [] -> 1
+  | hd1 :: tl1, hd2 :: tl2 ->
+    let x = compare_tiles_opt hd1 hd2 in
+    if x = 0 then compare_tilesets tl1 tl2 else x
+
 class rack kind =
   let rack_content = Array.init 4 (fun i -> empty_player_rack i) in
   let config ctx =
@@ -226,13 +280,13 @@ class rack kind =
       let {cols; rows} as size = LTerm_draw.size ctx in
       config_of_size size
   in
-  let selected_tile = ref (Some 3) in
+  let selected_tileset = ref cs_empty in
   object
     inherit t kind
 
     val mutable reverse = false
 
-    method set_hand player hand = rack_content.(player).hand <- hand
+    method set_hand player hand = rack_content.(player).hand <- (List.sort compare_tiles_opt hand)
 
     method set_discard player discard = rack_content.(player).discard <- discard
 
@@ -246,40 +300,33 @@ class rack kind =
 
     method reverse_mode = reverse
 
-    method set_selected_tile_index x = selected_tile := Some x
+    method clear_selection = selected_tileset := cs_empty
 
-    method clear_selection = selected_tile := None
+    method select_next_tileset = selected_tileset := cs_next !selected_tileset 
 
-    method select_next_tile =
-      match !selected_tile with
-      | None -> ()
-      | Some selected_index ->
-        let l = List.length rack_content.(0).hand in
-        selected_tile := Some ((selected_index + 1) mod l)
-
-    method select_prev_tile =
-      match !selected_tile with
-      | None -> ()
-      | Some selected_index ->
-        let l = List.length rack_content.(0).hand in
-        selected_tile := Some (((selected_index - 1)  + l) mod l)
+    method select_prev_tileset = selected_tileset := cs_prev !selected_tileset
       
-    method selected_tile =
-      match !selected_tile with
-      | None -> None
-      | Some selected_index ->
-        match List.nth rack_content.(0).hand selected_index with
-        | exception Failure _ -> assert false
-        | tile -> tile
+    method selected_tileset = cs_value !selected_tileset
 
-    method set_selected_tile tile =
-      List.iteri
-        (fun i hand_tile ->
-           if Some tile = hand_tile then begin
-             selected_tile := Some i
-           end
-        )
-        rack_content.(0).hand
+    method set_tilesets tilesets =
+      let tilesets = List.map (List.sort compare_tiles_opt) tilesets in
+      let tilesets = List.sort compare_tilesets tilesets in
+      (* print_endline "++++>"; *)
+      (* List.iter *)
+      (*   (fun tileset -> *)
+      (*      print_endline "----"; *)
+      (*      List.iter *)
+      (*        (function None -> print_endline "None" *)
+      (*          | Some tile -> print_endline (Game_descr.string_of_tile tile) *)
+      (*        ) *)
+      (*        tileset; *)
+      (*      print_endline "----"; *)
+      (*   ) *)
+      (*   tilesets; *)
+      (* print_endline "<++++"; *)
+      selected_tileset := cs_of_list tilesets
+
+    method set_selected_tileset tileset = selected_tileset := cs_select !selected_tileset tileset
 
     method width ctx =
       match config ctx with
@@ -301,12 +348,12 @@ class rack kind =
             border;
             separator;
           } ->
-        let draw_rack ?selected_tile ~top ~height  player =
-          draw_rack ~top ~left: padding_left ~separator ~border ~width ~height ~discard: discard_size ~reverse ~selected_tile ctx rack_content.(player)
+        let draw_rack ?selected_tileset ~top ~height  player =
+          draw_rack ~top ~left: padding_left ~separator ~border ~width ~height ~discard: discard_size ~reverse ~selected_tileset ctx rack_content.(player)
         in
         let top = draw_rack ~top: padding_top ~height: other_size 1 in
         let top = draw_rack ~top ~height: other_size 2 in
         let top = draw_rack ~top ~height: other_size 3 in
-        ignore (draw_rack ?selected_tile: !selected_tile ~top ~height: main_size 0)
+        ignore (draw_rack ?selected_tileset: (cs_value !selected_tileset) ~top ~height: main_size 0)
       
   end
