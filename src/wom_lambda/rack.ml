@@ -275,6 +275,12 @@ let rec compare_tilesets ts1 ts2 =
 
 let compare_events (_, tileset1) (_, tileset2) = compare_tilesets tileset1 tileset2
 
+let rec remove_duplicated_events events =
+  match events with
+  | [] | [_] -> events
+  | (_, tiles1) :: ((_, tiles2) :: _ as tl) when tiles1 = tiles2 -> remove_duplicated_events tl
+  | hd :: tl -> hd :: remove_duplicated_events tl
+
 class rack kind =
   let rack_content = Array.init 4 (fun i -> empty_player_rack i) in
   let config ctx =
@@ -320,6 +326,7 @@ class rack kind =
           events
       in
       let events = List.sort compare_events events in
+      let events = remove_duplicated_events events in
       selected_tileset := cs_of_list events
 
     method set_selected_tile tile =
