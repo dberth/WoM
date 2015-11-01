@@ -314,6 +314,11 @@ class rack kind =
       | Some (event, _) -> Some event
 
     method set_events events =
+      let events =
+        List.map
+          (fun (event, tiles) -> event, List.sort compare_tiles tiles)
+          events
+      in
       let events = List.sort compare_events events in
       selected_tileset := cs_of_list events
 

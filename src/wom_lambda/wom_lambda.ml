@@ -212,7 +212,7 @@ let rec remove_first tile = function
   | hd :: tl when hd = tile -> tl
   | hd :: tl -> hd :: remove_first tile tl
 
-let tileset_of_tile_pos_list game tile_pos_list =
+let tileset_of_tile_pos_list console game tile_pos_list =
   let open Game_engine in
   let result =
     List.map
@@ -254,7 +254,7 @@ let human_move playground rack river console game events =
             | Chow (_, tile_pos_list)
             | Pong (_, tile_pos_list)
             | Kong (_, tile_pos_list) ->
-              [event, tileset_of_tile_pos_list game tile_pos_list]
+              [event, tileset_of_tile_pos_list console game tile_pos_list]
             | No_action _ -> [event, []]
               
          )
