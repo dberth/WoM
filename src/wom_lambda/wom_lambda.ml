@@ -272,8 +272,8 @@ let human_move playground rack river console game events =
     return begin
       rack # set_events event_tilesets;
       match Game_engine.last_drawn_tile game (player_of_gui_player game 0) with
-      | None -> console # writeln "NO LAST TILE"; ()
-      | Some tile -> console # writeln "LAST TILE"; rack # set_selected_tile tile
+      | None -> ()
+      | Some tile -> rack # set_selected_tile tile
     end >>
     human_event_loop game events playground rack console
 

@@ -457,7 +457,8 @@ let explain_player_score game player hand_score =
     match game.rule with
     | None -> assert false
     | Some rule ->
-      Rule_manager.explain_player_score rule player round ~hand_score
+      let round_player = (player + (4 - game.east_seat)) mod 4 in
+      Rule_manager.explain_player_score rule round_player round ~hand_score
 
 let current_player_name ({players; east_seat; _} as game) =
   match round game with
