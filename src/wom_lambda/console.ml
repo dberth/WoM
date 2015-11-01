@@ -20,7 +20,7 @@ class console kind =
 
     method! draw ctx _focused_widget =
       let {rows; _} = LTerm_draw.size ctx in 
-      let last_line = min rows (List.length !lines) in
+      let last_line = min (rows - 1) (List.length !lines) in
       draw_lines ctx !lines last_line
 
   end
