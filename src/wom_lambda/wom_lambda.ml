@@ -115,33 +115,6 @@ let print_current_scores game console =
     done
   end
 
-let end_round console game =
-  let open Lwt in
-  if Game_engine.is_draw_game game then
-    return (console # writeln "=== DRAW GAME ===")
-  else begin
-    let hand_explanation, score = Game_engine.explain_hand_score game in
-    let hand_explanation = List.sort (fun (_, x) (_, y) -> compare x y) hand_explanation in
-    return begin
-      let name =
-        match Game_engine.current_player_name game with
-        | None -> assert false
-        | Some name -> name
-      in
-      console # writeln
-        (Printf.sprintf "=== %s WINS WITH %.0f PTS ==="
-           name
-           score
-        )
-    end >>
-    print_hand_explanations console hand_explanation >>
-    print_player_explanations game console score >>
-    return (console # writeln "=== CURRENT SCORES ===") >>
-    print_current_scores game console
-    
-  end
-  
-
 let new_round _ = Lwt.return ()
 
 let end_game _ = Lwt.return ()
@@ -394,6 +367,47 @@ let on_game_event nb_tiles playground rack river event game =
   return (playground # queue_draw) >>
   Lwt.pause ()
 
+let end_round_console console game =
+  let open Lwt in
+  
+  if Game_engine.is_draw_game game then
+    return (console # writeln "=== DRAW GAME ===")
+  else begin
+    let hand_explanation, score = Game_engine.explain_hand_score game in
+    let hand_explanation = List.sort (fun (_, x) (_, y) -> compare x y) hand_explanation in
+    return begin
+      let name =
+        match Game_engine.current_player_name game with
+        | None -> assert false
+        | Some name -> name
+      in
+      console # writeln
+        (Printf.sprintf "=== %s WINS WITH %.0f PTS ==="
+           name
+           score
+        )
+    end >>
+    print_hand_explanations console hand_explanation >>
+    print_player_explanations game console score >>
+    return (console # writeln "=== CURRENT SCORES ===") >>
+    print_current_scores game console
+  end
+
+let end_round_rack playground rack game =
+  set_rack rack game true >> Lwt.return (playground # queue_draw)
+
+let end_round playground rack console game =
+  let open Lwt in
+  let show_info =
+    end_round_rack playground rack game >> end_round_console console game
+  in
+  let wait =
+    playground # wait_event >>= fun _ -> return ()
+  in
+  join  [show_info; wait]
+  
+
+
 let init nb_tiles playground rack river console =
   let roll () =
     throw_2_dice playground river
@@ -407,7 +421,7 @@ let init nb_tiles playground rack river console =
       wall_breaker_roll = roll;
       break_wall_roll = roll;
       human_move = human_move playground rack river console;
-      end_round = end_round console;
+      end_round = end_round playground rack console;
       new_round;
       end_game;
       on_game_event = on_game_event nb_tiles playground rack river;
