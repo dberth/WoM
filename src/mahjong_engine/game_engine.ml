@@ -212,7 +212,7 @@ let build_game_engine game_events =
     lazy (new_state
            ~accepted_events: (fun _ -> [East_seat 0])
            (function
-             | East_seat _ -> round
+             | East_seat _ -> wait_for_new_round
              | event -> raise (Irrelevant_event (event, "wait_for_east_seat"))))
       
   and round =
@@ -321,7 +321,7 @@ let one_player_game_loop events callbacks =
       run (Player player_descr)
     | [East_seat _] ->
       let%lwt player_idx = callbacks.get_initial_east_seat () in
-      run (East_seat player_idx)
+      run (East_seat ((player_idx + 3) mod 4))
     | [Init_score _] ->
       (*TODO: use rule setting or maybe remove this event.*)
       run (Init_score 0.)
@@ -469,3 +469,5 @@ let current_player_name ({players; east_seat; _} as game) =
 
 let player_score {players; _} player =
   players.(player).score
+
+let nb_rounds {nb_rounds; _} = nb_rounds

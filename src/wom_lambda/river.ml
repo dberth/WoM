@@ -61,6 +61,8 @@ let st_wall = LTerm_style.({none with foreground = Some lblue})
 
 let st_wall_und = LTerm_style.({st_wall with underline = Some true})
 
+let st_prevailing_wind = LTerm_style.({none with foreground = Some yellow})
+
 let strings_of_buffer buffer =
   let sbuffer = Buffer.create 16 in
   let rec aux acc cur_style index =
@@ -147,10 +149,16 @@ let draw_wall_line ctx row_index wall_content nb_tiles_in_games =
     draw_horizontal_row ctx `Bottom wall_content nb_tiles_in_games
   else
     draw_vertical_row ctx row_index wall_content nb_tiles_in_games
+
+let wind_style ~prevailing_wind wind =
+  if prevailing_wind = Some wind then
+    st_prevailing_wind
+  else
+    LTerm_style.none
     
-let draw_side_wind ctx row col wind =
+let draw_side_wind ctx ~style row col wind =
   LTerm_draw.draw_string ctx (row - 1) col " ";
-  LTerm_draw.draw_string ctx row col wind;
+  LTerm_draw.draw_string ~style ctx row col wind;
   LTerm_draw.draw_string ctx (row + 1) col " "
 
 let draw_tile ctx width height player tile_size tile =
@@ -179,6 +187,7 @@ class river nb_tiles kind =
   let die_1 = ref None in
   let die_2 = ref None in
   let tile = ref None in
+  let prevailing_wind = ref None in
   let width = nb_stacks_per_side + 8 in
   let height = nb_stacks_per_side + 4 in
   let tile_size = ref 7 in
@@ -204,19 +213,30 @@ class river nb_tiles kind =
     method set_seat_wind player wind =
       river_content.(player).seat_wind <- wind
 
+    method set_prevailing_wind wind_opt = prevailing_wind := wind_opt
+
     method! draw ctx _focused_widget =
+      let prevailing_wind = !prevailing_wind in
       let river_rec = {row1 = 0; col1 = 0; row2 = height; col2 = width} in
       LTerm_draw.draw_frame ctx river_rec LTerm_draw.Heavy;
       let river_ctx = LTerm_draw.sub ctx river_rec in
-      LTerm_draw.draw_string_aligned river_ctx 0 LTerm_geom.H_align_center (Printf.sprintf "  %s  " (string_of_wind river_content.(2).seat_wind));
+      let top_wind = river_content.(2).seat_wind in
+      let top_wind_style = wind_style ~prevailing_wind top_wind in
+      LTerm_draw.draw_string_aligned ~style: top_wind_style river_ctx 0 LTerm_geom.H_align_center (Printf.sprintf "  %s  " (string_of_wind top_wind));
       let wall_content = wall_content_at_index nb_tiles !nb_tiles_in_kong_box !wall_start !last_tile in
       for i = 0 to height - 3 do
         draw_wall_line ctx i wall_content nb_tiles
       done;
       let center_row = height / 2 in
-      draw_side_wind river_ctx center_row 0 (string_of_wind river_content.(3).seat_wind);
-      draw_side_wind river_ctx center_row (river_rec.col2 - 1) (string_of_wind river_content.(1).seat_wind);
-      LTerm_draw.draw_string_aligned river_ctx (height - 1) LTerm_geom.H_align_center (Printf.sprintf "  %s  " (string_of_wind river_content.(0).seat_wind));
+      let left_wind = river_content.(3).seat_wind in
+      let left_wind_style = wind_style ~prevailing_wind left_wind in
+      draw_side_wind ~style: left_wind_style river_ctx center_row 0 (string_of_wind left_wind);
+      let right_wind = river_content.(1).seat_wind in
+      let right_wind_style = wind_style ~prevailing_wind right_wind in
+      draw_side_wind ~style: right_wind_style river_ctx center_row (river_rec.col2 - 1) (string_of_wind right_wind);
+      let bottom_wind = river_content.(0).seat_wind in
+      let bottom_wind_style = wind_style ~prevailing_wind bottom_wind in
+      LTerm_draw.draw_string_aligned ~style: bottom_wind_style river_ctx (height - 1) LTerm_geom.H_align_center (Printf.sprintf "  %s  " (string_of_wind bottom_wind));
       let v_die_padding =
         let space_left = height - 10 in
         match space_left mod 3 with
