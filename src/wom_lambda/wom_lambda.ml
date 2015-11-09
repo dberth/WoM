@@ -115,7 +115,7 @@ let print_current_scores game console =
     done
   end
 
-let new_round console river game =
+let new_round river game =
   Lwt.return begin
     let prevailing_wind =
       match (Game_engine.nb_rounds game / 4) mod 4 with
@@ -125,7 +125,6 @@ let new_round console river game =
       | 3 -> Common.North
       | _ -> assert false
     in
-    console # writeln (Common.string_of_wind prevailing_wind);
     river # set_prevailing_wind (Some prevailing_wind)
   end
 
@@ -434,7 +433,7 @@ let init nb_tiles playground rack river console =
       break_wall_roll = roll;
       human_move = human_move playground rack river console;
       end_round = end_round playground rack console;
-      new_round = new_round console river;
+      new_round = new_round river;
       end_game;
       on_game_event = on_game_event nb_tiles playground rack river;
     }
