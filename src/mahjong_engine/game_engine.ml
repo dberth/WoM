@@ -338,6 +338,9 @@ let one_player_game_loop events callbacks =
     | [Round_event(Break_wall_roll 0)] ->
       let%lwt result = callbacks.break_wall_roll () in
       run (Round_event (Break_wall_roll result))
+    | [End_game] ->
+      let%lwt () = callbacks.end_game game in
+      run End_game
     | accepted_events ->
       assert (List.for_all (function Round_event _ -> true | _ -> false) accepted_events);
       match game.rule with
