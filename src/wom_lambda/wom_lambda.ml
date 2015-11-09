@@ -483,27 +483,9 @@ let gui =
 
   Rules.Loader.load_rules ();
 
-  (* let hand = [Some c1; Some c2; Some c3; Some c4; Some c5; Some c6; Some c7; Some c8; Some c9] in *)
-
-  (* let exposed = [[Some rd; Some gd; Some wd]; [ Some ew; Some sw; Some ww; Some nw]] in *)
-
-  (* let discard = [Some d1; Some d2; Some d3; Some d4; Some d5; Some d6; Some d7; Some d8; Some d9; Some b1; Some b2; Some b3; Some b4; Some b5; Some b6; Some b7; Some b8; Some b9] in *)
-
-  (* for i = 0 to 3 do *)
-  (*   rack # set_hand i hand; *)
-  (*   rack # set_exposed i exposed; *)
-  (*   rack # set_discard i discard; *)
-  (*   rack # set_name i (Printf.sprintf " Player %i " i) *)
-  (* done; *)
-
-  (* river # set_wall_start 20; *)
-  (* river # set_last_tile 10; *)
-  (* river # set_nb_tiles_in_kong_box 14; *)
-  (* river # set_die_1 (Some 1); *)
-  (* river # set_die_2 (None); *)
-  (* river # set_tile (None); *)
-  let%lwt () = LTerm_widget.run term ~save_state: true playground waiter
-  and () = init nb_tiles playground rack river console in
-  Lwt.return ()
+  Lwt.choose [
+    init nb_tiles playground rack river console;
+    LTerm_widget.run term ~save_state: true playground waiter
+  ]
   
 let () = Lwt_main.run gui
