@@ -465,6 +465,7 @@ let event_handler wakener rack playground event =
 
 
 let gui =
+  let open Lwt in
   let%lwt term = Lazy.force LTerm.stdout in
   let waiter, wakener = Lwt.wait () in
   
@@ -482,9 +483,10 @@ let gui =
 
   Rules.Loader.load_rules ();
 
-  Lwt.choose [
-    init nb_tiles playground rack river console;
-    LTerm_widget.run term ~save_state: true playground waiter
-  ]
+  pick
+    [
+      (init nb_tiles playground rack river console >> return (wakeup wakener ()));
+      LTerm_widget.run term ~save_state: true playground waiter;
+    ]
   
 let () = Lwt_main.run gui
