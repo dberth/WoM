@@ -16,7 +16,7 @@ available: [ocaml-version >= "4.02"]
 depends: [
 	 "ocamlfind" {build}
 	 "atdgen"
-	 "lwt>=2.4.6"
+	 "lwt" {>= "2.4.6"}
 	 "ounit"
 	 "js_of_ocaml"
 	 "lambda-term"
