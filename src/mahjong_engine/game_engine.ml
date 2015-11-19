@@ -248,7 +248,7 @@ let build_game_engine game_events =
     on_exit round on_round_exit |>
     on_exit wait_for_new_round on_wait_for_new_round_exit
   in
-  let world, state = run action_handler init_game game_start game_events in
+  let world, state = run ~with_history: true action_handler init_game game_start game_events in
   action_handler, world, state
 
 type game_loop_callbacks =
@@ -264,6 +264,7 @@ type game_loop_callbacks =
     new_round: game -> unit Lwt.t;
     end_game: game -> unit Lwt.t;
     on_game_event: game_event -> game -> unit Lwt.t;
+    autosave_file: unit -> string option;
   }
 
 let mk_player_events {current_round; _} =
@@ -296,10 +297,30 @@ let apply_ai ~irregular_hands ~seven_pairs ~evaluate_round events _name force =
     events
     0.8
 
+let is_finished events =
+  match List.rev events with
+  | End_game :: _ -> true
+  | _ -> false
+
+let init_rewriter {current_round; _} event =
+  match current_round with
+  | None -> event
+  | Some {round; _} ->
+    match event with
+    | Round_event (Init _) -> Round_event (Engine.real_init_event round)
+    | _ -> event
+
 let one_player_game_loop events callbacks =
   let rec loop action_handler game state =
     let run ?(callback = fun _ -> Lwt.return ()) event =
-      let new_game, new_state = Fsm.run ~with_history: true action_handler game (lazy state) [event] in
+      let new_game, new_state = Fsm.run ~with_history: true action_handler ~history_rewriters: [init_rewriter] game (lazy state) [event] in
+      Lwt.return begin
+        match callbacks.autosave_file () with
+        | None -> ()
+        | Some file ->
+          let game_events = Fsm.history new_state in
+          Game_descr.dump {game_events; current_round = []} file
+      end >>
       callbacks.on_game_event event new_game >>
       callback new_game >>
       loop action_handler new_game new_state >>
@@ -377,7 +398,24 @@ let one_player_game_loop events callbacks =
         in
         run (Round_event round_event)
   in
-  let action_handler, game, state = build_game_engine events in
+  let init_events =
+    match events with
+    | [] ->
+      begin match callbacks.autosave_file () with
+        | None -> []
+        | Some file ->
+          if Sys.file_exists file then
+            let {Game_descr.game_events; _} = Game_descr.restore file in
+            if is_finished game_events then
+              []
+            else
+              game_events
+          else
+            []
+      end
+    | _ -> events
+  in
+  let action_handler, game, state = build_game_engine init_events in
   loop action_handler game state
 
 let east_seat {east_seat; _} = east_seat  

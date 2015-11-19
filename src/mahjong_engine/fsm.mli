@@ -56,13 +56,14 @@ val add_exit_state_hook: ('event -> 'world -> unit) -> ('event, 'world) action_h
 
 (** {2 Runner} *)
 
-val run: ?with_history: bool -> ('event, 'world) action_handler -> 'world -> ('event, 'world) state Lazy.t -> 'event list -> 'world * ('event, 'world) state
+val run: ?with_history: bool -> ?history_rewriters: ('world -> 'event -> 'event) list -> ('event, 'world) action_handler -> 'world -> ('event, 'world) state Lazy.t -> 'event list -> 'world * ('event, 'world) state
     (**
        [run action_handler world state events] runs the [events] starting
        from [state]. Actions defined in [action_handler] are performed
        on each state entry and exit to change the [world].
        Returns the new state of the world and the new state of the machine.
        If with_history is set, an history of the events is kept to allow replay.
+       History rewiters allow to change an event before it is commited to history.
     *)
 
 (** {2 Helpers} *)

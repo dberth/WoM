@@ -373,7 +373,7 @@ let set_rack rack game show_all_hands =
 
 let on_game_event nb_tiles playground rack river event game =
   let open Lwt in
-  set_rack rack game false >>
+    set_rack rack game false >>
   set_river nb_tiles river game >>
   return (playground # queue_draw) >>
   Lwt.pause ()
@@ -417,8 +417,6 @@ let end_round playground rack console game =
   in
   join  [show_info; wait]
   
-
-
 let init nb_tiles playground rack river console =
   let roll () =
     throw_2_dice playground river
@@ -436,6 +434,7 @@ let init nb_tiles playground rack river console =
       new_round = new_round river;
       end_game;
       on_game_event = on_game_event nb_tiles playground rack river;
+      autosave_file = (fun () -> Some "wom_game.dump");
     }
   in
   Random.self_init ();

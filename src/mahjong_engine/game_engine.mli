@@ -55,6 +55,7 @@ type game_loop_callbacks =
     new_round: game -> unit Lwt.t;
     end_game: game -> unit Lwt.t;
     on_game_event: Game_descr.game_event -> game -> unit Lwt.t;
+    autosave_file: unit -> string option;
   }
 
 val one_player_game_loop: Game_descr.game_event list -> game_loop_callbacks -> unit Lwt.t

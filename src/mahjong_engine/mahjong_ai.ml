@@ -73,7 +73,12 @@ let mc_next_event_with_bias round state bias =
             )
             possible_actions
         with
-        | Not_found -> assert false
+        | Not_found ->
+          print_endline "===";
+          print_endline (Tileset.string_of_tile_descr tile_descr);
+          List.iter (fun event -> print_endline (string_of_round_event event)) possible_actions;
+          print_endline "=====";
+          assert false
 
 let mc_trajectory_with_bias ?irregular_hands ~seven_pairs ~event_history ~possible_actions bias =
   let action_handler, round, state = build_engine ?irregular_hands ~seven_pairs event_history in

@@ -74,6 +74,8 @@ val last_drawn_tile: Game_descr.round_player -> round -> Tileset.tile option
 
 val set_real_init_tiles: Game_descr.round_event list -> round -> Game_descr.round_event list
 
+val real_init_event: round -> Game_descr.round_event
+
 val last_wall_tile: round -> int
 
 val current_wall_tile: round -> int

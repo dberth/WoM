@@ -576,7 +576,13 @@ let declare_concealed_kong player tiles_pos event round =
 
 let set_small_kong tile_pos tiles event player_state =
   let rec aux = function
-    | [] -> raise (Irrelevant_event(event, "Cannot find pong to make a small kong."))
+    | [] ->
+      let message =
+        Printf.sprintf
+          "Cannot find pong to make a small kong.\n\nplayer state:\n%s"
+          (string_of_player_state tiles player_state)
+      in
+      raise (Irrelevant_event(event, message))
     | (tileset, tiles_pos, concealed as x) :: tl ->
       if List.length tiles_pos = 4 then
         x :: aux tl
@@ -1398,12 +1404,14 @@ let rec replace_init_event new_init = function
   | Init _ :: tl -> new_init :: tl
   | hd :: tl -> hd :: replace_init_event new_init tl 
 
-let set_real_init_tiles events {tiles; _} =
+let real_init_event {tiles; _} =
   let n = Array.length tiles in 
   let init_tiles = Array.make n None in
   for i = 0 to n - 1 do init_tiles.(i) <- Some tiles.(i) done;
-  let new_init = Init init_tiles in
-  replace_init_event new_init events
+  Init init_tiles
+
+let set_real_init_tiles events round =
+  replace_init_event (real_init_event round) events
 
 let current_wall_tile {current_tile; _} = current_tile
 

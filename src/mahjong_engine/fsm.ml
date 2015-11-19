@@ -34,10 +34,17 @@ let new_id =
   let id = ref (-1) in
   fun () -> incr id; !id
 
-let run ?(with_history = false) action_handler world state events =
+let run ?(with_history = false) ?(history_rewriters = []) action_handler world state events =
+  let rewrite_event world event =
+    List.fold_left
+      (fun event rewriter -> rewriter world event)
+      event
+      history_rewriters
+  in
   let new_world, new_state = (Lazy.force state).state action_handler world events in
   let new_state =
     if with_history then
+      let events = List.map (rewrite_event new_world) events in
       {new_state with history = List.rev_append events (Lazy.force state).history}
     else
       new_state
